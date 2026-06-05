@@ -1,0 +1,25 @@
+{
+  "name": "@libertai/web-shared",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Shared frontend code for LibertAI web apps (auth store, LoginPanel, inference SDK). Consumed as source via a git submodule + Vite alias — not built or published.",
+  "type": "module",
+  "scripts": {
+    "gen:sdk": "openapi-ts --file openapi-ts.config.ts"
+  },
+  "//": "These are PEER deps — provided by the consuming app's node_modules. Listed for reference; do not `npm install` here.",
+  "peerDependencies": {
+    "@hey-api/client-axios": "*",
+    "@radix-ui/react-slot": "*",
+    "@solana/wallet-adapter-react": "*",
+    "class-variance-authority": "*",
+    "clsx": "*",
+    "ethers": "*",
+    "lucide-react": "*",
+    "react": ">=19",
+    "sonner": "*",
+    "tailwind-merge": "*",
+    "thirdweb": "*",
+    "zustand": ">=5"
+  }
+}
