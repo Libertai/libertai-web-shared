@@ -518,15 +518,15 @@ export const useAccountStore = create<AccountStoreState>((set, get) => ({
 		}
 	},
 	onDisconnect: () => {
-		// A wallet disconnect must NOT drop an email/OAuth session (cookie-based, not tied to the wallet).
-		const hadSession = !!get().me;
+		// The session is cookie-based and independent of the connected wallet, so a wallet
+		// disconnect must NOT touch isAuthenticated (only logout() / checkSession() do).
+		// It just clears wallet-derived state. This also prevents WalletSync's initial
+		// onAccountChange(undefined, undefined) from bouncing a fresh email/OAuth login.
 		set({
-			isAuthenticated: hadSession,
 			ltaiBalance: 0,
 			solBalance: 0,
 			apiCredits: 0,
 			lastTransactionHash: null,
-			isInitialLoad: true,
 			account: null,
 		});
 	},
