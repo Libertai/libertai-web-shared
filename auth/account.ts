@@ -330,6 +330,7 @@ export const useAccountStore = create<AccountStoreState>((set, get) => ({
 		}
 		authEpoch++;
 		set({ isAuthenticated: true, isInitialLoad: false });
+		await get().checkSession(); // populate `me` (email/profile) from /auth/me
 		get().queryClient?.invalidateQueries();
 		return true;
 	},
@@ -340,6 +341,7 @@ export const useAccountStore = create<AccountStoreState>((set, get) => ({
 		}
 		authEpoch++;
 		set({ isAuthenticated: true, isInitialLoad: false });
+		await get().checkSession();
 		get().queryClient?.invalidateQueries();
 		return true;
 	},
@@ -354,6 +356,7 @@ export const useAccountStore = create<AccountStoreState>((set, get) => ({
 		}
 		authEpoch++;
 		set({ isAuthenticated: true, isInitialLoad: false });
+		await get().checkSession();
 		get().queryClient?.invalidateQueries();
 		return true;
 	},
