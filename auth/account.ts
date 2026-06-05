@@ -73,6 +73,11 @@ type AccountStoreState = {
 	setInitialLoadComplete: () => void;
 };
 
+// Monotonic auth epoch. Bumped on every interactive login/logout so a slow
+// startup checkSession() (whose /auth/me went out before the cookie existed and
+// returns 401) can't clobber a session that was established while it was in flight.
+let authEpoch = 0;
+
 export const useAccountStore = create<AccountStoreState>((set, get) => ({
 	ltaiBalance: 0,
 	solBalance: 0,
@@ -152,9 +157,13 @@ export const useAccountStore = create<AccountStoreState>((set, get) => ({
 				authSuccess = await state.authenticate(newBaseAccount, newSolanaAccount, shouldShowErrors);
 			}
 
+			if (authSuccess) {
+				authEpoch++; // protect this wallet session from a stale in-flight checkSession
+			}
 			set({
 				isAuthenticating: false,
 				isAuthenticated: authSuccess,
+				isInitialLoad: false,
 			});
 
 			if (authSuccess) {
@@ -319,7 +328,8 @@ export const useAccountStore = create<AccountStoreState>((set, get) => ({
 			toast.error("Invalid or expired code");
 			return false;
 		}
-		set({ isAuthenticated: true });
+		authEpoch++;
+		set({ isAuthenticated: true, isInitialLoad: false });
 		get().queryClient?.invalidateQueries();
 		return true;
 	},
@@ -328,7 +338,8 @@ export const useAccountStore = create<AccountStoreState>((set, get) => ({
 		if (response.error) {
 			return false;
 		}
-		set({ isAuthenticated: true });
+		authEpoch++;
+		set({ isAuthenticated: true, isInitialLoad: false });
 		get().queryClient?.invalidateQueries();
 		return true;
 	},
@@ -341,31 +352,43 @@ export const useAccountStore = create<AccountStoreState>((set, get) => ({
 		if (response.error) {
 			return false;
 		}
-		set({ isAuthenticated: true });
+		authEpoch++;
+		set({ isAuthenticated: true, isInitialLoad: false });
 		get().queryClient?.invalidateQueries();
 		return true;
 	},
 	logout: async (): Promise<void> => {
 		// Best-effort: clear the server session cookie. Errors are non-fatal (we still clear local state).
 		// The cookie-based backend ignores the body; cast since the generated type still expects a refresh_token.
+		authEpoch++;
 		try {
 			await logoutAuthLogoutPost({ body: {} as never });
 		} catch {
 			// best-effort
 		}
-		set({ isAuthenticated: false, account: null, me: null });
+		set({ isAuthenticated: false, account: null, me: null, isInitialLoad: false });
 		// Drop cached data so the next user doesn't see the previous session's data.
 		get().queryClient?.clear();
 	},
 	checkSession: async (): Promise<boolean> => {
+		const epochAtStart = authEpoch;
 		try {
 			const response = await getMeAuthMeGet();
+			// A login/logout happened while /auth/me was in flight → our result is stale; don't clobber it.
+			if (authEpoch !== epochAtStart) {
+				set({ isInitialLoad: false });
+				return get().isAuthenticated;
+			}
 			const authenticated = !response.error;
-			set({ isAuthenticated: authenticated, me: response.data ?? null });
+			set({ isAuthenticated: authenticated, me: response.data ?? null, isInitialLoad: false });
 			return authenticated;
 		} catch (error) {
 			console.error("Session check error:", error);
-			set({ isAuthenticated: false, me: null });
+			if (authEpoch !== epochAtStart) {
+				set({ isInitialLoad: false });
+				return get().isAuthenticated;
+			}
+			set({ isAuthenticated: false, me: null, isInitialLoad: false });
 			return false;
 		}
 	},
