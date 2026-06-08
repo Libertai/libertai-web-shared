@@ -1,5 +1,7 @@
 export { initLibertaiAuth, libertaiConfig, type LibertaiConfig } from "./config";
 export { useAccountStore } from "./account";
+export { AccountMenu, type AccountMenuItem, type AccountMenuProps } from "./AccountMenu";
+export { ProfileAvatar } from "./ProfileAvatar";
 export { default as LoginPanel } from "./LoginPanel";
 export { LibertaiProviders } from "./providers";
 export { default as WalletConnectButtons } from "./WalletConnectButtons";
