@@ -10,6 +10,8 @@ edits are picked up live by the consuming app's bundler (HMR works).
   `npm run gen:sdk` against a running backend.
 - `auth/` — `useAccountStore` (zustand), `LoginPanel`, the shadcn primitives it needs,
   and `initLibertaiAuth()`.
+- `branding/` — `LibertaiLogo`, the brand mark + wordmark lockup as a theme-aware inline
+  SVG (`fill="currentColor"`, sized via `className`).
 
 Auth is **cookie-based**: the backend sets an httpOnly session cookie on `*.libertai.io`,
 so signing in on one app signs you in on the others. Login state is derived from
@@ -29,6 +31,7 @@ so signing in on one app signs you in on the others. Login state is derived from
    // vite.config.ts
    resolve: { alias: {
      "@libertai/auth": path.resolve(__dirname, "src/shared/auth"),
+     "@libertai/branding": path.resolve(__dirname, "src/shared/branding"),
      "@libertai/inference-sdk": path.resolve(__dirname, "src/shared/inference-sdk"),
    }}
    ```
@@ -36,6 +39,7 @@ so signing in on one app signs you in on the others. Login state is derived from
    // tsconfig.json
    "paths": {
      "@libertai/auth": ["src/shared/auth"],
+     "@libertai/branding": ["src/shared/branding"],
      "@libertai/inference-sdk": ["src/shared/inference-sdk"]
    }
    ```

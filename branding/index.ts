@@ -1,0 +1,1 @@
+export { LibertaiLogo } from "./LibertaiLogo";
