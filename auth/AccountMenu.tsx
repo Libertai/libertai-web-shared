@@ -1,8 +1,7 @@
 import { ReactNode } from "react";
-import { Coins, Copy, Loader2, LogOut } from "lucide-react";
+import { Coins, Loader2, LogOut } from "lucide-react";
 import { useActiveAccount, useActiveWallet, useDisconnect } from "thirdweb/react";
 import { useWallet as useSolanaWallet } from "@solana/wallet-adapter-react";
-import { toast } from "sonner";
 import { Button } from "./ui/button";
 import {
 	DropdownMenu,
@@ -14,7 +13,12 @@ import {
 import { ProfileAvatar } from "./ProfileAvatar";
 import { useAccountStore } from "./account";
 
-type Me = { email?: string | null; display_name?: string | null; avatar_url?: string | null; address?: string | null } | null;
+type Me = {
+	email?: string | null;
+	display_name?: string | null;
+	avatar_url?: string | null;
+	address?: string | null;
+} | null;
 
 export type AccountMenuItem = {
 	label: string;
@@ -74,15 +78,25 @@ export function AccountMenu({ ens, items = [], onSignIn, onSignedOut, onAction }
 		);
 	}
 
-	const isWallet = !!account?.address;
+	// Identity address: prefer the live connected wallet, else the wallet address from the shared
+	// cookie session (`me`). The wallet connection is per-origin (thirdweb stores it per domain) while
+	// the session is shared across LibertAI apps — so this keeps the account chip identical everywhere,
+	// even on an app where the wallet hasn't been (re)connected.
+	const address = account?.address ?? me?.address ?? undefined;
+	const isWallet = !!address;
 	// Prefer the user's chosen display name everywhere; fall back to ENS/address (wallet) or email.
 	const label = isWallet
-		? (me?.display_name ?? ens?.displayName ?? ens?.name ?? formatAddress(account!.address))
+		? (me?.display_name ?? ens?.displayName ?? ens?.name ?? formatAddress(address!))
 		: (me?.display_name ?? me?.email ?? "Account");
 	const avatarSrc = isWallet ? ens?.avatar : me?.avatar_url;
 
-	const shouldShowWalletLoading =
-		isAuthenticating && (!!(thirdwebAccount && evmWallet) || !!solanaWallet.wallet);
+	// Secondary identifier for the top of the dropdown. Only meaningful when the button already shows a
+	// chosen display name — then we surface the email (or cropped wallet address) underneath for context.
+	// Otherwise the button itself is already the email/address, so we show nothing.
+	const secondaryId = me?.email ?? (address ? formatAddress(address) : null);
+	const showSecondary = !!me?.display_name && !!secondaryId;
+
+	const shouldShowWalletLoading = isAuthenticating && (!!(thirdwebAccount && evmWallet) || !!solanaWallet.wallet);
 
 	const handleSignOut = async () => {
 		onAction?.();
@@ -96,12 +110,6 @@ export function AccountMenu({ ens, items = [], onSignIn, onSignedOut, onAction }
 		onSignedOut?.();
 	};
 
-	const copyAddress = () => {
-		if (!account?.address) return;
-		navigator.clipboard.writeText(account.address);
-		toast.success("Address copied");
-	};
-
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger asChild>
@@ -109,34 +117,20 @@ export function AccountMenu({ ens, items = [], onSignIn, onSignedOut, onAction }
 					variant="outline"
 					className="flex items-center gap-3 px-3 py-2 border-border w-full justify-start h-auto"
 				>
-					<ProfileAvatar src={avatarSrc} address={account?.address} size="md" />
+					<ProfileAvatar src={avatarSrc} address={address} size="md" />
 					<div className="flex flex-col items-start flex-1 min-w-0">
 						<div className="text-md font-medium truncate w-full text-left">{label}</div>
 					</div>
 				</Button>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="end" className="min-w-[220px]">
-				<div className="px-2 py-2">
-					<p className="text-xs text-muted-foreground">{isWallet ? "Connected as" : "Signed in as"}</p>
-					<div className="flex items-center gap-2">
-						<ProfileAvatar src={avatarSrc} address={account?.address} size="sm" />
-						<div className="flex-1 min-w-0">
-							<p className="font-medium truncate text-sm">{label}</p>
-						</div>
-						{isWallet && (
-							<Button
-								variant="ghost"
-								size="sm"
-								onClick={copyAddress}
-								className="h-6 w-6 p-0 hover:bg-muted flex-shrink-0"
-							>
-								<Copy className="h-3 w-3" />
-							</Button>
-						)}
+				{showSecondary && (
+					<div className="px-2 py-1.5">
+						<p className="text-sm text-muted-foreground truncate">{secondaryId}</p>
 					</div>
-				</div>
+				)}
 
-				{isWallet && (
+				{!!account?.address && (
 					<div className="px-2 py-2">
 						<p className="text-xs text-muted-foreground">Balance</p>
 						<p className="font-medium flex items-center">
@@ -155,7 +149,7 @@ export function AccountMenu({ ens, items = [], onSignIn, onSignedOut, onAction }
 					</div>
 				)}
 
-				<DropdownMenuSeparator />
+				{(showSecondary || !!account?.address) && <DropdownMenuSeparator />}
 
 				{items.map((item) => (
 					<DropdownMenuItem
@@ -172,9 +166,11 @@ export function AccountMenu({ ens, items = [], onSignIn, onSignedOut, onAction }
 					</DropdownMenuItem>
 				))}
 
-				<DropdownMenuItem onClick={handleSignOut} className="cursor-pointer gap-2 text-destructive">
+				{items.length > 0 && <DropdownMenuSeparator />}
+
+				<DropdownMenuItem onClick={handleSignOut} className="cursor-pointer gap-2">
 					<LogOut className="h-4 w-4" />
-					Sign out
+					Log out
 				</DropdownMenuItem>
 			</DropdownMenuContent>
 		</DropdownMenu>
