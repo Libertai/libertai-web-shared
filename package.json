@@ -7,9 +7,8 @@
   "scripts": {
     "gen:sdk": "openapi-ts --file openapi-ts.config.ts"
   },
-  "//": "These are PEER deps — provided by the consuming app's node_modules. Listed for reference; do not `npm install` here.",
+  "//": "Runtime deps are PEER deps (provided by the consuming app). devDependencies are codegen-only: install here (`pnpm install`) solely to regenerate the inference SDK via `pnpm gen:sdk`.",
   "peerDependencies": {
-    "@hey-api/client-axios": "*",
     "@radix-ui/react-slot": "*",
     "@solana/wallet-adapter-react": "*",
     "class-variance-authority": "*",
@@ -21,5 +20,10 @@
     "tailwind-merge": "*",
     "thirdweb": "*",
     "zustand": ">=5"
+  },
+  "devDependencies": {
+    "@hey-api/openapi-ts": "0.98.2",
+    "prettier": "^3.8.1",
+    "typescript": "^5.9.3"
   }
 }
