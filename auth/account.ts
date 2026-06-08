@@ -9,6 +9,7 @@ import {
 	loginEmailAuthLoginEmailPost,
 	loginWithWalletAuthLoginPost,
 	logoutAuthLogoutPost,
+	updateMeAuthMePatch,
 	verifyMagicLinkRouteAuthVerifyMagicLinkPost,
 } from "../inference-sdk";
 import { toast } from "sonner";
@@ -48,6 +49,8 @@ type AccountStoreState = {
 	verifyMagicLinkToken: (token: string) => Promise<boolean>;
 	loginWithOAuth: (provider: "google" | "github") => void;
 	exchangeOAuthCode: (code: string) => Promise<boolean>;
+	// Update the editable profile (display name). Refreshes `me` on success.
+	updateProfile: (displayName: string | null) => Promise<boolean>;
 	logout: () => Promise<void>;
 	// Cookie-based session probe: call on app startup to hydrate isAuthenticated / me.
 	checkSession: () => Promise<boolean>;
@@ -367,6 +370,16 @@ export const useAccountStore = create<AccountStoreState>((set, get) => ({
 		authEpoch++;
 		set({ isAuthenticated: true, isInitialLoad: false });
 		await get().checkSession();
+		get().queryClient?.invalidateQueries();
+		return true;
+	},
+	updateProfile: async (displayName: string | null): Promise<boolean> => {
+		const response = await updateMeAuthMePatch({ body: { display_name: displayName } });
+		if (response.error) {
+			toast.error("Could not update your profile");
+			return false;
+		}
+		set({ me: response.data ?? null });
 		get().queryClient?.invalidateQueries();
 		return true;
 	},

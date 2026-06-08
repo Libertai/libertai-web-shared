@@ -14,6 +14,9 @@ import type {
 	GetMeAuthMeGetData,
 	GetMeAuthMeGetResponses,
 	GetMeAuthMeGetErrors,
+	UpdateMeAuthMePatchData,
+	UpdateMeAuthMePatchResponses,
+	UpdateMeAuthMePatchErrors,
 	WalletChallengeAuthWalletChallengePostData,
 	WalletChallengeAuthWalletChallengePostResponses,
 	WalletChallengeAuthWalletChallengePostErrors,
@@ -274,6 +277,25 @@ export const getMeAuthMeGet = <ThrowOnError extends boolean = false>(
 		responseType: "json",
 		url: "/auth/me",
 		...options,
+	});
+};
+
+// NOTE: hand-added pending a full SDK regen (toolchain version drift). Mirrors the generated style.
+export const updateMeAuthMePatch = <ThrowOnError extends boolean = false>(
+	options: Options<UpdateMeAuthMePatchData, ThrowOnError>,
+) => {
+	return (options.client ?? _heyApiClient).patch<
+		UpdateMeAuthMePatchResponses,
+		UpdateMeAuthMePatchErrors,
+		ThrowOnError
+	>({
+		responseType: "json",
+		url: "/auth/me",
+		...options,
+		headers: {
+			"Content-Type": "application/json",
+			...options.headers,
+		},
 	});
 };
 

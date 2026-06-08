@@ -1584,6 +1584,46 @@ export type GetMeAuthMeGetResponses = {
 
 export type GetMeAuthMeGetResponse = GetMeAuthMeGetResponses[keyof GetMeAuthMeGetResponses];
 
+// NOTE: hand-added pending a full SDK regen (toolchain version drift — see PATCH /auth/me). Mirrors
+// the generated style; will be reproduced by `openapi-ts` once the generator version is standardized.
+export type UpdateProfileRequest = {
+	/**
+	 * Display Name
+	 */
+	display_name?: string | null;
+};
+
+export type UpdateMeAuthMePatchData = {
+	body: UpdateProfileRequest;
+	headers?: {
+		/**
+		 * Authorization
+		 */
+		authorization?: string | null;
+	};
+	path?: never;
+	query?: never;
+	url: "/auth/me";
+};
+
+export type UpdateMeAuthMePatchErrors = {
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
+};
+
+export type UpdateMeAuthMePatchError = UpdateMeAuthMePatchErrors[keyof UpdateMeAuthMePatchErrors];
+
+export type UpdateMeAuthMePatchResponses = {
+	/**
+	 * Successful Response
+	 */
+	200: CurrentUserResponse;
+};
+
+export type UpdateMeAuthMePatchResponse = UpdateMeAuthMePatchResponses[keyof UpdateMeAuthMePatchResponses];
+
 export type WalletChallengeAuthWalletChallengePostData = {
 	body: WalletChallengeRequest;
 	path?: never;
