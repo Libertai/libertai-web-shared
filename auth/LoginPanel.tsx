@@ -6,8 +6,9 @@ import { Input } from "./ui/input";
 import { useAccountStore } from "./account";
 import WalletConnectButtons from "./WalletConnectButtons";
 
-// Google/GitHub OAuth is hidden for now (only email + wallets). Flip to re-enable.
-const SHOW_OAUTH = false;
+// OAuth providers shown in the panel. Google's button/backend exist but stay off for now;
+// add "google" here (and configure its credentials) to re-enable it.
+const OAUTH_PROVIDERS: ReadonlyArray<"google" | "github"> = ["github"];
 
 // `onSuccess` is provided by the host app to handle post-login navigation
 // (this shared component is router-agnostic and never navigates by itself).
@@ -92,7 +93,7 @@ export default function LoginPanel({ onSuccess }: { onSuccess?: () => void } = {
 				</form>
 			)}
 
-			{SHOW_OAUTH && (
+			{OAUTH_PROVIDERS.length > 0 && (
 				<>
 					<div className="flex items-center gap-3 text-xs text-muted-foreground">
 						<span className="h-px flex-1 bg-border" />
@@ -101,13 +102,17 @@ export default function LoginPanel({ onSuccess }: { onSuccess?: () => void } = {
 					</div>
 
 					<div className="space-y-2">
-						<Button variant="outline" className="w-full" onClick={() => loginWithOAuth("google")}>
-							Continue with Google
-						</Button>
-						<Button variant="outline" className="w-full" onClick={() => loginWithOAuth("github")}>
-							<Github className="h-4 w-4" />
-							Continue with GitHub
-						</Button>
+						{OAUTH_PROVIDERS.includes("google") && (
+							<Button variant="outline" className="w-full" onClick={() => loginWithOAuth("google")}>
+								Continue with Google
+							</Button>
+						)}
+						{OAUTH_PROVIDERS.includes("github") && (
+							<Button variant="outline" className="w-full" onClick={() => loginWithOAuth("github")}>
+								<Github className="h-4 w-4" />
+								Continue with GitHub
+							</Button>
+						)}
 					</div>
 				</>
 			)}

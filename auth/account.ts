@@ -350,7 +350,14 @@ export const useAccountStore = create<AccountStoreState>((set, get) => ({
 	},
 	loginWithOAuth: (provider: "google" | "github") => {
 		// Full-page redirect to the backend, which redirects to the provider then back to /auth/callback.
-		window.location.href = `${libertaiConfig().apiBaseUrl}/auth/oauth/${provider}`;
+		// Pass our origin as redirect_base so the backend returns the user to THIS app (chat vs console)
+		// after the provider round-trip — validated against an allowlist server-side. Without it, OAuth
+		// always lands on the single hardcoded FRONTEND_URL regardless of where the user started.
+		const base = libertaiConfig().apiBaseUrl;
+		const redirectBase = typeof window !== "undefined" ? window.location.origin : undefined;
+		window.location.href = redirectBase
+			? `${base}/auth/oauth/${provider}?redirect_base=${encodeURIComponent(redirectBase)}`
+			: `${base}/auth/oauth/${provider}`;
 	},
 	exchangeOAuthCode: async (code: string): Promise<boolean> => {
 		const response = await exchangeCodeAuthExchangePost({ body: { code } });
