@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { Coins, Loader2, LogOut } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { useActiveAccount, useActiveWallet, useDisconnect } from "thirdweb/react";
 import { useWallet as useSolanaWallet } from "@solana/wallet-adapter-react";
 import { Button } from "./ui/button";
@@ -58,8 +58,6 @@ export function AccountMenu({ ens, items = [], onSignIn, onSignedOut, onAction }
 	const isAuthenticated = useAccountStore((state) => state.isAuthenticated);
 	const me = useAccountStore((state) => state.me) as Me;
 	const logout = useAccountStore((state) => state.logout);
-	const formattedLtaiBalance = useAccountStore((state) => state.formattedLTAIBalance());
-	const isAuthenticating = useAccountStore((state) => state.isAuthenticating);
 
 	// No session and no connected wallet → offer sign-in (or nothing if the app didn't provide a handler).
 	if (!account?.address && !isAuthenticated) {
@@ -96,8 +94,6 @@ export function AccountMenu({ ens, items = [], onSignIn, onSignedOut, onAction }
 	const secondaryId = me?.email ?? (address ? formatAddress(address) : null);
 	const showSecondary = !!me?.display_name && !!secondaryId;
 
-	const shouldShowWalletLoading = isAuthenticating && (!!(thirdwebAccount && evmWallet) || !!solanaWallet.wallet);
-
 	const handleSignOut = async () => {
 		onAction?.();
 		// Cookie-based: end the server session, then drop any connected wallet.
@@ -130,26 +126,7 @@ export function AccountMenu({ ens, items = [], onSignIn, onSignedOut, onAction }
 					</div>
 				)}
 
-				{!!account?.address && (
-					<div className="px-2 py-2">
-						<p className="text-xs text-muted-foreground">Balance</p>
-						<p className="font-medium flex items-center">
-							{shouldShowWalletLoading ? (
-								<>
-									<Loader2 className="h-3 w-3 mr-1 animate-spin" />
-									Loading...
-								</>
-							) : (
-								<>
-									<Coins className="h-3 w-3 mr-1 text-primary" />
-									{formattedLtaiBalance} LTAI
-								</>
-							)}
-						</p>
-					</div>
-				)}
-
-				{(showSecondary || !!account?.address) && <DropdownMenuSeparator />}
+				{showSecondary && <DropdownMenuSeparator />}
 
 				{items.map((item) => (
 					<DropdownMenuItem
