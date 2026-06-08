@@ -314,7 +314,10 @@ export const useAccountStore = create<AccountStoreState>((set, get) => ({
 		return 0;
 	},
 	loginWithEmail: async (email: string): Promise<boolean> => {
-		const response = await loginEmailAuthLoginEmailPost({ body: { email } });
+		// Send our origin so the magic-link email points back to this app (chat vs console),
+		// not a single hardcoded frontend. Backend validates it against an allowlist.
+		const redirect_base = typeof window !== "undefined" ? window.location.origin : undefined;
+		const response = await loginEmailAuthLoginEmailPost({ body: { email, redirect_base } });
 		if (response.error) {
 			toast.error("Could not send the sign-in email");
 			return false;

@@ -492,6 +492,10 @@ export type EmailLoginRequest = {
 	 * Email
 	 */
 	email: string;
+	/**
+	 * Redirect Base
+	 */
+	redirect_base?: string | null;
 };
 
 /**
