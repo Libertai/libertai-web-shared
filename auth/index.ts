@@ -9,3 +9,8 @@ export { default as WalletConnectButtons } from "./WalletConnectButtons";
 export { usePaymentProviders, useTiers, useSubscription, useCanUpgrade, useBillingActions } from "./use-payments";
 export { AllowanceBar } from "./AllowanceBar";
 export { PlansSection } from "./PlansSection";
+export { PaymentStage } from "./payment/PaymentStage";
+export { PaymentMethodSelector, type PaymentMethod } from "./payment/PaymentMethodSelector";
+export { PaymentForm } from "./payment/PaymentForm";
+export { TopUpAmountInput } from "./payment/TopUpAmountInput";
+export { PaymentConfigProvider, usePaymentConfig, type PaymentConfig } from "./payment/config";
