@@ -127,42 +127,38 @@ export function AccountMenu({
 
 	return (
 		<DropdownMenu>
-			<DropdownMenuTrigger asChild>
-				<Button
-					variant="outline"
-					className="flex items-center gap-3 px-3 py-2 border-border w-full justify-start h-auto"
-				>
-					<ProfileAvatar src={avatarSrc} address={address} size="md" />
-					<div className="flex flex-col items-start flex-1 min-w-0">
-						<div className="text-md font-medium truncate w-full text-left">{label}</div>
-						{planLabel && (
-							<div className="text-xs text-muted-foreground leading-tight truncate w-full text-left capitalize">
-								{planLabel}
-							</div>
-						)}
-					</div>
-					{showUpgrade && (
-						// Isolate the icon's pointer/click from the Radix trigger so it navigates to the
-						// plans page instead of toggling the dropdown.
-						<div
-							className="ml-auto shrink-0"
-							onPointerDown={(e) => e.stopPropagation()}
-							onClick={(e) => e.stopPropagation()}
-						>
-							<Button
-								variant="ghost"
-								size="icon"
-								className="h-7 w-7 text-muted-foreground hover:text-foreground"
-								aria-label="Upgrade plan"
-								title="Upgrade plan"
-								onClick={handleUpgrade}
-							>
-								<ArrowUpCircle className="h-4 w-4" />
-							</Button>
+			{/* Bordered chip holding two sibling buttons (trigger + upgrade icon). They must NOT be
+			    nested — a <button> inside a <button> is invalid HTML and breaks hydration. */}
+			<div className="flex items-center gap-1 w-full rounded-md border border-border pr-1">
+				<DropdownMenuTrigger asChild>
+					<Button
+						variant="ghost"
+						className="flex items-center gap-3 px-3 py-2 flex-1 min-w-0 justify-start h-auto"
+					>
+						<ProfileAvatar src={avatarSrc} address={address} size="md" />
+						<div className="flex flex-col items-start flex-1 min-w-0">
+							<div className="text-md font-medium truncate w-full text-left">{label}</div>
+							{planLabel && (
+								<div className="text-xs text-muted-foreground leading-tight truncate w-full text-left capitalize">
+									{planLabel}
+								</div>
+							)}
 						</div>
-					)}
-				</Button>
-			</DropdownMenuTrigger>
+					</Button>
+				</DropdownMenuTrigger>
+				{showUpgrade && (
+					<Button
+						variant="ghost"
+						size="icon"
+						className="h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground"
+						aria-label="Upgrade plan"
+						title="Upgrade plan"
+						onClick={handleUpgrade}
+					>
+						<ArrowUpCircle className="h-4 w-4" />
+					</Button>
+				)}
+			</div>
 			<DropdownMenuContent align="end" className="min-w-[220px]">
 				{showSecondary && (
 					<div className="px-2 py-1.5">
