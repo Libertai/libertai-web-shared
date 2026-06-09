@@ -87,14 +87,30 @@ export function useBillingActions() {
 	const subscribe = useMutation({
 		mutationFn: async ({ provider, tier }: { provider: string; tier: string }) =>
 			unwrap(await subscribePaymentsSubscribePost({ body: { provider, tier } }), "Failed to subscribe"),
-		onSuccess: (data) => redirectTo(data.checkout_url),
+		onSuccess: (data) => {
+			if (data.checkout_url) {
+				redirectTo(data.checkout_url);
+			} else {
+				toast.success("Subscription updated");
+				void queryClient.invalidateQueries({ queryKey: ["subscription"] });
+				void queryClient.invalidateQueries({ queryKey: ["credits"] });
+			}
+		},
 		onError: onError("subscribe"),
 	});
 
 	const upgrade = useMutation({
 		mutationFn: async ({ provider, tier }: { provider: string; tier: string }) =>
 			unwrap(await upgradePaymentsUpgradePost({ body: { provider, tier } }), "Failed to upgrade"),
-		onSuccess: (data) => redirectTo(data.checkout_url),
+		onSuccess: (data) => {
+			if (data.checkout_url) {
+				redirectTo(data.checkout_url);
+			} else {
+				toast.success("Subscription updated");
+				void queryClient.invalidateQueries({ queryKey: ["subscription"] });
+				void queryClient.invalidateQueries({ queryKey: ["credits"] });
+			}
+		},
 		onError: onError("upgrade"),
 	});
 

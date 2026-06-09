@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { Zap } from "lucide-react";
 import { Button } from "./ui/button";
 import { useBillingActions, usePaymentProviders, useSubscription, useTiers } from "./use-payments";
+import { useAccountStore } from "./account";
 
 // Qualitative descriptions — we deliberately don't surface raw allowance numbers.
 const TIER_TAGLINES: Record<string, string> = {
@@ -19,6 +20,8 @@ export function PlansSection() {
 	const { data: providers } = usePaymentProviders();
 	const { subscribe, upgrade, downgrade, cancel } = useBillingActions();
 
+	const account = useAccountStore((s) => s.account);
+	const isWallet = !!account;
 	const fiatProvider = useMemo(() => providers?.find((p) => p.kind === "fiat"), [providers]);
 	const tierOrder = useMemo(() => {
 		const map: Record<string, number> = {};
@@ -31,7 +34,7 @@ export function PlansSection() {
 		!!subscription?.has_subscription && subscription?.status === "active" && currentTier !== "free";
 
 	const handleTierAction = (tierName: string) => {
-		const provider = fiatProvider?.id ?? "revolut";
+		const provider = isWallet ? "credits" : (fiatProvider?.id ?? "revolut");
 		const target = tierOrder[tierName] ?? 0;
 		const current = tierOrder[currentTier] ?? 0;
 		if (tierName === "free") {
@@ -80,7 +83,7 @@ export function PlansSection() {
 							<Button
 								className="mt-4 w-full"
 								variant={isCurrent ? "outline" : "default"}
-								disabled={isCurrent || (tier.is_paid && !fiatProvider)}
+								disabled={isCurrent || (tier.is_paid && !isWallet && !fiatProvider)}
 								onClick={() => handleTierAction(tier.name)}
 							>
 								{isCurrent
@@ -93,7 +96,7 @@ export function PlansSection() {
 					);
 				})}
 			</div>
-			{!fiatProvider && (
+			{!isWallet && !fiatProvider && (
 				<p className="text-xs text-muted-foreground">Paid plans become available once card payments are configured.</p>
 			)}
 		</div>
