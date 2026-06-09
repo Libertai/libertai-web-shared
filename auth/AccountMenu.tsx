@@ -11,8 +11,9 @@ import {
 	DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 import { ProfileAvatar } from "./ProfileAvatar";
+import { AllowanceBar } from "./AllowanceBar";
 import { useAccountStore } from "./account";
-import { useCanUpgrade } from "./use-payments";
+import { useCanUpgrade, useSubscription } from "./use-payments";
 
 type Me = {
 	email?: string | null;
@@ -70,9 +71,12 @@ export function AccountMenu({
 	const me = useAccountStore((state) => state.me) as Me;
 	const logout = useAccountStore((state) => state.logout);
 	const { loading: planLoading, tier, isFree, canUpgrade } = useCanUpgrade();
+	const { data: subscription } = useSubscription();
 
 	const planLabel = planLoading ? null : isFree ? "Free" : `${tier} plan`;
 	const showUpgrade = !!onUpgrade && canUpgrade;
+	const showUsage = !!subscription && ((subscription.window_5h_limit ?? 0) > 0 || (subscription.weekly_limit ?? 0) > 0);
+	const now = Date.now();
 	const handleUpgrade = () => {
 		onAction?.();
 		onUpgrade?.();
@@ -159,7 +163,7 @@ export function AccountMenu({
 					</Button>
 				)}
 			</div>
-			<DropdownMenuContent align="end" className="min-w-[220px]">
+			<DropdownMenuContent align="end" className="min-w-[260px]">
 				{showSecondary && (
 					<div className="px-2 py-1.5">
 						<p className="text-sm text-muted-foreground truncate">{secondaryId}</p>
@@ -167,6 +171,29 @@ export function AccountMenu({
 				)}
 
 				{showSecondary && <DropdownMenuSeparator />}
+
+				{showUsage && (
+					<>
+						<div className="px-2 py-2 space-y-2.5">
+							<p className="text-xs font-medium text-muted-foreground">Usage</p>
+							<AllowanceBar
+								label="Last 5 hours"
+								used={subscription!.window_5h_used ?? 0}
+								limit={subscription!.window_5h_limit ?? 0}
+								resetsAt={subscription!.window_5h_resets_at}
+								now={now}
+							/>
+							<AllowanceBar
+								label="This week"
+								used={subscription!.weekly_used ?? 0}
+								limit={subscription!.weekly_limit ?? 0}
+								resetsAt={subscription!.weekly_resets_at}
+								now={now}
+							/>
+						</div>
+						<DropdownMenuSeparator />
+					</>
+				)}
 
 				{showUpgrade && (
 					<DropdownMenuItem onClick={handleUpgrade} className="cursor-pointer gap-2">
