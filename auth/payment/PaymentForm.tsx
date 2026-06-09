@@ -11,13 +11,11 @@ import { waitForBaseTransaction } from "./transactions";
 import { usePaymentConfig } from "./config";
 
 interface LTAIPaymentFormProps {
-	usdAmount: number;
 	tokenAmount: number;
 	handlePayment: () => void;
 	ticker: string;
 	balance: number;
 	displayedDecimals: number;
-	tokenPrice: number;
 	discountedAmount?: number;
 	isLoading?: boolean;
 }
