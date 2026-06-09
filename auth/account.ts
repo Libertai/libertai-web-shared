@@ -170,6 +170,9 @@ export const useAccountStore = create<AccountStoreState>((set, get) => ({
 			});
 
 			if (authSuccess) {
+				// Load the profile (display name, avatar) so the account chip isn't stuck on the address.
+				await state.checkSession();
+
 				// Invalidate all queries to refetch with new account
 				if (state.queryClient) {
 					state.queryClient.invalidateQueries();
