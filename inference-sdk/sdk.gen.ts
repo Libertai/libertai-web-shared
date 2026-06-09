@@ -36,6 +36,9 @@ import type {
 	GetAdminAllApiKeysApiKeysAdminListGetData,
 	GetAdminAllApiKeysApiKeysAdminListGetErrors,
 	GetAdminAllApiKeysApiKeysAdminListGetResponses,
+	GetAggregateUsersStatsStatsGlobalUsersGetData,
+	GetAggregateUsersStatsStatsGlobalUsersGetErrors,
+	GetAggregateUsersStatsStatsGlobalUsersGetResponses,
 	GetApiKeysApiKeysGetData,
 	GetApiKeysApiKeysGetErrors,
 	GetApiKeysApiKeysGetResponses,
@@ -51,6 +54,9 @@ import type {
 	GetChatTokensStatsStatsGlobalChatTokensGetData,
 	GetChatTokensStatsStatsGlobalChatTokensGetErrors,
 	GetChatTokensStatsStatsGlobalChatTokensGetResponses,
+	GetChatUsersStatsStatsGlobalChatUsersGetData,
+	GetChatUsersStatsStatsGlobalChatUsersGetErrors,
+	GetChatUsersStatsStatsGlobalChatUsersGetResponses,
 	GetCliApiKeysApiKeysCliGetData,
 	GetCliApiKeysApiKeysCliGetErrors,
 	GetCliApiKeysApiKeysCliGetResponses,
@@ -69,6 +75,9 @@ import type {
 	GetInferenceTokensStatsStatsGlobalKeyTypeTokensGetData,
 	GetInferenceTokensStatsStatsGlobalKeyTypeTokensGetErrors,
 	GetInferenceTokensStatsStatsGlobalKeyTypeTokensGetResponses,
+	GetInferenceUsersStatsStatsGlobalKeyTypeUsersGetData,
+	GetInferenceUsersStatsStatsGlobalKeyTypeUsersGetErrors,
+	GetInferenceUsersStatsStatsGlobalKeyTypeUsersGetResponses,
 	GetMeAuthMeGetData,
 	GetMeAuthMeGetErrors,
 	GetMeAuthMeGetResponses,
@@ -940,6 +949,26 @@ export const getChatTokensStatsStatsGlobalChatTokensGet = <ThrowOnError extends 
 	});
 
 /**
+ * Get Chat Users Stats
+ */
+export const getChatUsersStatsStatsGlobalChatUsersGet = <ThrowOnError extends boolean = false>(
+	options: Options<GetChatUsersStatsStatsGlobalChatUsersGetData, ThrowOnError>,
+): RequestResult<
+	GetChatUsersStatsStatsGlobalChatUsersGetResponses,
+	GetChatUsersStatsStatsGlobalChatUsersGetErrors,
+	ThrowOnError
+> =>
+	(options.client ?? client).get<
+		GetChatUsersStatsStatsGlobalChatUsersGetResponses,
+		GetChatUsersStatsStatsGlobalChatUsersGetErrors,
+		ThrowOnError
+	>({
+		responseType: "json",
+		url: "/stats/global/chat/users",
+		...options,
+	});
+
+/**
  * Get Inference Calls Stats
  */
 export const getInferenceCallsStatsStatsGlobalKeyTypeCallsGet = <ThrowOnError extends boolean = false>(
@@ -996,6 +1025,46 @@ export const getInferenceCreditsStatsStatsGlobalKeyTypeCreditsGet = <ThrowOnErro
 	>({
 		responseType: "json",
 		url: "/stats/global/{key_type}/credits",
+		...options,
+	});
+
+/**
+ * Get Inference Users Stats
+ */
+export const getInferenceUsersStatsStatsGlobalKeyTypeUsersGet = <ThrowOnError extends boolean = false>(
+	options: Options<GetInferenceUsersStatsStatsGlobalKeyTypeUsersGetData, ThrowOnError>,
+): RequestResult<
+	GetInferenceUsersStatsStatsGlobalKeyTypeUsersGetResponses,
+	GetInferenceUsersStatsStatsGlobalKeyTypeUsersGetErrors,
+	ThrowOnError
+> =>
+	(options.client ?? client).get<
+		GetInferenceUsersStatsStatsGlobalKeyTypeUsersGetResponses,
+		GetInferenceUsersStatsStatsGlobalKeyTypeUsersGetErrors,
+		ThrowOnError
+	>({
+		responseType: "json",
+		url: "/stats/global/{key_type}/users",
+		...options,
+	});
+
+/**
+ * Get Aggregate Users Stats
+ */
+export const getAggregateUsersStatsStatsGlobalUsersGet = <ThrowOnError extends boolean = false>(
+	options: Options<GetAggregateUsersStatsStatsGlobalUsersGetData, ThrowOnError>,
+): RequestResult<
+	GetAggregateUsersStatsStatsGlobalUsersGetResponses,
+	GetAggregateUsersStatsStatsGlobalUsersGetErrors,
+	ThrowOnError
+> =>
+	(options.client ?? client).get<
+		GetAggregateUsersStatsStatsGlobalUsersGetResponses,
+		GetAggregateUsersStatsStatsGlobalUsersGetErrors,
+		ThrowOnError
+	>({
+		responseType: "json",
+		url: "/stats/global/users",
 		...options,
 	});
 
