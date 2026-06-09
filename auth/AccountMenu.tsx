@@ -38,8 +38,11 @@ export type AccountMenuProps = {
 	onSignedOut?: () => void;
 	/** Called whenever any item / sign-in / sign-out is activated (e.g. close the mobile sidebar). */
 	onAction?: () => void;
-	/** Optional plan indicator rendered under the display name in the trigger (e.g. <PlanBadge/>). */
-	planBadge?: ReactNode;
+	/** Muted secondary line under the display name in the trigger (e.g. <PlanLabel/> → "Free"). */
+	planLabel?: ReactNode;
+	/** Right-aligned action on the trigger row (e.g. <PlanUpgradeButton/>). Its own click is isolated
+	 *  from the dropdown trigger so pressing it navigates instead of opening the menu. */
+	planAction?: ReactNode;
 };
 
 function formatAddress(address: string) {
@@ -51,7 +54,15 @@ function formatAddress(address: string) {
  * account UI is coherent everywhere. App-specific bits (ENS resolution, navigation, mobile-sidebar
  * close) are passed in as props; the chrome, label resolution, balance and sign-out are handled here.
  */
-export function AccountMenu({ ens, items = [], onSignIn, onSignedOut, onAction, planBadge }: Readonly<AccountMenuProps>) {
+export function AccountMenu({
+	ens,
+	items = [],
+	onSignIn,
+	onSignedOut,
+	onAction,
+	planLabel,
+	planAction,
+}: Readonly<AccountMenuProps>) {
 	const thirdwebAccount = useActiveAccount();
 	const evmWallet = useActiveWallet();
 	const solanaWallet = useSolanaWallet();
@@ -118,8 +129,23 @@ export function AccountMenu({ ens, items = [], onSignIn, onSignedOut, onAction, 
 					<ProfileAvatar src={avatarSrc} address={address} size="md" />
 					<div className="flex flex-col items-start flex-1 min-w-0">
 						<div className="text-md font-medium truncate w-full text-left">{label}</div>
-						{planBadge && <div className="mt-0.5">{planBadge}</div>}
+						{planLabel && (
+							<div className="text-xs text-muted-foreground leading-tight truncate w-full text-left">
+								{planLabel}
+							</div>
+						)}
 					</div>
+					{planAction && (
+						// Isolate the action's pointer/click from the Radix trigger so it navigates
+						// instead of toggling the dropdown.
+						<div
+							className="ml-auto shrink-0"
+							onPointerDown={(e) => e.stopPropagation()}
+							onClick={(e) => e.stopPropagation()}
+						>
+							{planAction}
+						</div>
+					)}
 				</Button>
 			</DropdownMenuTrigger>
 			<DropdownMenuContent align="end" className="min-w-[220px]">

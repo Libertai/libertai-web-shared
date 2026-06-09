@@ -8,6 +8,7 @@ const TIER_TAGLINES: Record<string, string> = {
 	free: "For getting started and light use",
 	go: "For regular individual use",
 	plus: "For heavy, daily workloads",
+	power: "Maximum limits for power users",
 };
 
 const CURRENCY_SYMBOL: Record<string, string> = { USD: "$", EUR: "€" };
@@ -61,7 +62,7 @@ export function PlansSection() {
 					))}
 			</div>
 
-			<div className="grid gap-4 md:grid-cols-3">
+			<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 				{(tiers ?? []).map((tier) => {
 					const isCurrent = tier.name === currentTier;
 					const symbol = CURRENCY_SYMBOL[tier.currency] ?? "$";

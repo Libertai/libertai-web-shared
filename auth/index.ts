@@ -8,5 +8,5 @@ export { LibertaiProviders } from "./providers";
 export { default as WalletConnectButtons } from "./WalletConnectButtons";
 export { usePaymentProviders, useTiers, useSubscription, useBillingActions } from "./use-payments";
 export { AllowanceBar } from "./AllowanceBar";
-export { PlanBadge, type PlanBadgeProps } from "./PlanBadge";
+export { PlanLabel, PlanUpgradeButton, type PlanUpgradeButtonProps } from "./PlanBadge";
 export { PlansSection } from "./PlansSection";
