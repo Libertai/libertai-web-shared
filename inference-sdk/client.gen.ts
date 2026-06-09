@@ -15,4 +15,6 @@ export type CreateClientConfig<T extends ClientOptions = ClientOptions2> = (
 	override?: Config<ClientOptions & T>,
 ) => Config<Required<ClientOptions> & T>;
 
-export const client: Client = createClient(createConfig<ClientOptions2>({ baseURL: "http://localhost:8000" }));
+export const client: Client = createClient(
+	createConfig<ClientOptions2>({ baseURL: "https://beta.inference.api.libertai.io" }),
+);
