@@ -38,6 +38,8 @@ export type AccountMenuProps = {
 	onSignedOut?: () => void;
 	/** Called whenever any item / sign-in / sign-out is activated (e.g. close the mobile sidebar). */
 	onAction?: () => void;
+	/** Optional plan indicator rendered under the display name in the trigger (e.g. <PlanBadge/>). */
+	planBadge?: ReactNode;
 };
 
 function formatAddress(address: string) {
@@ -49,7 +51,7 @@ function formatAddress(address: string) {
  * account UI is coherent everywhere. App-specific bits (ENS resolution, navigation, mobile-sidebar
  * close) are passed in as props; the chrome, label resolution, balance and sign-out are handled here.
  */
-export function AccountMenu({ ens, items = [], onSignIn, onSignedOut, onAction }: Readonly<AccountMenuProps>) {
+export function AccountMenu({ ens, items = [], onSignIn, onSignedOut, onAction, planBadge }: Readonly<AccountMenuProps>) {
 	const thirdwebAccount = useActiveAccount();
 	const evmWallet = useActiveWallet();
 	const solanaWallet = useSolanaWallet();
@@ -116,6 +118,7 @@ export function AccountMenu({ ens, items = [], onSignIn, onSignedOut, onAction }
 					<ProfileAvatar src={avatarSrc} address={address} size="md" />
 					<div className="flex flex-col items-start flex-1 min-w-0">
 						<div className="text-md font-medium truncate w-full text-left">{label}</div>
+						{planBadge && <div className="mt-0.5">{planBadge}</div>}
 					</div>
 				</Button>
 			</DropdownMenuTrigger>
