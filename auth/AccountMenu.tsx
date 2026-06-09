@@ -173,13 +173,10 @@ export function AccountMenu({
 				{showSecondary && <DropdownMenuSeparator />}
 
 				{showUpgrade && (
-					<>
-						<DropdownMenuItem onClick={handleUpgrade} className="cursor-pointer gap-2">
-							<ArrowUpCircle className="h-4 w-4" />
-							Upgrade plan
-						</DropdownMenuItem>
-						<DropdownMenuSeparator />
-					</>
+					<DropdownMenuItem onClick={handleUpgrade} className="cursor-pointer gap-2">
+						<ArrowUpCircle className="h-4 w-4" />
+						Upgrade plan
+					</DropdownMenuItem>
 				)}
 
 				{items.map((item) => (
@@ -197,7 +194,7 @@ export function AccountMenu({
 					</DropdownMenuItem>
 				))}
 
-				{items.length > 0 && <DropdownMenuSeparator />}
+				{(items.length > 0 || showUpgrade) && <DropdownMenuSeparator />}
 
 				<DropdownMenuItem onClick={handleSignOut} className="cursor-pointer gap-2">
 					<LogOut className="h-4 w-4" />
