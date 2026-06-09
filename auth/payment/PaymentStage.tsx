@@ -90,6 +90,10 @@ export const PaymentStage = ({ usdAmount, handleGoBackToSelection, handlePayment
 	const handleLtaiPayment = async () => {
 		if (!ltaiPrice || !discountedLtaiAmount) return;
 
+		// Only advance to the success screen when the payment actually confirms — a rejected tx,
+		// insufficient funds, or a contract/confirmation error must NOT look like success.
+		let succeeded = false;
+
 		if (account?.chain === "base") {
 			try {
 				// Call the processPayment function using method directly
@@ -133,8 +137,9 @@ export const PaymentStage = ({ usdAmount, handleGoBackToSelection, handlePayment
 						id: toastId,
 					});
 
-					// After successful payment, update the LTAI balance and call the success handler
+					// After successful payment, update the LTAI balance and flag success.
 					await getLTAIBalance();
+					succeeded = true;
 				} catch (confirmError) {
 					console.error("Payment confirmation error:", confirmError);
 					toast.error("Payment confirmation failed", {
@@ -254,6 +259,7 @@ export const PaymentStage = ({ usdAmount, handleGoBackToSelection, handlePayment
 					});
 
 					await getLTAIBalance();
+					succeeded = true;
 				} catch (confirmError) {
 					console.error("Payment confirmation error:", confirmError);
 					toast.error("Payment confirmation failed", {
@@ -273,7 +279,7 @@ export const PaymentStage = ({ usdAmount, handleGoBackToSelection, handlePayment
 			return;
 		}
 
-		handlePaymentSuccess();
+		if (succeeded) handlePaymentSuccess();
 	};
 
 	const handleSolPayment = async () => {
@@ -348,14 +354,14 @@ export const PaymentStage = ({ usdAmount, handleGoBackToSelection, handlePayment
 			});
 
 			await getSOLBalance();
+			// Only advance to success after a confirmed payment (not in `finally`, which fired on errors too).
+			handlePaymentSuccess();
 		} catch (confirmError) {
 			console.error("Payment confirmation error:", confirmError);
 			toast.error("Payment confirmation failed", {
 				id: toastId,
 				description: confirmError instanceof Error ? confirmError.message : "Transaction may not have been confirmed",
 			});
-		} finally {
-			handlePaymentSuccess();
 		}
 	};
 
@@ -404,10 +410,8 @@ export const PaymentStage = ({ usdAmount, handleGoBackToSelection, handlePayment
 				)}
 				{method === "ltai" && (
 					<PaymentForm
-						usdAmount={usdAmount}
 						handlePayment={handleLtaiPayment}
 						ticker="LTAI"
-						tokenPrice={ltaiPrice}
 						tokenAmount={originalLtaiAmount}
 						discountedAmount={discountedLtaiAmount}
 						balance={ltaiBalance}
@@ -417,10 +421,8 @@ export const PaymentStage = ({ usdAmount, handleGoBackToSelection, handlePayment
 				)}
 				{method === "solana" && (
 					<PaymentForm
-						usdAmount={usdAmount}
 						handlePayment={handleSolPayment}
 						ticker="SOL"
-						tokenPrice={solPrice}
 						tokenAmount={originalSolAmount}
 						balance={solBalance}
 						displayedDecimals={4}
