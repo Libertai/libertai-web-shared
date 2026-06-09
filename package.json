@@ -9,6 +9,7 @@
   },
   "//": "Runtime deps are PEER deps (provided by the consuming app). devDependencies are codegen-only: install here (`pnpm install`) solely to regenerate the inference SDK via `pnpm gen:sdk`.",
   "peerDependencies": {
+    "@tanstack/react-query": "*",
     "@radix-ui/react-dropdown-menu": "*",
     "@radix-ui/react-slot": "*",
     "@solana/wallet-adapter-react": "*",
