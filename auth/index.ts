@@ -7,3 +7,4 @@ export { default as LoginPanel } from "./LoginPanel";
 export { LibertaiProviders } from "./providers";
 export { default as WalletConnectButtons } from "./WalletConnectButtons";
 export { usePaymentProviders, useTiers, useSubscription, useBillingActions } from "./use-payments";
+export { AllowanceBar } from "./AllowanceBar";
