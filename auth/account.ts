@@ -35,10 +35,8 @@ type ConnectedAccount = {
 type AccountStoreState = {
 	ltaiBalance: number;
 	solBalance: number;
-	apiCredits: number;
 	formattedLTAIBalance: () => string;
 	formattedSOLBalance: () => string;
-	formattedAPICredits: () => string;
 	account: ConnectedAccount | null;
 	isAuthenticated: boolean;
 	isAuthenticating: boolean;
@@ -64,7 +62,6 @@ type AccountStoreState = {
 	) => Promise<void>;
 	getLTAIBalance: () => Promise<number>;
 	getSOLBalance: () => Promise<number>;
-	getAPICredits: () => Promise<number>;
 	onDisconnect: () => void;
 	authenticate: (
 		baseAccount: ThirdwebAccount | undefined,
@@ -84,10 +81,8 @@ let authEpoch = 0;
 export const useAccountStore = create<AccountStoreState>((set, get) => ({
 	ltaiBalance: 0,
 	solBalance: 0,
-	apiCredits: 0,
 	formattedLTAIBalance: () => get().ltaiBalance.toFixed(0),
 	formattedSOLBalance: () => get().solBalance.toFixed(0),
-	formattedAPICredits: () => get().apiCredits.toFixed(0),
 	isAuthenticated: false,
 	isAuthenticating: false,
 	me: null,
@@ -314,11 +309,6 @@ export const useAccountStore = create<AccountStoreState>((set, get) => ({
 		}
 		return Number(balance);
 	},
-	getAPICredits: async (): Promise<number> => {
-		// This would typically come from the API after authentication
-		// For now we'll return a placeholder value until we implement the proper endpoint
-		return 0;
-	},
 	loginWithEmail: async (email: string): Promise<boolean> => {
 		// Send our origin so the magic-link email points back to this app (chat vs console),
 		// not a single hardcoded frontend. Backend validates it against an allowlist.
@@ -436,8 +426,6 @@ export const useAccountStore = create<AccountStoreState>((set, get) => ({
 		solanaAccount: SolanaWalletContextState | undefined,
 		showErrors?: boolean,
 	): Promise<boolean> => {
-		const state = get();
-
 		let address: string;
 		let chain: "base" | "solana";
 		if (baseAccount !== undefined) {
@@ -520,10 +508,6 @@ export const useAccountStore = create<AccountStoreState>((set, get) => ({
 				set({ isAuthenticated: true });
 				get().queryClient?.invalidateQueries();
 
-				// Update API credits
-				const apiCredits = await state.getAPICredits();
-				set({ apiCredits });
-
 				return true;
 			} else {
 				console.error("Wallet login failed");
@@ -554,7 +538,6 @@ export const useAccountStore = create<AccountStoreState>((set, get) => ({
 		set({
 			ltaiBalance: 0,
 			solBalance: 0,
-			apiCredits: 0,
 			lastTransactionHash: null,
 			account: null,
 		});
