@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { LogOut } from "lucide-react";
+import { ArrowUpCircle, LogOut } from "lucide-react";
 import { useActiveAccount, useActiveWallet, useDisconnect } from "thirdweb/react";
 import { useWallet as useSolanaWallet } from "@solana/wallet-adapter-react";
 import { Button } from "./ui/button";
@@ -12,6 +12,7 @@ import {
 } from "./ui/dropdown-menu";
 import { ProfileAvatar } from "./ProfileAvatar";
 import { useAccountStore } from "./account";
+import { useCanUpgrade } from "./use-payments";
 
 type Me = {
 	email?: string | null;
@@ -38,11 +39,9 @@ export type AccountMenuProps = {
 	onSignedOut?: () => void;
 	/** Called whenever any item / sign-in / sign-out is activated (e.g. close the mobile sidebar). */
 	onAction?: () => void;
-	/** Muted secondary line under the display name in the trigger (e.g. <PlanLabel/> → "Free"). */
-	planLabel?: ReactNode;
-	/** Right-aligned action on the trigger row (e.g. <PlanUpgradeButton/>). Its own click is isolated
-	 *  from the dropdown trigger so pressing it navigates instead of opening the menu. */
-	planAction?: ReactNode;
+	/** Navigate to the app's plans/billing page. When provided AND the user is below the top tier,
+	 *  the menu shows the effective plan under the name, a row upgrade icon, and an "Upgrade plan" item. */
+	onUpgrade?: () => void;
 };
 
 function formatAddress(address: string) {
@@ -60,8 +59,7 @@ export function AccountMenu({
 	onSignIn,
 	onSignedOut,
 	onAction,
-	planLabel,
-	planAction,
+	onUpgrade,
 }: Readonly<AccountMenuProps>) {
 	const thirdwebAccount = useActiveAccount();
 	const evmWallet = useActiveWallet();
@@ -71,6 +69,14 @@ export function AccountMenu({
 	const isAuthenticated = useAccountStore((state) => state.isAuthenticated);
 	const me = useAccountStore((state) => state.me) as Me;
 	const logout = useAccountStore((state) => state.logout);
+	const { loading: planLoading, tier, isFree, canUpgrade } = useCanUpgrade();
+
+	const planLabel = planLoading ? null : isFree ? "Free" : `${tier} plan`;
+	const showUpgrade = !!onUpgrade && canUpgrade;
+	const handleUpgrade = () => {
+		onAction?.();
+		onUpgrade?.();
+	};
 
 	// No session and no connected wallet → offer sign-in (or nothing if the app didn't provide a handler).
 	if (!account?.address && !isAuthenticated) {
@@ -130,20 +136,29 @@ export function AccountMenu({
 					<div className="flex flex-col items-start flex-1 min-w-0">
 						<div className="text-md font-medium truncate w-full text-left">{label}</div>
 						{planLabel && (
-							<div className="text-xs text-muted-foreground leading-tight truncate w-full text-left">
+							<div className="text-xs text-muted-foreground leading-tight truncate w-full text-left capitalize">
 								{planLabel}
 							</div>
 						)}
 					</div>
-					{planAction && (
-						// Isolate the action's pointer/click from the Radix trigger so it navigates
-						// instead of toggling the dropdown.
+					{showUpgrade && (
+						// Isolate the icon's pointer/click from the Radix trigger so it navigates to the
+						// plans page instead of toggling the dropdown.
 						<div
 							className="ml-auto shrink-0"
 							onPointerDown={(e) => e.stopPropagation()}
 							onClick={(e) => e.stopPropagation()}
 						>
-							{planAction}
+							<Button
+								variant="ghost"
+								size="icon"
+								className="h-7 w-7 text-muted-foreground hover:text-foreground"
+								aria-label="Upgrade plan"
+								title="Upgrade plan"
+								onClick={handleUpgrade}
+							>
+								<ArrowUpCircle className="h-4 w-4" />
+							</Button>
 						</div>
 					)}
 				</Button>
@@ -156,6 +171,16 @@ export function AccountMenu({
 				)}
 
 				{showSecondary && <DropdownMenuSeparator />}
+
+				{showUpgrade && (
+					<>
+						<DropdownMenuItem onClick={handleUpgrade} className="cursor-pointer gap-2">
+							<ArrowUpCircle className="h-4 w-4" />
+							Upgrade plan
+						</DropdownMenuItem>
+						<DropdownMenuSeparator />
+					</>
+				)}
 
 				{items.map((item) => (
 					<DropdownMenuItem

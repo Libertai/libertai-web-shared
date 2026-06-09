@@ -49,6 +49,21 @@ export function useSubscription() {
 	});
 }
 
+/** Plan state derived from the subscription + tier list: the effective tier, and whether a higher
+ * tier exists (so the UI can show an Upgrade affordance only when it's actionable). */
+export function useCanUpgrade(): { loading: boolean; tier: string; isFree: boolean; canUpgrade: boolean } {
+	const { data: subscription } = useSubscription();
+	const { data: tiers } = useTiers();
+	if (!subscription || !tiers || tiers.length === 0) {
+		return { loading: true, tier: subscription?.tier ?? "free", isFree: true, canUpgrade: false };
+	}
+	const order = tiers.map((t) => t.name);
+	const tier = subscription.has_subscription ? (subscription.tier ?? "free") : "free";
+	const currentIdx = order.indexOf(tier);
+	const canUpgrade = currentIdx > -1 && currentIdx < order.length - 1;
+	return { loading: false, tier, isFree: tier === "free", canUpgrade };
+}
+
 /** Billing actions. Checkout flows redirect the browser to the provider's hosted page. */
 export function useBillingActions() {
 	const queryClient = useQueryClient();
