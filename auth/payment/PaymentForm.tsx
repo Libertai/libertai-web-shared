@@ -12,7 +12,7 @@ import { usePaymentConfig } from "./config";
 
 interface LTAIPaymentFormProps {
 	tokenAmount: number;
-	handlePayment: () => void;
+	handlePayment: () => void | Promise<void>;
 	ticker: string;
 	balance: number;
 	displayedDecimals: number;
@@ -160,9 +160,14 @@ export function PaymentForm({
 
 				<Button
 					onClick={async () => {
+						// Await the handler so the processing guard holds for the whole transaction —
+						// otherwise the button re-enables immediately and allows double submission.
 						setIsProcessing(true);
-						handlePayment();
-						setIsProcessing(false);
+						try {
+							await handlePayment();
+						} finally {
+							setIsProcessing(false);
+						}
 					}}
 					className="w-full"
 					disabled={isProcessing || isApproving || !hasEnoughBalance || (!isApproved && account?.chain === "base")}
