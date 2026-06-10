@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { Zap } from "lucide-react";
 import { Button } from "./ui/button";
-import { useBillingActions, usePaymentProviders, useSubscription, useTiers } from "./use-payments";
+import { useBillingActions, usePaymentProviders, usePaymentRegion, useSubscription, useTiers } from "./use-payments";
 import { useAccountStore } from "./account";
 
 // Qualitative descriptions — we deliberately don't surface raw allowance numbers.
@@ -18,6 +18,9 @@ export function PlansSection() {
 	const { data: subscription } = useSubscription();
 	const { data: tiers } = useTiers();
 	const { data: providers } = usePaymentProviders();
+	const { data: regionData } = usePaymentRegion();
+	// Default to USD display until the region resolves.
+	const region = regionData ?? { currency: "USD", vat_rate: 0 };
 	const { subscribe, upgrade, downgrade, cancel } = useBillingActions();
 
 	const account = useAccountStore((s) => s.account);
@@ -68,7 +71,10 @@ export function PlansSection() {
 			<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 				{(tiers ?? []).map((tier) => {
 					const isCurrent = tier.name === currentTier;
-					const symbol = CURRENCY_SYMBOL[tier.currency] ?? "$";
+					// Tier data always carries currency "USD" — the user's region decides the display
+					// currency. EUR plans are net-priced with the SAME number as USD by design (Revolut
+					// adds VAT on top), so we only swap the symbol and append the VAT note.
+					const symbol = CURRENCY_SYMBOL[region.currency] ?? "$";
 					return (
 						<div
 							key={tier.name}
@@ -78,6 +84,11 @@ export function PlansSection() {
 							<p className="text-2xl font-bold mt-2">
 								{tier.price_cents === 0 ? "Free" : `${symbol}${(tier.price_cents / 100).toFixed(0)}`}
 								{tier.price_cents > 0 && <span className="text-sm font-normal text-muted-foreground">/mo</span>}
+								{tier.price_cents > 0 && region.currency === "EUR" && (
+									<span className="text-xs font-normal text-muted-foreground ml-1.5">
+										+ {Math.round(region.vat_rate * 100)}% VAT
+									</span>
+								)}
 							</p>
 							<p className="mt-4 text-sm text-muted-foreground flex-1">{TIER_TAGLINES[tier.name] ?? ""}</p>
 							<Button

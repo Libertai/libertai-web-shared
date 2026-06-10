@@ -6,7 +6,9 @@ import {
 	getSubscriptionPaymentsSubscriptionGet,
 	listProvidersPaymentsProvidersGet,
 	listTiersPaymentsTiersGet,
+	regionPaymentsRegionGet,
 	subscribePaymentsSubscribePost,
+	topupPacksPaymentsTopupPacksGet,
 	topupPaymentsTopupPost,
 	upgradePaymentsUpgradePost,
 } from "../inference-sdk";
@@ -35,6 +37,25 @@ export function useTiers() {
 	return useQuery({
 		queryKey: ["paymentTiers"],
 		queryFn: async () => unwrap(await listTiersPaymentsTiersGet(), "Failed to load tiers"),
+		staleTime: 60 * 60 * 1000,
+	});
+}
+
+/** Payment region resolved from the caller's IP (public). No fallback here — consumers should
+ * default to USD display while `data` is still undefined. */
+export function usePaymentRegion() {
+	return useQuery({
+		queryKey: ["paymentRegion"],
+		queryFn: async () => unwrap(await regionPaymentsRegionGet(), "Failed to load payment region"),
+		staleTime: 60 * 60 * 1000,
+	});
+}
+
+/** Fixed EUR top-up packs (gross, VAT-inclusive) for card top-ups in the EUR region (public). */
+export function useTopupPacks() {
+	return useQuery({
+		queryKey: ["topupPacks"],
+		queryFn: async () => unwrap(await topupPacksPaymentsTopupPacksGet(), "Failed to load top-up packs"),
 		staleTime: 60 * 60 * 1000,
 	});
 }
@@ -77,16 +98,19 @@ export function useBillingActions() {
 			description: error instanceof Error ? error.message : "Unknown error occurred",
 		});
 
+	// Pass our origin as redirect_base so checkout returns the user to THIS app's /payment/callback (chat vs console).
+	const redirect_base = typeof window !== "undefined" ? window.location.origin : undefined;
+
 	const topup = useMutation({
-		mutationFn: async ({ provider, amount }: { provider: string; amount: number }) =>
-			unwrap(await topupPaymentsTopupPost({ body: { provider, amount } }), "Failed to start top-up"),
+		mutationFn: async ({ provider, amount, pack_id }: { provider: string; amount?: number; pack_id?: string }) =>
+			unwrap(await topupPaymentsTopupPost({ body: { provider, amount, pack_id, redirect_base } }), "Failed to start top-up"),
 		onSuccess: (data) => redirectTo(data.checkout_url),
 		onError: onError("start top-up"),
 	});
 
 	const subscribe = useMutation({
 		mutationFn: async ({ provider, tier }: { provider: string; tier: string }) =>
-			unwrap(await subscribePaymentsSubscribePost({ body: { provider, tier } }), "Failed to subscribe"),
+			unwrap(await subscribePaymentsSubscribePost({ body: { provider, tier, redirect_base } }), "Failed to subscribe"),
 		onSuccess: (data) => {
 			if (data.checkout_url) {
 				redirectTo(data.checkout_url);
@@ -101,7 +125,7 @@ export function useBillingActions() {
 
 	const upgrade = useMutation({
 		mutationFn: async ({ provider, tier }: { provider: string; tier: string }) =>
-			unwrap(await upgradePaymentsUpgradePost({ body: { provider, tier } }), "Failed to upgrade"),
+			unwrap(await upgradePaymentsUpgradePost({ body: { provider, tier, redirect_base } }), "Failed to upgrade"),
 		onSuccess: (data) => {
 			if (data.checkout_url) {
 				redirectTo(data.checkout_url);
