@@ -138,6 +138,8 @@ import type {
 	RefreshTokensAuthRefreshPostData,
 	RefreshTokensAuthRefreshPostErrors,
 	RefreshTokensAuthRefreshPostResponses,
+	RegionPaymentsRegionGetData,
+	RegionPaymentsRegionGetResponses,
 	RegisterInferenceCallApiKeysAdminUsagePostData,
 	RegisterInferenceCallApiKeysAdminUsagePostErrors,
 	RegisterInferenceCallApiKeysAdminUsagePostResponses,
@@ -147,6 +149,8 @@ import type {
 	ThirdwebWebhookCreditsThirdwebWebhookPostData,
 	ThirdwebWebhookCreditsThirdwebWebhookPostErrors,
 	ThirdwebWebhookCreditsThirdwebWebhookPostResponses,
+	TopupPacksPaymentsTopupPacksGetData,
+	TopupPacksPaymentsTopupPacksGetResponses,
 	TopupPaymentsTopupPostData,
 	TopupPaymentsTopupPostErrors,
 	TopupPaymentsTopupPostResponses,
@@ -1218,6 +1222,34 @@ export const listTiersPaymentsTiersGet = <ThrowOnError extends boolean = false>(
 	(options?.client ?? client).get<ListTiersPaymentsTiersGetResponses, unknown, ThrowOnError>({
 		responseType: "json",
 		url: "/payments/tiers",
+		...options,
+	});
+
+/**
+ * Region
+ *
+ * Caller's payment region (currency + display VAT rate), resolved from client IP
+ */
+export const regionPaymentsRegionGet = <ThrowOnError extends boolean = false>(
+	options?: Options<RegionPaymentsRegionGetData, ThrowOnError>,
+): RequestResult<RegionPaymentsRegionGetResponses, unknown, ThrowOnError> =>
+	(options?.client ?? client).get<RegionPaymentsRegionGetResponses, unknown, ThrowOnError>({
+		responseType: "json",
+		url: "/payments/region",
+		...options,
+	});
+
+/**
+ * Topup Packs
+ *
+ * Fixed EUR top-up packs (gross EUR charge -> USD credits)
+ */
+export const topupPacksPaymentsTopupPacksGet = <ThrowOnError extends boolean = false>(
+	options?: Options<TopupPacksPaymentsTopupPacksGetData, ThrowOnError>,
+): RequestResult<TopupPacksPaymentsTopupPacksGetResponses, unknown, ThrowOnError> =>
+	(options?.client ?? client).get<TopupPacksPaymentsTopupPacksGetResponses, unknown, ThrowOnError>({
+		responseType: "json",
+		url: "/payments/topup-packs",
 		...options,
 	});
 
