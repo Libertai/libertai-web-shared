@@ -55,7 +55,8 @@ export function PaymentMethodSelector({
 			title: `Pay with crypto ${chain === "solana" ? "on EVM" : ""}`,
 			description: "Use USDC, ETH & more",
 			disabled: false,
-			isVisible: true,
+			// On-chain payments are wallet-only — email/OAuth users (no chain) pay by card.
+			isVisible: chain !== undefined,
 		},
 	];
 
