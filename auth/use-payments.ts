@@ -61,12 +61,13 @@ export function useTopupPacks() {
 }
 
 /** Current subscription state + dual-window allowance snapshot. */
-export function useSubscription() {
+export function useSubscription(options?: { refetchInterval?: number | false }) {
 	const isAuthenticated = useAccountStore((state) => state.isAuthenticated);
 	return useQuery({
 		queryKey: ["subscription"],
 		queryFn: async () => unwrap(await getSubscriptionPaymentsSubscriptionGet(), "Failed to load subscription"),
 		enabled: isAuthenticated,
+		...options,
 	});
 }
 
@@ -89,7 +90,7 @@ export function useCanUpgrade(): { loading: boolean; tier: string; isFree: boole
 export function useBillingActions() {
 	const queryClient = useQueryClient();
 
-	const redirectTo = (url?: string) => {
+	const redirectTo = (url?: string | null) => {
 		if (url) window.location.href = url;
 	};
 

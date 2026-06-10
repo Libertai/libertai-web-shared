@@ -25,3 +25,4 @@ export { TopUpPackPicker } from "./payment/TopUpPackPicker";
 export { PaymentConfigProvider, usePaymentConfig, type PaymentConfig } from "./payment/config";
 export { UsageCreditsCard } from "./payment/UsageCreditsCard";
 export { TopUpFlow } from "./payment/TopUpFlow";
+export { PaymentCallback } from "./payment/PaymentCallback";
