@@ -384,9 +384,9 @@ export type CreditTransactionResponse = {
 	 */
 	id: string;
 	/**
-	 * Transaction Hash
+	 * External Reference
 	 */
-	transaction_hash: string | null;
+	external_reference: string | null;
 	/**
 	 * Amount
 	 */
@@ -586,9 +586,9 @@ export type ExpiredCreditTransaction = {
 	 */
 	id: string;
 	/**
-	 * Transaction Hash
+	 * External Reference
 	 */
-	transaction_hash: string | null;
+	external_reference: string | null;
 	/**
 	 * Address
 	 */
