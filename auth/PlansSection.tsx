@@ -38,6 +38,10 @@ export function PlansSection() {
 	// A requested downgrade is SCHEDULED: the current tier stays active until period end,
 	// with the target recorded in pending_tier — surface it instead of leaving the button live.
 	const pendingTier = subscription?.pending_tier ?? null;
+	// "at period end" is meaningless without the date — show it when we have it (e.g. "on Jun 28").
+	const periodEnd = subscription?.current_period_end
+		? `on ${new Date(subscription.current_period_end).toLocaleDateString(undefined, { month: "short", day: "numeric" })}`
+		: "at period end";
 
 	const handleTierAction = (tierName: string) => {
 		const provider = isWallet ? "credits" : (fiatProvider?.id ?? "revolut");
@@ -62,16 +66,14 @@ export function PlansSection() {
 					</h2>
 				</div>
 				{hasActivePaidSub &&
-					(subscription?.cancel_at_period_end ? (
+					// Paid->paid downgrades keep the sub renewing (no cancel flag) — pending_tier is
+					// the signal; the cancel flag alone means the sub lapses at period end.
+					(pendingTier && pendingTier !== "free" ? (
 						<span className="text-sm text-muted-foreground">
-							{pendingTier && pendingTier !== "free" ? (
-								<>
-									Switches to <span className="capitalize">{pendingTier}</span> at period end
-								</>
-							) : (
-								"Cancels at period end"
-							)}
+							Switches to <span className="capitalize">{pendingTier}</span> {periodEnd}
 						</span>
+					) : subscription?.cancel_at_period_end ? (
+						<span className="text-sm text-muted-foreground">Cancels {periodEnd}</span>
 					) : (
 						<Button variant="outline" size="sm" onClick={() => cancel.mutate()} disabled={cancel.isPending}>
 							Cancel subscription

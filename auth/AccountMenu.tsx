@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { ArrowUpCircle, LogOut } from "lucide-react";
+import { ArrowUpCircle, LogOut, Zap } from "lucide-react";
 import { useActiveAccount, useActiveWallet, useDisconnect } from "thirdweb/react";
 import { useWallet as useSolanaWallet } from "@solana/wallet-adapter-react";
 import { Button } from "./ui/button";
@@ -73,6 +73,9 @@ export function AccountMenu({
 
 	const planLabel = planLoading ? null : isFree ? "Free" : `${tier} plan`;
 	const showUpgrade = !!onUpgrade && canUpgrade;
+	// On the top tier there's nothing to upgrade to, but the plans page must stay reachable
+	// (manage/downgrade/cancel) — show a neutral "Plans" item instead.
+	const showPlans = !!onUpgrade && !canUpgrade && !planLoading;
 	const handleUpgrade = () => {
 		onAction?.();
 		onUpgrade?.();
@@ -172,6 +175,13 @@ export function AccountMenu({
 					<DropdownMenuItem onClick={handleUpgrade} className="cursor-pointer gap-2">
 						<ArrowUpCircle className="h-4 w-4" />
 						Upgrade plan
+					</DropdownMenuItem>
+				)}
+
+				{showPlans && (
+					<DropdownMenuItem onClick={handleUpgrade} className="cursor-pointer gap-2">
+						<Zap className="h-4 w-4" />
+						Plans
 					</DropdownMenuItem>
 				)}
 
