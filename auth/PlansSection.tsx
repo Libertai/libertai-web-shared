@@ -22,6 +22,10 @@ const TIER_TAGLINES: Record<string, string> = {
 
 const CURRENCY_SYMBOL: Record<string, string> = { USD: "$", EUR: "€" };
 
+/** Money moves (upgrade) or entitlement shrinks (downgrade/cancel) — every one of these
+ * is confirmed in a dialog before acting. */
+type ConfirmAction = { kind: "upgrade" | "downgrade" | "cancel"; tier?: string };
+
 export function PlansSection() {
 	const { data: subscription } = useSubscription();
 	const { data: tiers } = useTiers();
@@ -29,7 +33,7 @@ export function PlansSection() {
 	const { data: regionData } = usePaymentRegion();
 	// Default to USD display until the region resolves.
 	const region = regionData ?? { currency: "USD", vat_rate: 0 };
-	const { subscribe, upgrade, downgrade, cancel } = useBillingActions();
+	const { subscribe, upgrade, downgrade, cancel, resume } = useBillingActions();
 
 	const account = useAccountStore((s) => s.account);
 	const isWallet = !!account;
@@ -43,40 +47,47 @@ export function PlansSection() {
 	const currentTier = subscription?.tier ?? "free";
 	const hasActivePaidSub =
 		!!subscription?.has_subscription && subscription?.status === "active" && currentTier !== "free";
-	// A requested downgrade is SCHEDULED: the current tier stays active until period end,
-	// with the target recorded in pending_tier — surface it instead of leaving the button live.
+	// A requested downgrade/cancel is SCHEDULED: the current tier stays active until period
+	// end, with the target recorded in pending_tier ("free" for a cancellation). Until then
+	// it can be resumed.
 	const pendingTier = subscription?.pending_tier ?? null;
+	const cancelScheduled = !!subscription?.cancel_at_period_end;
+	const hasScheduledChange = !!pendingTier || cancelScheduled;
 	// "at period end" is meaningless without the date — show it when we have it (e.g. "on Jun 28").
 	const periodEnd = subscription?.current_period_end
 		? `on ${new Date(subscription.current_period_end).toLocaleDateString(undefined, { month: "short", day: "numeric" })}`
 		: "at period end";
 
-	// Paid -> paid upgrades move money immediately (new full-price cycle on fiat, prorated
-	// charge on credits) — explain that before acting.
-	const [confirmUpgradeTier, setConfirmUpgradeTier] = useState<string | null>(null);
+	const [confirm, setConfirm] = useState<ConfirmAction | null>(null);
 
 	const handleTierAction = (tierName: string) => {
 		const provider = isWallet ? "credits" : (fiatProvider?.id ?? "revolut");
 		const target = tierOrder[tierName] ?? 0;
 		const current = tierOrder[currentTier] ?? 0;
 		if (tierName === "free") {
-			downgrade.mutate({ tier: "free" });
+			setConfirm({ kind: "downgrade", tier: "free" });
 		} else if (target > current) {
 			if (hasActivePaidSub) {
-				setConfirmUpgradeTier(tierName);
+				setConfirm({ kind: "upgrade", tier: tierName });
 			} else {
 				subscribe.mutate({ provider, tier: tierName });
 			}
 		} else if (target < current) {
-			downgrade.mutate({ tier: tierName });
+			setConfirm({ kind: "downgrade", tier: tierName });
 		}
 	};
 
-	const confirmUpgrade = () => {
-		if (!confirmUpgradeTier) return;
+	const runConfirmed = () => {
+		if (!confirm) return;
 		const provider = isWallet ? "credits" : (fiatProvider?.id ?? "revolut");
-		upgrade.mutate({ provider, tier: confirmUpgradeTier });
-		setConfirmUpgradeTier(null);
+		if (confirm.kind === "upgrade" && confirm.tier) {
+			upgrade.mutate({ provider, tier: confirm.tier });
+		} else if (confirm.kind === "downgrade" && confirm.tier) {
+			downgrade.mutate({ tier: confirm.tier });
+		} else if (confirm.kind === "cancel") {
+			cancel.mutate();
+		}
+		setConfirm(null);
 	};
 
 	// Rough refund preview for fiat upgrades: days left on the current cycle x its monthly price.
@@ -88,6 +99,20 @@ export function PlansSection() {
 		return (currentPrice / 100) * fraction;
 	}, [tiers, currentTier, subscription?.current_period_end]);
 
+	const isEndingToFree = confirm?.kind === "cancel" || (confirm?.kind === "downgrade" && confirm.tier === "free");
+	const confirmTitle =
+		confirm?.kind === "upgrade" ? (
+			<>
+				Upgrade to <span className="capitalize">{confirm.tier}</span>?
+			</>
+		) : isEndingToFree ? (
+			<>Cancel your subscription?</>
+		) : (
+			<>
+				Switch to <span className="capitalize">{confirm?.tier}</span>?
+			</>
+		);
+
 	return (
 		<div className="flex flex-col space-y-4">
 			<div className="flex items-center justify-between flex-wrap gap-3">
@@ -98,16 +123,34 @@ export function PlansSection() {
 					</h2>
 				</div>
 				{hasActivePaidSub &&
-					// Paid->paid downgrades keep the sub renewing (no cancel flag) — pending_tier is
-					// the signal; the cancel flag alone means the sub lapses at period end.
-					(pendingTier && pendingTier !== "free" ? (
-						<span className="text-sm text-muted-foreground">
-							Switches to <span className="capitalize">{pendingTier}</span> {periodEnd}
-						</span>
-					) : subscription?.cancel_at_period_end ? (
-						<span className="text-sm text-muted-foreground">Cancels {periodEnd}</span>
+					(hasScheduledChange ? (
+						<div className="flex items-center gap-3">
+							<span className="text-sm text-muted-foreground">
+								{pendingTier && pendingTier !== "free" ? (
+									<>
+										Switches to <span className="capitalize">{pendingTier}</span> {periodEnd}
+									</>
+								) : (
+									<>Cancels {periodEnd}</>
+								)}
+							</span>
+							<Button variant="outline" size="sm" onClick={() => resume.mutate()} disabled={resume.isPending}>
+								{pendingTier && pendingTier !== "free" ? (
+									<>
+										Keep <span className="capitalize">{currentTier}</span>
+									</>
+								) : (
+									"Resume subscription"
+								)}
+							</Button>
+						</div>
 					) : (
-						<Button variant="outline" size="sm" onClick={() => cancel.mutate()} disabled={cancel.isPending}>
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={() => setConfirm({ kind: "cancel" })}
+							disabled={cancel.isPending}
+						>
 							Cancel subscription
 						</Button>
 					))}
@@ -116,6 +159,9 @@ export function PlansSection() {
 			<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 				{(tiers ?? []).map((tier) => {
 					const isCurrent = tier.name === currentTier;
+					// The free card mirrors a scheduled cancellation too (cancel == downgrade to free).
+					const isScheduled =
+						tier.name === pendingTier || (tier.name === "free" && cancelScheduled && hasActivePaidSub);
 					// Tier data always carries currency "USD" — the user's region decides the display
 					// currency. EUR plans are net-priced with the SAME number as USD by design (Revolut
 					// adds VAT on top), so we only swap the symbol and append the VAT note.
@@ -138,18 +184,15 @@ export function PlansSection() {
 							<p className="mt-4 text-sm text-muted-foreground flex-1">{TIER_TAGLINES[tier.name] ?? ""}</p>
 							<Button
 								className="mt-4 w-full"
-								variant={isCurrent || tier.name === pendingTier ? "outline" : "default"}
+								variant={isCurrent || isScheduled ? "outline" : "default"}
 								disabled={
-									isCurrent ||
-									tier.name === pendingTier ||
-									downgrade.isPending ||
-									(tier.is_paid && !isWallet && !fiatProvider)
+									isCurrent || isScheduled || downgrade.isPending || (tier.is_paid && !isWallet && !fiatProvider)
 								}
 								onClick={() => handleTierAction(tier.name)}
 							>
 								{isCurrent
 									? "Current plan"
-									: tier.name === pendingTier
+									: isScheduled
 										? "Scheduled at period end"
 										: (tierOrder[tier.name] ?? 0) > (tierOrder[currentTier] ?? 0)
 											? "Upgrade"
@@ -163,35 +206,56 @@ export function PlansSection() {
 				<p className="text-xs text-muted-foreground">Paid plans become available once card payments are configured.</p>
 			)}
 
-			{/* Paid -> paid upgrade confirmation: explain the billing before any money moves. */}
-			<Dialog open={confirmUpgradeTier !== null} onOpenChange={(open) => !open && setConfirmUpgradeTier(null)}>
+			{/* Confirmation before money moves (upgrade) or entitlement shrinks (downgrade/cancel). */}
+			<Dialog open={confirm !== null} onOpenChange={(open) => !open && setConfirm(null)}>
 				<DialogContent className="sm:max-w-md">
 					<DialogHeader>
-						<DialogTitle>
-							Upgrade to <span className="capitalize">{confirmUpgradeTier}</span>?
-						</DialogTitle>
+						<DialogTitle>{confirmTitle}</DialogTitle>
 						<DialogDescription className="space-y-2 pt-1">
-							{isWallet ? (
+							{confirm?.kind === "upgrade" ? (
+								isWallet ? (
+									<span>
+										You'll be charged the prorated difference for the rest of your current billing period from your
+										credits, and your plan switches immediately.
+									</span>
+								) : (
+									<span>
+										Your new plan starts now with a fresh monthly cycle, billed at full price. The unused time left
+										on your <span className="capitalize">{currentTier}</span> plan
+										{upgradeRefundEstimate != null && <> (≈ ${upgradeRefundEstimate.toFixed(2)})</>} is refunded to
+										your usage credits.
+									</span>
+								)
+							) : isEndingToFree ? (
 								<span>
-									You'll be charged the prorated difference for the rest of your current billing period from your
-									credits, and your plan switches immediately.
+									You keep <span className="capitalize">{currentTier}</span> until {periodEnd.replace(/^on /, "")},
+									then your subscription ends and you drop to the Free plan. You can resume anytime before then.
 								</span>
 							) : (
 								<span>
-									Your new plan starts now with a fresh monthly cycle, billed at full price. The unused time left on
-									your <span className="capitalize">{currentTier}</span> plan
-									{upgradeRefundEstimate != null && <> (≈ ${upgradeRefundEstimate.toFixed(2)})</>} is refunded to
-									your usage credits.
+									You keep <span className="capitalize">{currentTier}</span> until {periodEnd.replace(/^on /, "")};
+									the next cycle bills at the <span className="capitalize">{confirm?.tier}</span> price. You can undo
+									this until the period ends.
 								</span>
 							)}
 						</DialogDescription>
 					</DialogHeader>
 					<DialogFooter className="gap-2 sm:gap-0">
-						<Button variant="outline" onClick={() => setConfirmUpgradeTier(null)}>
+						<Button variant="outline" onClick={() => setConfirm(null)}>
 							Back
 						</Button>
-						<Button onClick={confirmUpgrade} disabled={upgrade.isPending}>
-							{isWallet ? "Confirm upgrade" : "Continue to payment"}
+						<Button
+							variant={confirm?.kind === "upgrade" ? "default" : "destructive"}
+							onClick={runConfirmed}
+							disabled={upgrade.isPending || downgrade.isPending || cancel.isPending}
+						>
+							{confirm?.kind === "upgrade"
+								? isWallet
+									? "Confirm upgrade"
+									: "Continue to payment"
+								: isEndingToFree
+									? "Cancel subscription"
+									: "Confirm switch"}
 						</Button>
 					</DialogFooter>
 				</DialogContent>

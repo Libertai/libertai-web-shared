@@ -143,6 +143,9 @@ import type {
 	RegisterInferenceCallApiKeysAdminUsagePostData,
 	RegisterInferenceCallApiKeysAdminUsagePostErrors,
 	RegisterInferenceCallApiKeysAdminUsagePostResponses,
+	ResumePaymentsResumePostData,
+	ResumePaymentsResumePostErrors,
+	ResumePaymentsResumePostResponses,
 	SubscribePaymentsSubscribePostData,
 	SubscribePaymentsSubscribePostErrors,
 	SubscribePaymentsSubscribePostResponses,
@@ -1344,6 +1347,20 @@ export const cancelPaymentsCancelPost = <ThrowOnError extends boolean = false>(
 	(options?.client ?? client).post<CancelPaymentsCancelPostResponses, CancelPaymentsCancelPostErrors, ThrowOnError>({
 		responseType: "json",
 		url: "/payments/cancel",
+		...options,
+	});
+
+/**
+ * Resume
+ *
+ * Undo a scheduled cancellation or downgrade before it takes effect
+ */
+export const resumePaymentsResumePost = <ThrowOnError extends boolean = false>(
+	options?: Options<ResumePaymentsResumePostData, ThrowOnError>,
+): RequestResult<ResumePaymentsResumePostResponses, ResumePaymentsResumePostErrors, ThrowOnError> =>
+	(options?.client ?? client).post<ResumePaymentsResumePostResponses, ResumePaymentsResumePostErrors, ThrowOnError>({
+		responseType: "json",
+		url: "/payments/resume",
 		...options,
 	});
 

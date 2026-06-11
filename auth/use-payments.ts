@@ -7,6 +7,7 @@ import {
 	listProvidersPaymentsProvidersGet,
 	listTiersPaymentsTiersGet,
 	regionPaymentsRegionGet,
+	resumePaymentsResumePost,
 	subscribePaymentsSubscribePost,
 	topupPacksPaymentsTopupPacksGet,
 	topupPaymentsTopupPost,
@@ -158,5 +159,14 @@ export function useBillingActions() {
 		onError: onError("downgrade"),
 	});
 
-	return { topup, subscribe, upgrade, cancel, downgrade };
+	const resume = useMutation({
+		mutationFn: async () => unwrap(await resumePaymentsResumePost(), "Failed to resume"),
+		onSuccess: async (data) => {
+			toast.success(data.message);
+			await queryClient.invalidateQueries({ queryKey: ["subscription"] });
+		},
+		onError: onError("resume subscription"),
+	});
+
+	return { topup, subscribe, upgrade, cancel, downgrade, resume };
 }

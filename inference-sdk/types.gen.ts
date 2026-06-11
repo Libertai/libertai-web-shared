@@ -105,6 +105,49 @@ export type ApiKeyUpdate = {
 };
 
 /**
+ * AudioInferenceCallData
+ *
+ * TTS usage as reported by libertai-models: input_tokens carries the character count
+ * of the synthesized text; there is no output side. The required Literal type keeps the
+ * union unambiguous, and the zero defaults let audio flow through the text billing
+ * branches (calculate_price routes to audio pricing by model).
+ */
+export type AudioInferenceCallData = {
+	/**
+	 * Key
+	 */
+	key: string;
+	/**
+	 * Model Name
+	 */
+	model_name: string;
+	/**
+	 * Input Tokens
+	 */
+	input_tokens: number;
+	/**
+	 * Output Tokens
+	 */
+	output_tokens?: number;
+	/**
+	 * Cached Tokens
+	 */
+	cached_tokens?: number;
+	/**
+	 * Type
+	 */
+	type: "audio";
+	/**
+	 * Payment Payload
+	 */
+	payment_payload?: string | null;
+	/**
+	 * Payment Requirements
+	 */
+	payment_requirements?: string | null;
+};
+
+/**
  * AuthLoginRequest
  */
 export type AuthLoginRequest = {
@@ -786,7 +829,7 @@ export type ImageInferenceCallData = {
 /**
  * InferenceCallType
  */
-export type InferenceCallType = "text" | "image";
+export type InferenceCallType = "text" | "image" | "audio";
 
 /**
  * InferenceKeyType
@@ -971,6 +1014,20 @@ export type RegionResponse = {
 	 * Vat Rate
 	 */
 	vat_rate: number;
+};
+
+/**
+ * ResumeResponse
+ */
+export type ResumeResponse = {
+	/**
+	 * Message
+	 */
+	message: string;
+	/**
+	 * Tier
+	 */
+	tier: string;
 };
 
 /**
@@ -2561,7 +2618,7 @@ export type RegisterInferenceCallApiKeysAdminUsagePostData = {
 	/**
 	 * Usage Log
 	 */
-	body: TextInferenceCallData | ImageInferenceCallData;
+	body: TextInferenceCallData | ImageInferenceCallData | AudioInferenceCallData;
 	path?: never;
 	query?: never;
 	url: "/api-keys/admin/usage";
@@ -3476,6 +3533,38 @@ export type CancelPaymentsCancelPostResponses = {
 
 export type CancelPaymentsCancelPostResponse =
 	CancelPaymentsCancelPostResponses[keyof CancelPaymentsCancelPostResponses];
+
+export type ResumePaymentsResumePostData = {
+	body?: never;
+	headers?: {
+		/**
+		 * Authorization
+		 */
+		authorization?: string | null;
+	};
+	path?: never;
+	query?: never;
+	url: "/payments/resume";
+};
+
+export type ResumePaymentsResumePostErrors = {
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
+};
+
+export type ResumePaymentsResumePostError = ResumePaymentsResumePostErrors[keyof ResumePaymentsResumePostErrors];
+
+export type ResumePaymentsResumePostResponses = {
+	/**
+	 * Successful Response
+	 */
+	200: ResumeResponse;
+};
+
+export type ResumePaymentsResumePostResponse =
+	ResumePaymentsResumePostResponses[keyof ResumePaymentsResumePostResponses];
 
 export type GetSubscriptionPaymentsSubscriptionGetData = {
 	body?: never;
