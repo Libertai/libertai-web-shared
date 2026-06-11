@@ -9,7 +9,7 @@ const TIER_TAGLINES: Record<string, string> = {
 	free: "For getting started and light use",
 	go: "For regular individual use",
 	plus: "For heavy, daily workloads",
-	power: "Maximum limits for power users",
+	max: "Maximum limits for power users",
 };
 
 const CURRENCY_SYMBOL: Record<string, string> = { USD: "$", EUR: "€" };
