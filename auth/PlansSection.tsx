@@ -1,6 +1,14 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Zap } from "lucide-react";
 import { Button } from "./ui/button";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "./ui/dialog";
 import { useBillingActions, usePaymentProviders, usePaymentRegion, useSubscription, useTiers } from "./use-payments";
 import { useAccountStore } from "./account";
 
@@ -43,6 +51,10 @@ export function PlansSection() {
 		? `on ${new Date(subscription.current_period_end).toLocaleDateString(undefined, { month: "short", day: "numeric" })}`
 		: "at period end";
 
+	// Paid -> paid upgrades move money immediately (new full-price cycle on fiat, prorated
+	// charge on credits) — explain that before acting.
+	const [confirmUpgradeTier, setConfirmUpgradeTier] = useState<string | null>(null);
+
 	const handleTierAction = (tierName: string) => {
 		const provider = isWallet ? "credits" : (fiatProvider?.id ?? "revolut");
 		const target = tierOrder[tierName] ?? 0;
@@ -50,11 +62,31 @@ export function PlansSection() {
 		if (tierName === "free") {
 			downgrade.mutate({ tier: "free" });
 		} else if (target > current) {
-			(hasActivePaidSub ? upgrade : subscribe).mutate({ provider, tier: tierName });
+			if (hasActivePaidSub) {
+				setConfirmUpgradeTier(tierName);
+			} else {
+				subscribe.mutate({ provider, tier: tierName });
+			}
 		} else if (target < current) {
 			downgrade.mutate({ tier: tierName });
 		}
 	};
+
+	const confirmUpgrade = () => {
+		if (!confirmUpgradeTier) return;
+		const provider = isWallet ? "credits" : (fiatProvider?.id ?? "revolut");
+		upgrade.mutate({ provider, tier: confirmUpgradeTier });
+		setConfirmUpgradeTier(null);
+	};
+
+	// Rough refund preview for fiat upgrades: days left on the current cycle x its monthly price.
+	const upgradeRefundEstimate = useMemo(() => {
+		const currentPrice = (tiers ?? []).find((t) => t.name === currentTier)?.price_cents ?? 0;
+		const end = subscription?.current_period_end ? new Date(subscription.current_period_end).getTime() : null;
+		if (!end || currentPrice <= 0) return null;
+		const fraction = Math.min(Math.max((end - Date.now()) / (30 * 24 * 3600 * 1000), 0), 1);
+		return (currentPrice / 100) * fraction;
+	}, [tiers, currentTier, subscription?.current_period_end]);
 
 	return (
 		<div className="flex flex-col space-y-4">
@@ -130,6 +162,40 @@ export function PlansSection() {
 			{!isWallet && !fiatProvider && (
 				<p className="text-xs text-muted-foreground">Paid plans become available once card payments are configured.</p>
 			)}
+
+			{/* Paid -> paid upgrade confirmation: explain the billing before any money moves. */}
+			<Dialog open={confirmUpgradeTier !== null} onOpenChange={(open) => !open && setConfirmUpgradeTier(null)}>
+				<DialogContent className="sm:max-w-md">
+					<DialogHeader>
+						<DialogTitle>
+							Upgrade to <span className="capitalize">{confirmUpgradeTier}</span>?
+						</DialogTitle>
+						<DialogDescription className="space-y-2 pt-1">
+							{isWallet ? (
+								<span>
+									You'll be charged the prorated difference for the rest of your current billing period from your
+									credits, and your plan switches immediately.
+								</span>
+							) : (
+								<span>
+									Your new plan starts now with a fresh monthly cycle, billed at full price. The unused time left on
+									your <span className="capitalize">{currentTier}</span> plan
+									{upgradeRefundEstimate != null && <> (≈ ${upgradeRefundEstimate.toFixed(2)})</>} is refunded to
+									your usage credits.
+								</span>
+							)}
+						</DialogDescription>
+					</DialogHeader>
+					<DialogFooter className="gap-2 sm:gap-0">
+						<Button variant="outline" onClick={() => setConfirmUpgradeTier(null)}>
+							Back
+						</Button>
+						<Button onClick={confirmUpgrade} disabled={upgrade.isPending}>
+							{isWallet ? "Confirm upgrade" : "Continue to payment"}
+						</Button>
+					</DialogFooter>
+				</DialogContent>
+			</Dialog>
 		</div>
 	);
 }
