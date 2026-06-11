@@ -1,4 +1,5 @@
 import { Button } from "../ui/button";
+import { useCanUpgrade } from "../use-payments";
 
 interface UsageCreditsCardProps {
 	balance: number;
@@ -8,6 +9,8 @@ interface UsageCreditsCardProps {
 }
 
 export function UsageCreditsCard({ balance, description, onUpgrade, onBuyCredits }: Readonly<UsageCreditsCardProps>) {
+	// On the top tier there's nothing to upgrade to — hide the button.
+	const { canUpgrade } = useCanUpgrade();
 	return (
 		<section className="rounded-xl border border-border bg-card/50 p-6">
 			<h2 className="mb-1 text-lg font-semibold">Usage credits</h2>
@@ -18,9 +21,11 @@ export function UsageCreditsCard({ balance, description, onUpgrade, onBuyCredits
 					<div className="text-sm text-muted-foreground">Current balance</div>
 				</div>
 				<div className="flex gap-2">
-					<Button variant="outline" onClick={onUpgrade}>
-						Upgrade plan
-					</Button>
+					{canUpgrade && (
+						<Button variant="outline" onClick={onUpgrade}>
+							Upgrade plan
+						</Button>
+					)}
 					<Button onClick={onBuyCredits}>Buy credits</Button>
 				</div>
 			</div>
