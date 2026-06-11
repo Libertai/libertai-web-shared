@@ -35,6 +35,9 @@ export function PlansSection() {
 	const currentTier = subscription?.tier ?? "free";
 	const hasActivePaidSub =
 		!!subscription?.has_subscription && subscription?.status === "active" && currentTier !== "free";
+	// A requested downgrade is SCHEDULED: the current tier stays active until period end,
+	// with the target recorded in pending_tier — surface it instead of leaving the button live.
+	const pendingTier = subscription?.pending_tier ?? null;
 
 	const handleTierAction = (tierName: string) => {
 		const provider = isWallet ? "credits" : (fiatProvider?.id ?? "revolut");
@@ -60,7 +63,15 @@ export function PlansSection() {
 				</div>
 				{hasActivePaidSub &&
 					(subscription?.cancel_at_period_end ? (
-						<span className="text-sm text-muted-foreground">Cancels at period end</span>
+						<span className="text-sm text-muted-foreground">
+							{pendingTier && pendingTier !== "free" ? (
+								<>
+									Switches to <span className="capitalize">{pendingTier}</span> at period end
+								</>
+							) : (
+								"Cancels at period end"
+							)}
+						</span>
 					) : (
 						<Button variant="outline" size="sm" onClick={() => cancel.mutate()} disabled={cancel.isPending}>
 							Cancel subscription
@@ -93,15 +104,22 @@ export function PlansSection() {
 							<p className="mt-4 text-sm text-muted-foreground flex-1">{TIER_TAGLINES[tier.name] ?? ""}</p>
 							<Button
 								className="mt-4 w-full"
-								variant={isCurrent ? "outline" : "default"}
-								disabled={isCurrent || (tier.is_paid && !isWallet && !fiatProvider)}
+								variant={isCurrent || tier.name === pendingTier ? "outline" : "default"}
+								disabled={
+									isCurrent ||
+									tier.name === pendingTier ||
+									downgrade.isPending ||
+									(tier.is_paid && !isWallet && !fiatProvider)
+								}
 								onClick={() => handleTierAction(tier.name)}
 							>
 								{isCurrent
 									? "Current plan"
-									: (tierOrder[tier.name] ?? 0) > (tierOrder[currentTier] ?? 0)
-										? "Upgrade"
-										: "Downgrade"}
+									: tier.name === pendingTier
+										? "Scheduled at period end"
+										: (tierOrder[tier.name] ?? 0) > (tierOrder[currentTier] ?? 0)
+											? "Upgrade"
+											: "Downgrade"}
 							</Button>
 						</div>
 					);
