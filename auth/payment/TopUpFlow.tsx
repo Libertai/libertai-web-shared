@@ -4,8 +4,10 @@ import { CheckCircle } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "../ui/button";
 import { usePaymentProviders, useSubscription } from "../use-payments";
+import { useAccountStore } from "../account";
 import { PaymentStage } from "./PaymentStage";
 import { TopUpAmountInput } from "./TopUpAmountInput";
+import { CardTopUp } from "./CardTopUp";
 
 interface TopUpFlowProps {
 	onDone: () => void;
@@ -18,6 +20,10 @@ export function TopUpFlow({ onDone }: Readonly<TopUpFlowProps>) {
 	const { data: subscription } = useSubscription();
 	const { data: providers } = usePaymentProviders();
 	const fiatProviderId = providers?.find((p) => p.kind === "fiat")?.id;
+	// Walletless (email/OAuth) users pay only by card — give them the one-screen amount picker
+	// instead of the wallet flow's amount-entry → method-select → pay sequence.
+	const account = useAccountStore((state) => state.account);
+	const isCardOnly = !account && !!fiatProviderId;
 
 	const [stage, setStage] = useQueryState<Stage>("stage", {
 		defaultValue: "select",
@@ -45,30 +51,37 @@ export function TopUpFlow({ onDone }: Readonly<TopUpFlowProps>) {
 				<p className="text-sm text-muted-foreground mt-1">Credits are used once your plan allowance runs out.</p>
 			</div>
 
-			{effectiveStage === "select" && (
-				<div className="space-y-4">
-					<p className="text-sm text-muted-foreground">
-						Current balance:{" "}
-						<span className="font-semibold text-foreground">${(subscription?.prepaid_balance ?? 0).toFixed(2)}</span>
-					</p>
-					<TopUpAmountInput onSelectAmount={() => setStage("payment")} />
-				</div>
+			{isCardOnly && fiatProviderId ? (
+				<CardTopUp fiatProviderId={fiatProviderId} currentBalance={subscription?.prepaid_balance ?? 0} />
+			) : (
+				<>
+					{effectiveStage === "select" && (
+						<div className="space-y-4">
+							<p className="text-sm text-muted-foreground">
+								Current balance:{" "}
+								<span className="font-semibold text-foreground">
+									${(subscription?.prepaid_balance ?? 0).toFixed(2)}
+								</span>
+							</p>
+							<TopUpAmountInput onSelectAmount={() => setStage("payment")} />
+						</div>
+					)}
+
+					{effectiveStage === "payment" && (
+						<PaymentStage
+							usdAmount={numericAmount}
+							handleGoBackToSelection={() => setStage("select")}
+							handlePaymentSuccess={() => {
+								setStage("success");
+								void qc.invalidateQueries({ queryKey: ["subscription"] });
+								void qc.invalidateQueries({ queryKey: ["credits"] });
+							}}
+						/>
+					)}
+				</>
 			)}
 
-			{effectiveStage === "payment" && (
-				<PaymentStage
-					usdAmount={numericAmount}
-					fiatProviderId={fiatProviderId}
-					handleGoBackToSelection={() => setStage("select")}
-					handlePaymentSuccess={() => {
-						setStage("success");
-						void qc.invalidateQueries({ queryKey: ["subscription"] });
-						void qc.invalidateQueries({ queryKey: ["credits"] });
-					}}
-				/>
-			)}
-
-			{effectiveStage === "success" && (
+			{!isCardOnly && effectiveStage === "success" && (
 				<div className="flex flex-col items-center gap-4 py-8">
 					<div className="w-14 h-14 bg-emerald-500/20 rounded-full flex items-center justify-center">
 						<CheckCircle className="h-7 w-7 text-emerald-400" />

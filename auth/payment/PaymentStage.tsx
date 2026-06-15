@@ -32,24 +32,14 @@ import { waitForBaseTransaction } from "./transactions";
 import idl from "./solana/libertai_payment_processor.json";
 import { LibertaiPaymentProcessor } from "./solana/libertai_payment_processor";
 import { usePaymentConfig } from "./config";
-import { Skeleton } from "../ui/skeleton";
-import { useBillingActions, usePaymentRegion } from "../use-payments";
-import { TopUpPackPicker } from "./TopUpPackPicker";
 
 type PaymentStageProps = {
 	usdAmount: number;
 	handleGoBackToSelection: () => void;
 	handlePaymentSuccess: () => void;
-	/** Fiat (card) provider id — undefined hides the card option entirely. */
-	fiatProviderId?: string;
 };
 
-export const PaymentStage = ({
-	usdAmount,
-	handleGoBackToSelection,
-	handlePaymentSuccess,
-	fiatProviderId,
-}: PaymentStageProps) => {
+export const PaymentStage = ({ usdAmount, handleGoBackToSelection, handlePaymentSuccess }: PaymentStageProps) => {
 	const { thirdwebClient, solanaRpc, paymentProcessorBaseAddress, usdcBaseAddress, ltaiSolanaAddress } =
 		usePaymentConfig();
 
@@ -73,8 +63,6 @@ export const PaymentStage = ({
 
 	const { price: ltaiPrice, isLoading: isLtaiPriceLoading, getRequiredLTAI } = useLTAIPrice();
 	const { price: solPrice, isLoading: isSolPriceLoading, getRequiredSOL } = useSOLPrice();
-	const { data: region, isLoading: isRegionLoading } = usePaymentRegion();
-	const { topup } = useBillingActions();
 
 	const originalLtaiAmount = getRequiredLTAI(usdAmount, false);
 	const originalSolAmount = getRequiredSOL(usdAmount);
@@ -84,13 +72,11 @@ export const PaymentStage = ({
 	// email/OAuth users pay by card. Default to the wallet's native option; walletless users
 	// default to card (when fiat is unconfigured the empty state below renders instead).
 	const defaultMethod: PaymentMethod =
-		account?.chain === "base" ? "ltai" : account?.chain === "solana" ? "solana" : account ? "crypto" : "card";
+		account?.chain === "base" ? "ltai" : account?.chain === "solana" ? "solana" : "crypto";
 	const [method, setMethod] = useQueryState<PaymentMethod>("method", {
 		defaultValue: defaultMethod,
 		parse: (value): PaymentMethod => {
 			switch (value) {
-				case "card":
-					return fiatProviderId ? "card" : defaultMethod;
 				case "crypto":
 					// On-chain checkout is wallet-only — a deep link can't surface it for email users.
 					return account ? "crypto" : defaultMethod;
@@ -103,8 +89,8 @@ export const PaymentStage = ({
 		},
 	});
 
-	// Walletless user without a fiat provider: nothing to show.
-	const hasAnyMethod = !!account || !!fiatProviderId;
+	// On-chain methods are wallet-only; walletless users are routed to CardTopUp upstream.
+	const hasAnyMethod = !!account;
 
 	const hasLTAI = ltaiBalance > 0;
 
@@ -415,46 +401,12 @@ export const PaymentStage = ({
 					selectedMethod={method as PaymentMethod}
 					hasLTAI={hasLTAI}
 					chain={account?.chain}
-					fiatAvailable={!!fiatProviderId}
 				/>
 			)}
 
 			{/* Selected method widget */}
 			{hasAnyMethod && (
 				<div>
-					{method === "card" &&
-						fiatProviderId &&
-						// Wait for the region before branching so EUR users never flash the USD card UI.
-						(isRegionLoading ? (
-							<div className="space-y-3">
-								<Skeleton className="h-5 w-48" />
-								<Skeleton className="h-10 w-full" />
-							</div>
-						) : region?.currency === "EUR" ? (
-							<div className="space-y-3">
-								<p className="text-xs text-muted-foreground">Card top-ups in EUR use fixed packs.</p>
-								<TopUpPackPicker fiatProviderId={fiatProviderId} />
-							</div>
-						) : (
-							// USD region: arbitrary amount, redirect to hosted checkout.
-							// The /payment/callback page handles the post-payment flow — no handlePaymentSuccess here.
-							// isSuccess keeps the button disabled between mutate resolving and the browser navigating away.
-							<div className="bg-card/50 backdrop-blur-sm p-6 rounded-xl border border-border space-y-4">
-								<p className="text-sm text-muted-foreground">
-									You will be charged <span className="font-semibold text-foreground">${usdAmount.toFixed(2)}</span> via
-									Revolut.
-								</p>
-								<Button
-									className="w-full"
-									disabled={topup.isPending || topup.isSuccess}
-									onClick={() => topup.mutate({ provider: fiatProviderId, amount: usdAmount })}
-								>
-									{topup.isPending || topup.isSuccess
-										? "Redirecting to checkout..."
-										: `Pay $${usdAmount.toFixed(2)} by card`}
-								</Button>
-							</div>
-						))}
 					{method === "crypto" && account && (
 						<CheckoutWidget
 							client={thirdwebClient}

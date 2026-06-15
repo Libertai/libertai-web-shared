@@ -1,15 +1,15 @@
 import { Button } from "../ui/button";
-import { Coins, CreditCard, Zap } from "lucide-react";
+import { Coins, Zap } from "lucide-react";
 import { cn } from "../lib/utils";
 
-export type PaymentMethod = "card" | "crypto" | "ltai" | "solana";
+// On-chain methods only. Walletless (card) users never reach this selector — they use CardTopUp.
+export type PaymentMethod = "crypto" | "ltai" | "solana";
 
 interface PaymentMethodSelectorProps {
 	onSelectMethod: (method: PaymentMethod) => void;
 	selectedMethod: PaymentMethod;
 	hasLTAI: boolean;
 	chain: "base" | "solana" | undefined;
-	fiatAvailable: boolean;
 }
 
 export function PaymentMethodSelector({
@@ -17,19 +17,9 @@ export function PaymentMethodSelector({
 	selectedMethod,
 	hasLTAI,
 	chain,
-	fiatAvailable,
 }: Readonly<PaymentMethodSelectorProps>) {
 	// Payment method options
 	const paymentOptions = [
-		{
-			id: "card",
-			method: "card",
-			icon: <CreditCard className="h-5 w-5 text-primary" />,
-			title: "Pay by card",
-			description: "Credit/debit card via Revolut",
-			disabled: false,
-			isVisible: !!fiatAvailable,
-		},
 		{
 			id: "ltai",
 			method: "ltai",
