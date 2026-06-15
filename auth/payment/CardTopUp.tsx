@@ -74,7 +74,7 @@ export function CardTopUp({ fiatProviderId, currentBalance }: Readonly<CardTopUp
 				Current balance: <span className="font-semibold text-foreground">${currentBalance.toFixed(2)}</span>
 			</p>
 
-			<div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+			<div className={cn("grid grid-cols-2 gap-3", isEur ? "sm:grid-cols-4" : "sm:grid-cols-5")}>
 				{sortedPacks.map((p) => (
 					<AmountCard
 						key={p.id}
@@ -83,7 +83,7 @@ export function CardTopUp({ fiatProviderId, currentBalance }: Readonly<CardTopUp
 							setIsOther(false);
 							setSelectedPackId(p.id);
 						}}
-						title={isEur ? `$${p.usd_credits} credits` : `$${p.usd_credits}`}
+						title={`$${p.usd_credits}`}
 						subtitle={isEur ? `€${p.eur_charge.toFixed(2)} incl. VAT` : undefined}
 					/>
 				))}
@@ -145,14 +145,13 @@ function AmountCard({
 			type="button"
 			onClick={onClick}
 			className={cn(
-				"flex flex-col items-center justify-center gap-1 rounded-xl border px-3 py-4 text-center transition-colors",
-				selected
-					? "border-[2.5px] border-primary bg-primary/5"
-					: "border border-border hover:border-primary/50 hover:bg-card/50",
+				// border-2 always (color-only change on select) so selecting never resizes the card.
+				"flex min-h-[4.5rem] flex-col items-center justify-center gap-1 rounded-xl border-2 px-3 py-4 text-center transition-colors",
+				selected ? "border-primary bg-primary/5" : "border-border hover:border-primary/50 hover:bg-card/50",
 			)}
 		>
-			<span className="font-semibold text-foreground">{title}</span>
-			{subtitle && <span className="text-xs text-foreground/70">{subtitle}</span>}
+			<span className="font-semibold text-foreground whitespace-nowrap">{title}</span>
+			{subtitle && <span className="text-xs text-foreground/70 whitespace-nowrap">{subtitle}</span>}
 		</button>
 	);
 }
