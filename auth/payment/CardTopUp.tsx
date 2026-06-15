@@ -84,7 +84,7 @@ export function CardTopUp({ fiatProviderId, currentBalance }: Readonly<CardTopUp
 							setSelectedPackId(p.id);
 						}}
 						title={isEur ? `$${p.usd_credits} credits` : `$${p.usd_credits}`}
-						subtitle={isEur ? `€${p.eur_charge} incl. VAT` : undefined}
+						subtitle={isEur ? `€${p.eur_charge.toFixed(2)} incl. VAT` : undefined}
 					/>
 				))}
 				{/* Custom amounts are USD-only — EU sales must use the fixed VAT-inclusive packs. */}
