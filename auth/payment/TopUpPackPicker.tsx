@@ -33,8 +33,8 @@ export function TopUpPackPicker({ fiatProviderId }: Readonly<TopUpPackPickerProp
 					onClick={() => topup.mutate({ provider: fiatProviderId, pack_id: pack.id })}
 					type="button"
 				>
-					<span className="font-semibold text-foreground">€{pack.eur_charge} incl. VAT</span>
-					<span className="text-xs text-foreground/70">→ ${pack.usd_credits} credits</span>
+					<span className="font-semibold text-foreground">${pack.usd_credits} credits</span>
+					<span className="text-xs text-foreground/70">€{pack.eur_charge} incl. VAT</span>
 				</Button>
 			))}
 		</div>
