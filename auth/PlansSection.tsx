@@ -19,29 +19,17 @@ const TIER_COPY: Record<string, { tagline: string; inheritsFrom: string; feature
 	go: {
 		tagline: "For regular, everyday use",
 		inheritsFrom: "Free",
-		features: [
-			"Much higher usage than Free",
-			"Access to every model",
-			"Larger 5-hour and weekly allowances",
-		],
+		features: ["Access to all models", "Much higher usage than Free", "Longer sessions before a cooldown"],
 	},
 	plus: {
 		tagline: "For heavy, daily workloads",
 		inheritsFrom: "Go",
-		features: [
-			"Several times the usage of Go",
-			"Comfortable for all-day work",
-			"Generous weekly allowance",
-		],
+		features: ["3× higher weekly limit than Go", "Comfortable for all-day work", "Great for long documents and coding"],
 	},
 	max: {
 		tagline: "For power users and automation",
 		inheritsFrom: "Plus",
-		features: [
-			"Our highest usage limits",
-			"Built for intensive, sustained use",
-			"Maximum weekly allowance",
-		],
+		features: ["10× higher weekly limit than Plus", "Built for intensive, sustained use", "Ideal for automation and agents"],
 	},
 };
 
