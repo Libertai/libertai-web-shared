@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Zap } from "lucide-react";
+import { Check, Zap } from "lucide-react";
 import { Button } from "./ui/button";
 import {
 	Dialog,
@@ -12,12 +12,37 @@ import {
 import { useBillingActions, usePaymentProviders, usePaymentRegion, useSubscription, useTiers } from "./use-payments";
 import { useAccountStore } from "./account";
 
-// Qualitative descriptions — we deliberately don't surface raw allowance numbers.
-const TIER_TAGLINES: Record<string, string> = {
-	free: "For getting started and light use",
-	go: "For regular individual use",
-	plus: "For heavy, daily workloads",
-	max: "Maximum limits for power users",
+// Marketing copy per paid tier (Free is the default — reached via "Cancel subscription", not a card).
+// Qualitative on purpose: we don't surface raw allowance numbers. Each tier lists what it adds on
+// top of the one below (Claude-style "Everything in X, plus:").
+const TIER_COPY: Record<string, { tagline: string; inheritsFrom: string; features: string[] }> = {
+	go: {
+		tagline: "For regular, everyday use",
+		inheritsFrom: "Free",
+		features: [
+			"Much higher usage than Free",
+			"Access to every model",
+			"Larger 5-hour and weekly allowances",
+		],
+	},
+	plus: {
+		tagline: "For heavy, daily workloads",
+		inheritsFrom: "Go",
+		features: [
+			"Several times the usage of Go",
+			"Comfortable for all-day work",
+			"Generous weekly allowance",
+		],
+	},
+	max: {
+		tagline: "For power users and automation",
+		inheritsFrom: "Plus",
+		features: [
+			"Our highest usage limits",
+			"Built for intensive, sustained use",
+			"Maximum weekly allowance",
+		],
+	},
 };
 
 const CURRENCY_SYMBOL: Record<string, string> = { USD: "$", EUR: "€" };
@@ -156,51 +181,69 @@ export function PlansSection() {
 					))}
 			</div>
 
-			<div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-				{(tiers ?? []).map((tier) => {
-					const isCurrent = tier.name === currentTier;
-					// The free card mirrors a scheduled cancellation too (cancel == downgrade to free).
-					const isScheduled =
-						tier.name === pendingTier || (tier.name === "free" && cancelScheduled && hasActivePaidSub);
-					// Tier data always carries currency "USD" — the user's region decides the display
-					// currency. EUR plans are net-priced with the SAME number as USD by design (Revolut
-					// adds VAT on top), so we only swap the symbol and append the VAT note.
-					const symbol = CURRENCY_SYMBOL[region.currency] ?? "$";
-					return (
-						<div
-							key={tier.name}
-							className={`p-6 rounded-xl border ${isCurrent ? "border-primary" : "border-border"} bg-card/50 flex flex-col`}
-						>
-							<h3 className="text-lg font-semibold capitalize">{tier.name}</h3>
-							<p className="text-2xl font-bold mt-2">
-								{tier.price_cents === 0 ? "Free" : `${symbol}${(tier.price_cents / 100).toFixed(0)}`}
-								{tier.price_cents > 0 && <span className="text-sm font-normal text-muted-foreground">/mo</span>}
-								{tier.price_cents > 0 && region.currency === "EUR" && (
-									<span className="text-xs font-normal text-muted-foreground ml-1.5">
-										+ {Math.round(region.vat_rate * 100)}% VAT
-									</span>
-								)}
-							</p>
-							<p className="mt-4 text-sm text-muted-foreground flex-1">{TIER_TAGLINES[tier.name] ?? ""}</p>
-							<Button
-								className="mt-4 w-full"
-								variant={isCurrent || isScheduled ? "outline" : "default"}
-								disabled={
-									isCurrent || isScheduled || downgrade.isPending || (tier.is_paid && !isWallet && !fiatProvider)
-								}
-								onClick={() => handleTierAction(tier.name)}
+			<div className="grid gap-4 md:grid-cols-3">
+				{/* Free is the default plan, not a sellable card — drop to it via "Cancel subscription". */}
+				{(tiers ?? [])
+					.filter((tier) => tier.is_paid)
+					.map((tier) => {
+						const copy = TIER_COPY[tier.name];
+						const isCurrent = tier.name === currentTier;
+						const isScheduled = tier.name === pendingTier;
+						const isUpgrade = (tierOrder[tier.name] ?? 0) > (tierOrder[currentTier] ?? 0);
+						// Tier data always carries currency "USD" — the user's region decides the display
+						// currency. EUR plans are net-priced with the SAME number as USD by design (Revolut
+						// adds VAT on top), so we only swap the symbol and append the VAT note.
+						const symbol = CURRENCY_SYMBOL[region.currency] ?? "$";
+						const label = isCurrent
+							? "Current plan"
+							: isScheduled
+								? "Scheduled"
+								: isUpgrade
+									? hasActivePaidSub
+										? "Upgrade"
+										: "Subscribe"
+									: "Downgrade";
+						return (
+							<div
+								key={tier.name}
+								className={`p-6 rounded-xl border ${isCurrent ? "border-primary" : "border-border"} bg-card/50 flex flex-col`}
 							>
-								{isCurrent
-									? "Current plan"
-									: isScheduled
-										? "Scheduled at period end"
-										: (tierOrder[tier.name] ?? 0) > (tierOrder[currentTier] ?? 0)
-											? "Upgrade"
-											: "Downgrade"}
-							</Button>
-						</div>
-					);
-				})}
+								<h3 className="text-lg font-semibold capitalize">{tier.name}</h3>
+								<p className="text-sm text-muted-foreground mt-1">{copy?.tagline}</p>
+								<p className="text-2xl font-bold mt-4">
+									{symbol}
+									{(tier.price_cents / 100).toFixed(0)}
+									<span className="text-sm font-normal text-muted-foreground">/mo</span>
+									{region.currency === "EUR" && (
+										<span className="text-xs font-normal text-muted-foreground ml-1.5">
+											+ {Math.round(region.vat_rate * 100)}% VAT
+										</span>
+									)}
+								</p>
+								<Button
+									className="mt-4 w-full"
+									variant={isCurrent || isScheduled ? "outline" : "default"}
+									disabled={isCurrent || isScheduled || downgrade.isPending || (!isWallet && !fiatProvider)}
+									onClick={() => handleTierAction(tier.name)}
+								>
+									{label}
+								</Button>
+								{copy && (
+									<div className="mt-6 border-t border-border pt-4">
+										<p className="text-sm font-medium mb-3">Everything in {copy.inheritsFrom}, plus:</p>
+										<ul className="space-y-2">
+											{copy.features.map((feature) => (
+												<li key={feature} className="flex items-start gap-2 text-sm text-muted-foreground">
+													<Check className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+													<span>{feature}</span>
+												</li>
+											))}
+										</ul>
+									</div>
+								)}
+							</div>
+						);
+					})}
 			</div>
 			{!isWallet && !fiatProvider && (
 				<p className="text-xs text-muted-foreground">Paid plans become available once card payments are configured.</p>
