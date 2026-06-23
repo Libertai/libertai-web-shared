@@ -35,9 +35,10 @@ const TIER_COPY: Record<string, { tagline: string; inheritsFrom: string; feature
 
 const CURRENCY_SYMBOL: Record<string, string> = { USD: "$", EUR: "€" };
 
-/** Money moves (upgrade) or entitlement shrinks (downgrade/cancel) — every one of these
- * is confirmed in a dialog before acting. */
-type ConfirmAction = { kind: "upgrade" | "downgrade" | "cancel"; tier?: string };
+/** Money moves (subscribe/upgrade) or entitlement shrinks (downgrade/cancel) — every one of
+ * these is confirmed in a dialog before acting. (Fiat subscribe skips this: its hosted checkout
+ * is the confirmation. Only the credits/wallet subscribe, which debits instantly, needs it.) */
+type ConfirmAction = { kind: "subscribe" | "upgrade" | "downgrade" | "cancel"; tier?: string };
 
 export function PlansSection() {
 	const { data: subscription } = useSubscription();
@@ -82,7 +83,11 @@ export function PlansSection() {
 		} else if (target > current) {
 			if (hasActivePaidSub) {
 				setConfirm({ kind: "upgrade", tier: tierName });
+			} else if (isWallet) {
+				// Credits subscribe debits prepaid balance immediately — confirm before charging.
+				setConfirm({ kind: "subscribe", tier: tierName });
 			} else {
+				// Fiat: redirect straight to the hosted checkout (its own confirmation).
 				subscribe.mutate({ provider, tier: tierName });
 			}
 		} else if (target < current) {
@@ -93,7 +98,9 @@ export function PlansSection() {
 	const runConfirmed = () => {
 		if (!confirm) return;
 		const provider = isWallet ? "credits" : (fiatProvider?.id ?? "revolut");
-		if (confirm.kind === "upgrade" && confirm.tier) {
+		if (confirm.kind === "subscribe" && confirm.tier) {
+			subscribe.mutate({ provider, tier: confirm.tier });
+		} else if (confirm.kind === "upgrade" && confirm.tier) {
 			upgrade.mutate({ provider, tier: confirm.tier });
 		} else if (confirm.kind === "downgrade" && confirm.tier) {
 			downgrade.mutate({ tier: confirm.tier });
@@ -112,9 +119,19 @@ export function PlansSection() {
 		return (currentPrice / 100) * fraction;
 	}, [tiers, currentTier, subscription?.current_period_end]);
 
+	// Monthly price of the tier being confirmed (USD; credits balance is USD-denominated).
+	const confirmTierPrice = useMemo(
+		() => ((tiers ?? []).find((t) => t.name === confirm?.tier)?.price_cents ?? 0) / 100,
+		[tiers, confirm?.tier],
+	);
+
 	const isEndingToFree = confirm?.kind === "cancel" || (confirm?.kind === "downgrade" && confirm.tier === "free");
 	const confirmTitle =
-		confirm?.kind === "upgrade" ? (
+		confirm?.kind === "subscribe" ? (
+			<>
+				Subscribe to <span className="capitalize">{confirm.tier}</span>?
+			</>
+		) : confirm?.kind === "upgrade" ? (
 			<>
 				Upgrade to <span className="capitalize">{confirm.tier}</span>?
 			</>
@@ -237,13 +254,19 @@ export function PlansSection() {
 				<p className="text-xs text-muted-foreground">Paid plans become available once card payments are configured.</p>
 			)}
 
-			{/* Confirmation before money moves (upgrade) or entitlement shrinks (downgrade/cancel). */}
+			{/* Confirmation before money moves (credits subscribe/upgrade) or entitlement shrinks (downgrade/cancel). */}
 			<Dialog open={confirm !== null} onOpenChange={(open) => !open && setConfirm(null)}>
 				<DialogContent className="sm:max-w-md">
 					<DialogHeader>
 						<DialogTitle>{confirmTitle}</DialogTitle>
 						<DialogDescription className="space-y-2 pt-1">
-							{confirm?.kind === "upgrade" ? (
+							{confirm?.kind === "subscribe" ? (
+								<span>
+									${confirmTierPrice.toFixed(0)} in credits will be deducted now, and your{" "}
+									<span className="capitalize">{confirm.tier}</span> plan starts immediately. It renews each month
+									from your prepaid credits.
+								</span>
+							) : confirm?.kind === "upgrade" ? (
 								isWallet ? (
 									<span>
 										You'll be charged the prorated difference for the rest of your current billing period from your
@@ -276,17 +299,19 @@ export function PlansSection() {
 							Back
 						</Button>
 						<Button
-							variant={confirm?.kind === "upgrade" ? "default" : "destructive"}
+							variant={confirm?.kind === "upgrade" || confirm?.kind === "subscribe" ? "default" : "destructive"}
 							onClick={runConfirmed}
-							disabled={upgrade.isPending || downgrade.isPending || cancel.isPending}
+							disabled={subscribe.isPending || upgrade.isPending || downgrade.isPending || cancel.isPending}
 						>
-							{confirm?.kind === "upgrade"
-								? isWallet
-									? "Confirm upgrade"
-									: "Continue to payment"
-								: isEndingToFree
-									? "Cancel subscription"
-									: "Confirm switch"}
+							{confirm?.kind === "subscribe"
+								? "Confirm subscription"
+								: confirm?.kind === "upgrade"
+									? isWallet
+										? "Confirm upgrade"
+										: "Continue to payment"
+									: isEndingToFree
+										? "Cancel subscription"
+										: "Confirm switch"}
 						</Button>
 					</DialogFooter>
 				</DialogContent>
