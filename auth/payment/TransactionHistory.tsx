@@ -353,11 +353,11 @@ export function TransactionHistory() {
 			)}
 
 			{transactions.some((transaction) => transaction.status !== "completed") && (
-				<div className="flex items-center gap-3 p-4 border border-amber-400/30 rounded-lg bg-amber-950/20 text-amber-400">
+				<div className="flex items-center gap-3 p-4 border border-amber-500/30 rounded-lg bg-amber-50 text-amber-700 dark:bg-amber-950/20 dark:text-amber-400">
 					<AlertCircle className="h-5 w-5 flex-shrink-0" />
 					<div>
 						<p className="text-sm font-medium">You have pending transactions</p>
-						<p className="text-xs text-amber-400/80">
+						<p className="text-xs text-amber-700/80 dark:text-amber-400/80">
 							Your transaction is being processed and credits will be available soon. If it is not confirmed
 							automatically after a few minutes, please reach out to us on{" "}
 							<a href="https://t.me/libertai" className="text-primary hover:underline" target="_blank">
