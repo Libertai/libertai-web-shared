@@ -4,7 +4,9 @@ import { useCanUpgrade } from "../use-payments";
 interface UsageCreditsCardProps {
 	balance: number;
 	description: string;
-	onUpgrade: () => void;
+	// Optional: pages that already render the plan cards (e.g. console billing) omit this so the
+	// redundant "Upgrade plan" button is hidden; pages without plans pass a navigate-to-plans handler.
+	onUpgrade?: () => void;
 	onBuyCredits: () => void;
 }
 
@@ -21,7 +23,7 @@ export function UsageCreditsCard({ balance, description, onUpgrade, onBuyCredits
 					<div className="text-sm text-muted-foreground">Current balance</div>
 				</div>
 				<div className="flex gap-2">
-					{canUpgrade && (
+					{onUpgrade && canUpgrade && (
 						<Button variant="outline" onClick={onUpgrade}>
 							Upgrade plan
 						</Button>
