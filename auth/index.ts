@@ -23,6 +23,8 @@ export { PaymentForm } from "./payment/PaymentForm";
 export { TopUpAmountInput } from "./payment/TopUpAmountInput";
 export { PaymentConfigProvider, usePaymentConfig, type PaymentConfig } from "./payment/config";
 export { UsageCreditsCard } from "./payment/UsageCreditsCard";
+export { TransactionHistory } from "./payment/TransactionHistory";
+export { useTransactions } from "./payment/use-transactions";
 export { TopUpFlow } from "./payment/TopUpFlow";
 export { CardTopUp } from "./payment/CardTopUp";
 export { PaymentCallback } from "./payment/PaymentCallback";
