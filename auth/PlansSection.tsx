@@ -45,12 +45,13 @@ export function PlansSection() {
 	const { data: tiers } = useTiers();
 	const { data: providers } = usePaymentProviders();
 	const { data: regionData } = usePaymentRegion();
-	// Default to USD display until the region resolves.
-	const region = regionData ?? { currency: "USD", vat_rate: 0 };
 	const { subscribe, upgrade, downgrade, cancel, resume } = useBillingActions();
 
 	const account = useAccountStore((s) => s.account);
 	const isWallet = !!account;
+	// Wallet users pay in USD on-chain (credits) straight to the protocol — no fiat region, no VAT.
+	// The IP-resolved currency/VAT only applies to card payers. Default to USD until region resolves.
+	const region = isWallet ? { currency: "USD", vat_rate: 0 } : (regionData ?? { currency: "USD", vat_rate: 0 });
 	const fiatProvider = useMemo(() => providers?.find((p) => p.kind === "fiat"), [providers]);
 	const tierOrder = useMemo(() => {
 		const map: Record<string, number> = {};
@@ -195,9 +196,9 @@ export function PlansSection() {
 						const isCurrent = tier.name === currentTier;
 						const isScheduled = tier.name === pendingTier;
 						const isUpgrade = (tierOrder[tier.name] ?? 0) > (tierOrder[currentTier] ?? 0);
-						// Tier data always carries currency "USD" — the user's region decides the display
-						// currency. EUR plans are net-priced with the SAME number as USD by design (Revolut
-						// adds VAT on top), so we only swap the symbol and append the VAT note.
+						// Tier data always carries currency "USD". For card payers the region decides the
+						// display currency (EUR plans are net-priced with the SAME number as USD; Revolut
+						// adds VAT on top, hence the VAT note). Wallet users are forced to USD above.
 						const symbol = CURRENCY_SYMBOL[region.currency] ?? "$";
 						const label = isCurrent
 							? "Current plan"
