@@ -197,8 +197,8 @@ export function PlansSection() {
 						const isScheduled = tier.name === pendingTier;
 						const isUpgrade = (tierOrder[tier.name] ?? 0) > (tierOrder[currentTier] ?? 0);
 						// Tier data always carries currency "USD". For card payers the region decides the
-						// display currency (EUR plans are net-priced with the SAME number as USD; Revolut
-						// adds VAT on top, hence the VAT note). Wallet users are forced to USD above.
+						// display currency (EUR plans use the SAME number as USD, but VAT-inclusive: the price
+						// IS the gross total and Revolut breaks the VAT out within it). Wallet users are USD above.
 						const symbol = CURRENCY_SYMBOL[region.currency] ?? "$";
 						const label = isCurrent
 							? "Current plan"
@@ -220,10 +220,8 @@ export function PlansSection() {
 									{symbol}
 									{(tier.price_cents / 100).toFixed(0)}
 									<span className="text-sm font-normal text-muted-foreground">/mo</span>
-									{region.currency === "EUR" && (
-										<span className="text-xs font-normal text-muted-foreground ml-1.5">
-											+ {Math.round(region.vat_rate * 100)}% VAT
-										</span>
+									{region.currency === "EUR" && region.vat_rate > 0 && (
+										<span className="text-xs font-normal text-muted-foreground ml-1.5">incl. VAT</span>
 									)}
 								</p>
 								<Button
