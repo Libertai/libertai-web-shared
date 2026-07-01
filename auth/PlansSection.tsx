@@ -1,14 +1,7 @@
 import { useMemo, useState } from "react";
 import { Check, Zap } from "lucide-react";
 import { Button } from "./ui/button";
-import {
-	Dialog,
-	DialogContent,
-	DialogDescription,
-	DialogFooter,
-	DialogHeader,
-	DialogTitle,
-} from "./ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "./ui/dialog";
 import { useBillingActions, usePaymentProviders, usePaymentRegion, useSubscription, useTiers } from "./use-payments";
 import { useAccountStore } from "./account";
 
@@ -29,7 +22,11 @@ const TIER_COPY: Record<string, { tagline: string; inheritsFrom: string; feature
 	max: {
 		tagline: "For power users and automation",
 		inheritsFrom: "Plus",
-		features: ["10× higher weekly limit than Plus", "Built for intensive, sustained use", "Ideal for automation and agents"],
+		features: [
+			"10× higher weekly limit than Plus",
+			"Built for intensive, sustained use",
+			"Ideal for automation and agents",
+		],
 	},
 };
 
@@ -40,7 +37,7 @@ const CURRENCY_SYMBOL: Record<string, string> = { USD: "$", EUR: "€" };
  * is the confirmation. Only the credits/wallet subscribe, which debits instantly, needs it.) */
 type ConfirmAction = { kind: "subscribe" | "upgrade" | "downgrade" | "cancel"; tier?: string };
 
-export function PlansSection() {
+export function PlansSection({ onRequireAuth }: { onRequireAuth?: () => void } = {}) {
 	const { data: subscription } = useSubscription();
 	const { data: tiers } = useTiers();
 	const { data: providers } = usePaymentProviders();
@@ -48,6 +45,7 @@ export function PlansSection() {
 	const { subscribe, upgrade, downgrade, cancel, resume } = useBillingActions();
 
 	const account = useAccountStore((s) => s.account);
+	const isAuthenticated = useAccountStore((s) => s.isAuthenticated);
 	const isWallet = !!account;
 	// Wallet users pay in USD on-chain (credits) straight to the protocol — no fiat region, no VAT.
 	// The IP-resolved currency/VAT only applies to card payers. Default to USD until region resolves.
@@ -76,6 +74,12 @@ export function PlansSection() {
 	const [confirm, setConfirm] = useState<ConfirmAction | null>(null);
 
 	const handleTierAction = (tierName: string) => {
+		// Signed-out visitors can browse plans but must sign in before any billing action.
+		// The host app decides where to send them (chat → /login?redirect=/plans).
+		if (!isAuthenticated) {
+			onRequireAuth?.();
+			return;
+		}
 		const provider = isWallet ? "credits" : (fiatProvider?.id ?? "revolut");
 		const target = tierOrder[tierName] ?? 0;
 		const current = tierOrder[currentTier] ?? 0;
@@ -227,7 +231,9 @@ export function PlansSection() {
 								<Button
 									className="mt-4 w-full"
 									variant={isCurrent || isScheduled ? "outline" : "default"}
-									disabled={isCurrent || isScheduled || downgrade.isPending || (!isWallet && !fiatProvider)}
+									disabled={
+										isCurrent || isScheduled || downgrade.isPending || (isAuthenticated && !isWallet && !fiatProvider)
+									}
 									onClick={() => handleTierAction(tier.name)}
 								>
 									{label}
@@ -249,7 +255,7 @@ export function PlansSection() {
 						);
 					})}
 			</div>
-			{!isWallet && !fiatProvider && (
+			{isAuthenticated && !isWallet && !fiatProvider && (
 				<p className="text-xs text-muted-foreground">Paid plans become available once card payments are configured.</p>
 			)}
 
@@ -262,8 +268,8 @@ export function PlansSection() {
 							{confirm?.kind === "subscribe" ? (
 								<span>
 									${confirmTierPrice.toFixed(0)} in credits will be deducted now, and your{" "}
-									<span className="capitalize">{confirm.tier}</span> plan starts immediately. It renews each month
-									from your prepaid credits.
+									<span className="capitalize">{confirm.tier}</span> plan starts immediately. It renews each month from
+									your prepaid credits.
 								</span>
 							) : confirm?.kind === "upgrade" ? (
 								isWallet ? (
@@ -273,22 +279,22 @@ export function PlansSection() {
 									</span>
 								) : (
 									<span>
-										Your new plan starts now with a fresh monthly cycle, billed at full price. The unused time left
-										on your <span className="capitalize">{currentTier}</span> plan
-										{upgradeRefundEstimate != null && <> (≈ ${upgradeRefundEstimate.toFixed(2)})</>} is refunded to
-										your usage credits.
+										Your new plan starts now with a fresh monthly cycle, billed at full price. The unused time left on
+										your <span className="capitalize">{currentTier}</span> plan
+										{upgradeRefundEstimate != null && <> (≈ ${upgradeRefundEstimate.toFixed(2)})</>} is refunded to your
+										usage credits.
 									</span>
 								)
 							) : isEndingToFree ? (
 								<span>
-									You keep <span className="capitalize">{currentTier}</span> until {periodEnd.replace(/^on /, "")},
-									then your subscription ends and you drop to the Free plan. You can resume anytime before then.
+									You keep <span className="capitalize">{currentTier}</span> until {periodEnd.replace(/^on /, "")}, then
+									your subscription ends and you drop to the Free plan. You can resume anytime before then.
 								</span>
 							) : (
 								<span>
-									You keep <span className="capitalize">{currentTier}</span> until {periodEnd.replace(/^on /, "")};
-									the next cycle bills at the <span className="capitalize">{confirm?.tier}</span> price. You can undo
-									this until the period ends.
+									You keep <span className="capitalize">{currentTier}</span> until {periodEnd.replace(/^on /, "")}; the
+									next cycle bills at the <span className="capitalize">{confirm?.tier}</span> price. You can undo this
+									until the period ends.
 								</span>
 							)}
 						</DialogDescription>
