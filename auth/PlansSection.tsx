@@ -150,46 +150,49 @@ export function PlansSection({ onRequireAuth }: { onRequireAuth?: () => void } =
 
 	return (
 		<div className="flex flex-col space-y-4">
-			<div className="flex items-center justify-between flex-wrap gap-3">
-				<div className="flex items-center gap-3">
-					<Zap className="h-5 w-5 text-primary" />
-					<h2 className="text-xl font-semibold">
-						Plan: <span className="capitalize text-primary">{currentTier}</span>
-					</h2>
-				</div>
-				{hasActivePaidSub &&
-					(hasScheduledChange ? (
-						<div className="flex items-center gap-3">
-							<span className="text-sm text-muted-foreground">
-								{pendingTier && pendingTier !== "free" ? (
-									<>
-										Switches to <span className="capitalize">{pendingTier}</span> {periodEnd}
-									</>
-								) : (
-									<>Cancels {periodEnd}</>
-								)}
-							</span>
-							<Button variant="outline" size="sm" onClick={() => resume.mutate()} disabled={resume.isPending}>
-								{pendingTier && pendingTier !== "free" ? (
-									<>
-										Keep <span className="capitalize">{currentTier}</span>
-									</>
-								) : (
-									"Resume subscription"
-								)}
+			{/* Current-plan header is only meaningful for a signed-in user. */}
+			{isAuthenticated && (
+				<div className="flex items-center justify-between flex-wrap gap-3">
+					<div className="flex items-center gap-3">
+						<Zap className="h-5 w-5 text-primary" />
+						<h2 className="text-xl font-semibold">
+							Plan: <span className="capitalize text-primary">{currentTier}</span>
+						</h2>
+					</div>
+					{hasActivePaidSub &&
+						(hasScheduledChange ? (
+							<div className="flex items-center gap-3">
+								<span className="text-sm text-muted-foreground">
+									{pendingTier && pendingTier !== "free" ? (
+										<>
+											Switches to <span className="capitalize">{pendingTier}</span> {periodEnd}
+										</>
+									) : (
+										<>Cancels {periodEnd}</>
+									)}
+								</span>
+								<Button variant="outline" size="sm" onClick={() => resume.mutate()} disabled={resume.isPending}>
+									{pendingTier && pendingTier !== "free" ? (
+										<>
+											Keep <span className="capitalize">{currentTier}</span>
+										</>
+									) : (
+										"Resume subscription"
+									)}
+								</Button>
+							</div>
+						) : (
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={() => setConfirm({ kind: "cancel" })}
+								disabled={cancel.isPending}
+							>
+								Cancel subscription
 							</Button>
-						</div>
-					) : (
-						<Button
-							variant="outline"
-							size="sm"
-							onClick={() => setConfirm({ kind: "cancel" })}
-							disabled={cancel.isPending}
-						>
-							Cancel subscription
-						</Button>
-					))}
-			</div>
+						))}
+				</div>
+			)}
 
 			<div className="grid gap-4 md:grid-cols-3">
 				{/* Free is the default plan, not a sellable card — drop to it via "Cancel subscription". */}
