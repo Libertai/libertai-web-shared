@@ -5,6 +5,30 @@ export type ClientOptions = {
 };
 
 /**
+ * AnonUsageResponse
+ *
+ * Anonymous (logged-out) per-IP chat usage, for the frontend's free-message meter.
+ */
+export type AnonUsageResponse = {
+	/**
+	 * Used
+	 */
+	used: number;
+	/**
+	 * Limit
+	 */
+	limit: number;
+	/**
+	 * Allowed
+	 */
+	allowed: boolean;
+	/**
+	 * Resets At
+	 */
+	resets_at: string | null;
+};
+
+/**
  * ApiKey
  */
 export type ApiKey = {
@@ -232,6 +256,10 @@ export type Call = {
 	 */
 	nb_output_tokens: number;
 	/**
+	 * Nb Cached Tokens
+	 */
+	nb_cached_tokens: number;
+	/**
 	 * Model Name
 	 */
 	model_name: string;
@@ -324,6 +352,28 @@ export type CheckoutResponse = {
 	 * Checkout Url
 	 */
 	checkout_url?: string | null;
+};
+
+/**
+ * ChurnWeek
+ */
+export type ChurnWeek = {
+	/**
+	 * Week Start
+	 */
+	week_start: string;
+	/**
+	 * New
+	 */
+	new: number;
+	/**
+	 * Churned
+	 */
+	churned: number;
+	/**
+	 * Net
+	 */
+	net: number;
 };
 
 /**
@@ -431,6 +481,26 @@ export type CreditTransactionsResponse = {
 };
 
 /**
+ * CreditsConsumptionDay
+ *
+ * Credits consumed on a single day, split by what covered them.
+ */
+export type CreditsConsumptionDay = {
+	/**
+	 * Date
+	 */
+	date: string;
+	/**
+	 * Tier Credits
+	 */
+	tier_credits: number;
+	/**
+	 * Prepaid Credits
+	 */
+	prepaid_credits: number;
+};
+
+/**
  * CreditsUsage
  */
 export type CreditsUsage = {
@@ -472,6 +542,10 @@ export type CurrentUserResponse = {
 	 * Address
 	 */
 	address?: string | null;
+	/**
+	 * Is Libertai Staff
+	 */
+	is_libertai_staff?: boolean;
 };
 
 /**
@@ -717,6 +791,30 @@ export type GlobalChatTokensStats = {
 };
 
 /**
+ * GlobalCreditsConsumptionStats
+ *
+ * Credit consumption over a date range (api/cli/chat keys), tier-covered vs prepaid.
+ */
+export type GlobalCreditsConsumptionStats = {
+	/**
+	 * Total Credits
+	 */
+	total_credits: number;
+	/**
+	 * Total Tier Credits
+	 */
+	total_tier_credits: number;
+	/**
+	 * Total Prepaid Credits
+	 */
+	total_prepaid_credits: number;
+	/**
+	 * Daily
+	 */
+	daily: Array<CreditsConsumptionDay>;
+};
+
+/**
  * GlobalCreditsStats
  *
  * Credit usage statistics for a date range.
@@ -730,6 +828,125 @@ export type GlobalCreditsStats = {
 	 * Credits Usage
 	 */
 	credits_usage: Array<CreditsUsage>;
+};
+
+/**
+ * GlobalLatestSubscribersStats
+ *
+ * Most recent plan subscriptions across all providers, newest first.
+ */
+export type GlobalLatestSubscribersStats = {
+	/**
+	 * Subscribers
+	 */
+	subscribers: Array<LatestSubscriber>;
+};
+
+/**
+ * GlobalSegmentMessagesStats
+ *
+ * Chat messages per subscription segment over a date range.
+ *
+ * Sourced from ``chat_requests`` (the full chat history, predating metering), so legacy and
+ * current messages share one continuous series. Segment is the sender's CURRENT tier — anon
+ * (shared key), free (no paid sub), or the paid tier (go/plus/max). Historical tier at send
+ * time isn't recorded, so a user's past messages are attributed to their tier today.
+ */
+export type GlobalSegmentMessagesStats = {
+	/**
+	 * Total Messages
+	 */
+	total_messages: number;
+	/**
+	 * Messages
+	 */
+	messages: Array<SegmentMessageUsage>;
+};
+
+/**
+ * GlobalSubscribersOverTimeStats
+ *
+ * Active paid subscribers per tier for each day in a date range.
+ *
+ * A subscription counts toward a day if it had started (``created_at``) on or before that day and
+ * had not yet ended — active/overdue subs run to today, cancelled/expired ones end on their last
+ * update. Tier is the subscription's CURRENT tier (historical tier changes aren't recorded),
+ * mirroring the messages-by-segment caveat.
+ */
+export type GlobalSubscribersOverTimeStats = {
+	/**
+	 * Daily
+	 */
+	daily: Array<TierSubscribersDay>;
+};
+
+/**
+ * GlobalSubscriptionsChurnStats
+ *
+ * Revolut, non-trial. new = first activations (upgrade replacements excluded);
+ * churned = real terminations (cancelled/expired/finished; upgrades excluded).
+ */
+export type GlobalSubscriptionsChurnStats = {
+	/**
+	 * Weekly
+	 */
+	weekly: Array<ChurnWeek>;
+	/**
+	 * Total New
+	 */
+	total_new: number;
+	/**
+	 * Total Churned
+	 */
+	total_churned: number;
+};
+
+/**
+ * GlobalSubscriptionsRevenueStats
+ *
+ * Revolut (fiat) MRR, nominal and currency-blind; trials excluded. Event-replayed history.
+ */
+export type GlobalSubscriptionsRevenueStats = {
+	/**
+	 * Current Mrr
+	 */
+	current_mrr: number;
+	/**
+	 * Mrr By Tier
+	 */
+	mrr_by_tier: Array<MrrByTier>;
+	/**
+	 * Daily
+	 */
+	daily: Array<MrrDay>;
+};
+
+/**
+ * GlobalSubscriptionsStats
+ *
+ * Current snapshot of the user base by segment.
+ *
+ * Subscriptions cover all usage (chat/API/CLI), so this is a user-segmentation view, not a
+ * chat metric: paid subscribers per tier, registered free users (no active paid sub), and
+ * anonymous users (distinct IPs that have used logged-out chat).
+ */
+export type GlobalSubscriptionsStats = {
+	/**
+	 * Subscribers By Tier
+	 */
+	subscribers_by_tier: Array<TierSubscribers>;
+	/**
+	 * Total Paid Subscribers
+	 */
+	total_paid_subscribers: number;
+	/**
+	 * Free Users
+	 */
+	free_users: number;
+	/**
+	 * Anonymous Users
+	 */
+	anonymous_users: number;
 };
 
 /**
@@ -764,6 +981,10 @@ export type GlobalTokensStats = {
 	 * Total Output Tokens
 	 */
 	total_output_tokens: number;
+	/**
+	 * Total Cached Tokens
+	 */
+	total_cached_tokens: number;
 	/**
 	 * Calls
 	 */
@@ -840,6 +1061,48 @@ export type InferenceCallType = "text" | "image" | "audio";
  * set of routes; invalid / chat values are rejected with HTTP 422 automatically.
  */
 export type InferenceKeyType = "api" | "liberclaw" | "x402" | "cli";
+
+/**
+ * LatestSubscriber
+ *
+ * A single recent plan subscription with a human-friendly label for its user.
+ *
+ * ``user_label`` resolution order: email > display_name > wallet address > user id.
+ */
+export type LatestSubscriber = {
+	/**
+	 * User Label
+	 */
+	user_label: string;
+	/**
+	 * Tier
+	 */
+	tier: string;
+	/**
+	 * Status
+	 */
+	status: string;
+	/**
+	 * Provider
+	 */
+	provider: string;
+	/**
+	 * Is Trial
+	 */
+	is_trial: boolean;
+	/**
+	 * Cancel At Period End
+	 */
+	cancel_at_period_end: boolean;
+	/**
+	 * Created At
+	 */
+	created_at: string;
+	/**
+	 * Current Period End
+	 */
+	current_period_end: string | null;
+};
 
 /**
  * LiberclawApiKeyRequest
@@ -959,6 +1222,34 @@ export type ModelApiUsage = {
 };
 
 /**
+ * MrrByTier
+ */
+export type MrrByTier = {
+	/**
+	 * Tier
+	 */
+	tier: string;
+	/**
+	 * Mrr
+	 */
+	mrr: number;
+};
+
+/**
+ * MrrDay
+ */
+export type MrrDay = {
+	/**
+	 * Date
+	 */
+	date: string;
+	/**
+	 * Mrr
+	 */
+	mrr: number;
+};
+
+/**
  * PaymentProviderResponse
  */
 export type PaymentProviderResponse = {
@@ -1028,6 +1319,26 @@ export type ResumeResponse = {
 	 * Tier
 	 */
 	tier: string;
+};
+
+/**
+ * SegmentMessageUsage
+ *
+ * Chat messages on a single day for one subscription segment.
+ */
+export type SegmentMessageUsage = {
+	/**
+	 * Date
+	 */
+	date: string;
+	/**
+	 * Segment
+	 */
+	segment: string;
+	/**
+	 * Message Count
+	 */
+	message_count: number;
 };
 
 /**
@@ -1355,6 +1666,40 @@ export type TierResponse = {
 };
 
 /**
+ * TierSubscribers
+ */
+export type TierSubscribers = {
+	/**
+	 * Tier
+	 */
+	tier: string;
+	/**
+	 * Active Subscribers
+	 */
+	active_subscribers: number;
+};
+
+/**
+ * TierSubscribersDay
+ *
+ * Active paid subscribers in one tier on a single day.
+ */
+export type TierSubscribersDay = {
+	/**
+	 * Date
+	 */
+	date: string;
+	/**
+	 * Tier
+	 */
+	tier: string;
+	/**
+	 * Active Subscribers
+	 */
+	active_subscribers: number;
+};
+
+/**
  * TokenPairResponse
  */
 export type TokenPairResponse = {
@@ -1517,6 +1862,13 @@ export type UsageStats = {
 };
 
 /**
+ * UsersWindow
+ *
+ * Rolling window for active-user counts: DAU (day), WAU (week), MAU (month).
+ */
+export type UsersWindow = "day" | "week" | "month";
+
+/**
  * ValidationError
  */
 export type ValidationError = {
@@ -1556,11 +1908,6 @@ export type VerifyMagicLinkRequest = {
  * VoucherAddCreditsRequest
  */
 export type VoucherAddCreditsRequest = {
-	chain: LibertaiChain;
-	/**
-	 * Address
-	 */
-	address: string;
 	/**
 	 * Amount
 	 */
@@ -1569,10 +1916,15 @@ export type VoucherAddCreditsRequest = {
 	 * Expired At
 	 */
 	expired_at?: string | null;
+	chain?: LibertaiChain | null;
 	/**
-	 * Password
+	 * Address
 	 */
-	password: string;
+	address?: string | null;
+	/**
+	 * Email
+	 */
+	email?: string | null;
 };
 
 /**
@@ -2323,6 +2675,12 @@ export type GetVouchersCreditsVouchersGetResponse =
 
 export type AddVoucherCreditsCreditsVouchersPostData = {
 	body: VoucherAddCreditsRequest;
+	headers?: {
+		/**
+		 * Authorization
+		 */
+		authorization?: string | null;
+	};
 	path?: never;
 	query?: never;
 	url: "/credits/vouchers";
@@ -2754,6 +3112,12 @@ export type GetUsageStatsStatsUsageGetResponse =
 
 export type GetChatCallsStatsStatsGlobalChatCallsGetData = {
 	body?: never;
+	headers?: {
+		/**
+		 * Authorization
+		 */
+		authorization?: string | null;
+	};
 	path?: never;
 	query: {
 		/**
@@ -2794,6 +3158,12 @@ export type GetChatCallsStatsStatsGlobalChatCallsGetResponse =
 
 export type GetChatTokensStatsStatsGlobalChatTokensGetData = {
 	body?: never;
+	headers?: {
+		/**
+		 * Authorization
+		 */
+		authorization?: string | null;
+	};
 	path?: never;
 	query: {
 		/**
@@ -2834,6 +3204,12 @@ export type GetChatTokensStatsStatsGlobalChatTokensGetResponse =
 
 export type GetChatUsersStatsStatsGlobalChatUsersGetData = {
 	body?: never;
+	headers?: {
+		/**
+		 * Authorization
+		 */
+		authorization?: string | null;
+	};
 	path?: never;
 	query: {
 		/**
@@ -2848,6 +3224,10 @@ export type GetChatUsersStatsStatsGlobalChatUsersGetData = {
 		 * End date in format YYYY-MM-DD
 		 */
 		end_date: string;
+		/**
+		 * Rolling window: day (DAU), week (WAU), month (MAU)
+		 */
+		window?: UsersWindow;
 	};
 	url: "/stats/global/chat/users";
 };
@@ -2872,8 +3252,146 @@ export type GetChatUsersStatsStatsGlobalChatUsersGetResponses = {
 export type GetChatUsersStatsStatsGlobalChatUsersGetResponse =
 	GetChatUsersStatsStatsGlobalChatUsersGetResponses[keyof GetChatUsersStatsStatsGlobalChatUsersGetResponses];
 
+export type GetLatestSubscribersStatsGlobalSubscriptionsLatestGetData = {
+	body?: never;
+	headers?: {
+		/**
+		 * Authorization
+		 */
+		authorization?: string | null;
+	};
+	path?: never;
+	query?: {
+		/**
+		 * Limit
+		 *
+		 * Number of most recent subscriptions to return
+		 */
+		limit?: number;
+	};
+	url: "/stats/global/subscriptions/latest";
+};
+
+export type GetLatestSubscribersStatsGlobalSubscriptionsLatestGetErrors = {
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
+};
+
+export type GetLatestSubscribersStatsGlobalSubscriptionsLatestGetError =
+	GetLatestSubscribersStatsGlobalSubscriptionsLatestGetErrors[keyof GetLatestSubscribersStatsGlobalSubscriptionsLatestGetErrors];
+
+export type GetLatestSubscribersStatsGlobalSubscriptionsLatestGetResponses = {
+	/**
+	 * Successful Response
+	 */
+	200: GlobalLatestSubscribersStats;
+};
+
+export type GetLatestSubscribersStatsGlobalSubscriptionsLatestGetResponse =
+	GetLatestSubscribersStatsGlobalSubscriptionsLatestGetResponses[keyof GetLatestSubscribersStatsGlobalSubscriptionsLatestGetResponses];
+
+export type GetSubscriptionsRevenueStatsGlobalSubscriptionsRevenueGetData = {
+	body?: never;
+	headers?: {
+		/**
+		 * Authorization
+		 */
+		authorization?: string | null;
+	};
+	path?: never;
+	query: {
+		/**
+		 * Start Date
+		 *
+		 * Start date in format YYYY-MM-DD
+		 */
+		start_date: string;
+		/**
+		 * End Date
+		 *
+		 * End date in format YYYY-MM-DD
+		 */
+		end_date: string;
+	};
+	url: "/stats/global/subscriptions/revenue";
+};
+
+export type GetSubscriptionsRevenueStatsGlobalSubscriptionsRevenueGetErrors = {
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
+};
+
+export type GetSubscriptionsRevenueStatsGlobalSubscriptionsRevenueGetError =
+	GetSubscriptionsRevenueStatsGlobalSubscriptionsRevenueGetErrors[keyof GetSubscriptionsRevenueStatsGlobalSubscriptionsRevenueGetErrors];
+
+export type GetSubscriptionsRevenueStatsGlobalSubscriptionsRevenueGetResponses = {
+	/**
+	 * Successful Response
+	 */
+	200: GlobalSubscriptionsRevenueStats;
+};
+
+export type GetSubscriptionsRevenueStatsGlobalSubscriptionsRevenueGetResponse =
+	GetSubscriptionsRevenueStatsGlobalSubscriptionsRevenueGetResponses[keyof GetSubscriptionsRevenueStatsGlobalSubscriptionsRevenueGetResponses];
+
+export type GetSubscriptionsChurnStatsGlobalSubscriptionsChurnGetData = {
+	body?: never;
+	headers?: {
+		/**
+		 * Authorization
+		 */
+		authorization?: string | null;
+	};
+	path?: never;
+	query: {
+		/**
+		 * Start Date
+		 *
+		 * Start date in format YYYY-MM-DD
+		 */
+		start_date: string;
+		/**
+		 * End Date
+		 *
+		 * End date in format YYYY-MM-DD
+		 */
+		end_date: string;
+	};
+	url: "/stats/global/subscriptions/churn";
+};
+
+export type GetSubscriptionsChurnStatsGlobalSubscriptionsChurnGetErrors = {
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
+};
+
+export type GetSubscriptionsChurnStatsGlobalSubscriptionsChurnGetError =
+	GetSubscriptionsChurnStatsGlobalSubscriptionsChurnGetErrors[keyof GetSubscriptionsChurnStatsGlobalSubscriptionsChurnGetErrors];
+
+export type GetSubscriptionsChurnStatsGlobalSubscriptionsChurnGetResponses = {
+	/**
+	 * Successful Response
+	 */
+	200: GlobalSubscriptionsChurnStats;
+};
+
+export type GetSubscriptionsChurnStatsGlobalSubscriptionsChurnGetResponse =
+	GetSubscriptionsChurnStatsGlobalSubscriptionsChurnGetResponses[keyof GetSubscriptionsChurnStatsGlobalSubscriptionsChurnGetResponses];
+
 export type GetInferenceCallsStatsStatsGlobalKeyTypeCallsGetData = {
 	body?: never;
+	headers?: {
+		/**
+		 * Authorization
+		 */
+		authorization?: string | null;
+	};
 	path: {
 		key_type: InferenceKeyType;
 	};
@@ -2916,6 +3434,12 @@ export type GetInferenceCallsStatsStatsGlobalKeyTypeCallsGetResponse =
 
 export type GetInferenceTokensStatsStatsGlobalKeyTypeTokensGetData = {
 	body?: never;
+	headers?: {
+		/**
+		 * Authorization
+		 */
+		authorization?: string | null;
+	};
 	path: {
 		key_type: InferenceKeyType;
 	};
@@ -2958,6 +3482,12 @@ export type GetInferenceTokensStatsStatsGlobalKeyTypeTokensGetResponse =
 
 export type GetInferenceCreditsStatsStatsGlobalKeyTypeCreditsGetData = {
 	body?: never;
+	headers?: {
+		/**
+		 * Authorization
+		 */
+		authorization?: string | null;
+	};
 	path: {
 		key_type: InferenceKeyType;
 	};
@@ -3000,6 +3530,12 @@ export type GetInferenceCreditsStatsStatsGlobalKeyTypeCreditsGetResponse =
 
 export type GetInferenceUsersStatsStatsGlobalKeyTypeUsersGetData = {
 	body?: never;
+	headers?: {
+		/**
+		 * Authorization
+		 */
+		authorization?: string | null;
+	};
 	path: {
 		key_type: InferenceKeyType;
 	};
@@ -3016,6 +3552,10 @@ export type GetInferenceUsersStatsStatsGlobalKeyTypeUsersGetData = {
 		 * End date in format YYYY-MM-DD
 		 */
 		end_date: string;
+		/**
+		 * Rolling window: day (DAU), week (WAU), month (MAU)
+		 */
+		window?: UsersWindow;
 	};
 	url: "/stats/global/{key_type}/users";
 };
@@ -3042,6 +3582,12 @@ export type GetInferenceUsersStatsStatsGlobalKeyTypeUsersGetResponse =
 
 export type GetAggregateUsersStatsStatsGlobalUsersGetData = {
 	body?: never;
+	headers?: {
+		/**
+		 * Authorization
+		 */
+		authorization?: string | null;
+	};
 	path?: never;
 	query: {
 		/**
@@ -3056,6 +3602,10 @@ export type GetAggregateUsersStatsStatsGlobalUsersGetData = {
 		 * End date in format YYYY-MM-DD
 		 */
 		end_date: string;
+		/**
+		 * Rolling window: day (DAU), week (WAU), month (MAU)
+		 */
+		window?: UsersWindow;
 	};
 	url: "/stats/global/users";
 };
@@ -3082,6 +3632,12 @@ export type GetAggregateUsersStatsStatsGlobalUsersGetResponse =
 
 export type GetGlobalSummaryStatsGlobalSummaryGetData = {
 	body?: never;
+	headers?: {
+		/**
+		 * Authorization
+		 */
+		authorization?: string | null;
+	};
 	path?: never;
 	query: {
 		/**
@@ -3120,6 +3676,177 @@ export type GetGlobalSummaryStatsGlobalSummaryGetResponses = {
 export type GetGlobalSummaryStatsGlobalSummaryGetResponse =
 	GetGlobalSummaryStatsGlobalSummaryGetResponses[keyof GetGlobalSummaryStatsGlobalSummaryGetResponses];
 
+export type GetMessagesBySegmentStatsGlobalMessagesBySegmentGetData = {
+	body?: never;
+	headers?: {
+		/**
+		 * Authorization
+		 */
+		authorization?: string | null;
+	};
+	path?: never;
+	query: {
+		/**
+		 * Start Date
+		 *
+		 * Start date in format YYYY-MM-DD
+		 */
+		start_date: string;
+		/**
+		 * End Date
+		 *
+		 * End date in format YYYY-MM-DD
+		 */
+		end_date: string;
+	};
+	url: "/stats/global/messages-by-segment";
+};
+
+export type GetMessagesBySegmentStatsGlobalMessagesBySegmentGetErrors = {
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
+};
+
+export type GetMessagesBySegmentStatsGlobalMessagesBySegmentGetError =
+	GetMessagesBySegmentStatsGlobalMessagesBySegmentGetErrors[keyof GetMessagesBySegmentStatsGlobalMessagesBySegmentGetErrors];
+
+export type GetMessagesBySegmentStatsGlobalMessagesBySegmentGetResponses = {
+	/**
+	 * Successful Response
+	 */
+	200: GlobalSegmentMessagesStats;
+};
+
+export type GetMessagesBySegmentStatsGlobalMessagesBySegmentGetResponse =
+	GetMessagesBySegmentStatsGlobalMessagesBySegmentGetResponses[keyof GetMessagesBySegmentStatsGlobalMessagesBySegmentGetResponses];
+
+export type GetCreditsConsumptionStatsGlobalCreditsConsumptionGetData = {
+	body?: never;
+	headers?: {
+		/**
+		 * Authorization
+		 */
+		authorization?: string | null;
+	};
+	path?: never;
+	query: {
+		/**
+		 * Start Date
+		 *
+		 * Start date in format YYYY-MM-DD
+		 */
+		start_date: string;
+		/**
+		 * End Date
+		 *
+		 * End date in format YYYY-MM-DD
+		 */
+		end_date: string;
+	};
+	url: "/stats/global/credits-consumption";
+};
+
+export type GetCreditsConsumptionStatsGlobalCreditsConsumptionGetErrors = {
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
+};
+
+export type GetCreditsConsumptionStatsGlobalCreditsConsumptionGetError =
+	GetCreditsConsumptionStatsGlobalCreditsConsumptionGetErrors[keyof GetCreditsConsumptionStatsGlobalCreditsConsumptionGetErrors];
+
+export type GetCreditsConsumptionStatsGlobalCreditsConsumptionGetResponses = {
+	/**
+	 * Successful Response
+	 */
+	200: GlobalCreditsConsumptionStats;
+};
+
+export type GetCreditsConsumptionStatsGlobalCreditsConsumptionGetResponse =
+	GetCreditsConsumptionStatsGlobalCreditsConsumptionGetResponses[keyof GetCreditsConsumptionStatsGlobalCreditsConsumptionGetResponses];
+
+export type GetSubscriptionsStatsStatsGlobalSubscriptionsGetData = {
+	body?: never;
+	headers?: {
+		/**
+		 * Authorization
+		 */
+		authorization?: string | null;
+	};
+	path?: never;
+	query?: never;
+	url: "/stats/global/subscriptions";
+};
+
+export type GetSubscriptionsStatsStatsGlobalSubscriptionsGetErrors = {
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
+};
+
+export type GetSubscriptionsStatsStatsGlobalSubscriptionsGetError =
+	GetSubscriptionsStatsStatsGlobalSubscriptionsGetErrors[keyof GetSubscriptionsStatsStatsGlobalSubscriptionsGetErrors];
+
+export type GetSubscriptionsStatsStatsGlobalSubscriptionsGetResponses = {
+	/**
+	 * Successful Response
+	 */
+	200: GlobalSubscriptionsStats;
+};
+
+export type GetSubscriptionsStatsStatsGlobalSubscriptionsGetResponse =
+	GetSubscriptionsStatsStatsGlobalSubscriptionsGetResponses[keyof GetSubscriptionsStatsStatsGlobalSubscriptionsGetResponses];
+
+export type GetSubscribersOverTimeStatsGlobalSubscribersOverTimeGetData = {
+	body?: never;
+	headers?: {
+		/**
+		 * Authorization
+		 */
+		authorization?: string | null;
+	};
+	path?: never;
+	query: {
+		/**
+		 * Start Date
+		 *
+		 * Start date in format YYYY-MM-DD
+		 */
+		start_date: string;
+		/**
+		 * End Date
+		 *
+		 * End date in format YYYY-MM-DD
+		 */
+		end_date: string;
+	};
+	url: "/stats/global/subscribers-over-time";
+};
+
+export type GetSubscribersOverTimeStatsGlobalSubscribersOverTimeGetErrors = {
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
+};
+
+export type GetSubscribersOverTimeStatsGlobalSubscribersOverTimeGetError =
+	GetSubscribersOverTimeStatsGlobalSubscribersOverTimeGetErrors[keyof GetSubscribersOverTimeStatsGlobalSubscribersOverTimeGetErrors];
+
+export type GetSubscribersOverTimeStatsGlobalSubscribersOverTimeGetResponses = {
+	/**
+	 * Successful Response
+	 */
+	200: GlobalSubscribersOverTimeStats;
+};
+
+export type GetSubscribersOverTimeStatsGlobalSubscribersOverTimeGetResponse =
+	GetSubscribersOverTimeStatsGlobalSubscribersOverTimeGetResponses[keyof GetSubscribersOverTimeStatsGlobalSubscribersOverTimeGetResponses];
+
 export type ProxyChatRequestChatCompletionsPostData = {
 	body: ChatRequest;
 	path?: never;
@@ -3143,6 +3870,23 @@ export type ProxyChatRequestChatCompletionsPostResponses = {
 	 */
 	200: unknown;
 };
+
+export type GetAnonUsageChatAnonUsageGetData = {
+	body?: never;
+	path?: never;
+	query?: never;
+	url: "/chat/anon-usage";
+};
+
+export type GetAnonUsageChatAnonUsageGetResponses = {
+	/**
+	 * Successful Response
+	 */
+	200: AnonUsageResponse;
+};
+
+export type GetAnonUsageChatAnonUsageGetResponse =
+	GetAnonUsageChatAnonUsageGetResponses[keyof GetAnonUsageChatAnonUsageGetResponses];
 
 export type GetOrCreateApiKeyLiberclawApiKeyPostData = {
 	body: LiberclawApiKeyRequest;

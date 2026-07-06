@@ -39,6 +39,8 @@ import type {
 	GetAggregateUsersStatsStatsGlobalUsersGetData,
 	GetAggregateUsersStatsStatsGlobalUsersGetErrors,
 	GetAggregateUsersStatsStatsGlobalUsersGetResponses,
+	GetAnonUsageChatAnonUsageGetData,
+	GetAnonUsageChatAnonUsageGetResponses,
 	GetApiKeysApiKeysGetData,
 	GetApiKeysApiKeysGetErrors,
 	GetApiKeysApiKeysGetResponses,
@@ -60,6 +62,9 @@ import type {
 	GetCliApiKeysApiKeysCliGetData,
 	GetCliApiKeysApiKeysCliGetErrors,
 	GetCliApiKeysApiKeysCliGetResponses,
+	GetCreditsConsumptionStatsGlobalCreditsConsumptionGetData,
+	GetCreditsConsumptionStatsGlobalCreditsConsumptionGetErrors,
+	GetCreditsConsumptionStatsGlobalCreditsConsumptionGetResponses,
 	GetDashboardStatsStatsDashboardGetData,
 	GetDashboardStatsStatsDashboardGetErrors,
 	GetDashboardStatsStatsDashboardGetResponses,
@@ -78,15 +83,33 @@ import type {
 	GetInferenceUsersStatsStatsGlobalKeyTypeUsersGetData,
 	GetInferenceUsersStatsStatsGlobalKeyTypeUsersGetErrors,
 	GetInferenceUsersStatsStatsGlobalKeyTypeUsersGetResponses,
+	GetLatestSubscribersStatsGlobalSubscriptionsLatestGetData,
+	GetLatestSubscribersStatsGlobalSubscriptionsLatestGetErrors,
+	GetLatestSubscribersStatsGlobalSubscriptionsLatestGetResponses,
 	GetMeAuthMeGetData,
 	GetMeAuthMeGetErrors,
 	GetMeAuthMeGetResponses,
+	GetMessagesBySegmentStatsGlobalMessagesBySegmentGetData,
+	GetMessagesBySegmentStatsGlobalMessagesBySegmentGetErrors,
+	GetMessagesBySegmentStatsGlobalMessagesBySegmentGetResponses,
 	GetOrCreateApiKeyLiberclawApiKeyPostData,
 	GetOrCreateApiKeyLiberclawApiKeyPostErrors,
 	GetOrCreateApiKeyLiberclawApiKeyPostResponses,
+	GetSubscribersOverTimeStatsGlobalSubscribersOverTimeGetData,
+	GetSubscribersOverTimeStatsGlobalSubscribersOverTimeGetErrors,
+	GetSubscribersOverTimeStatsGlobalSubscribersOverTimeGetResponses,
 	GetSubscriptionPaymentsSubscriptionGetData,
 	GetSubscriptionPaymentsSubscriptionGetErrors,
 	GetSubscriptionPaymentsSubscriptionGetResponses,
+	GetSubscriptionsChurnStatsGlobalSubscriptionsChurnGetData,
+	GetSubscriptionsChurnStatsGlobalSubscriptionsChurnGetErrors,
+	GetSubscriptionsChurnStatsGlobalSubscriptionsChurnGetResponses,
+	GetSubscriptionsRevenueStatsGlobalSubscriptionsRevenueGetData,
+	GetSubscriptionsRevenueStatsGlobalSubscriptionsRevenueGetErrors,
+	GetSubscriptionsRevenueStatsGlobalSubscriptionsRevenueGetResponses,
+	GetSubscriptionsStatsStatsGlobalSubscriptionsGetData,
+	GetSubscriptionsStatsStatsGlobalSubscriptionsGetErrors,
+	GetSubscriptionsStatsStatsGlobalSubscriptionsGetResponses,
 	GetTransactionHistoryCreditsTransactionsGetData,
 	GetTransactionHistoryCreditsTransactionsGetErrors,
 	GetTransactionHistoryCreditsTransactionsGetResponses,
@@ -679,7 +702,7 @@ export const getVouchersCreditsVouchersGet = <ThrowOnError extends boolean = fal
 /**
  * Add Voucher Credits
  *
- * Add credits via voucher to a specific address
+ * [staff] Add credits via voucher to a wallet address or an email account
  */
 export const addVoucherCreditsCreditsVouchersPost = <ThrowOnError extends boolean = false>(
 	options: Options<AddVoucherCreditsCreditsVouchersPostData, ThrowOnError>,
@@ -845,6 +868,21 @@ export const updateApiKeyApiKeysKeyIdPut = <ThrowOnError extends boolean = false
 
 /**
  * Register Inference Call
+ *
+ * Usage report by bearer API key — meter one inference call against the key that made it.
+ *
+ * NOT an admin endpoint despite the ``/admin`` path prefix (legacy naming, kept only to
+ * avoid breaking the gateway that calls it). It intentionally takes NO admin token: the
+ * caller authenticates by *possessing* the user API key it reports usage for, which it
+ * sends as ``usage_log.key``. That key is the bearer credential.
+ *
+ * Security invariants this relies on (covered by tests/test_usage_report_auth.py):
+ * - An unknown key registers nothing and gets 404 — you cannot create or meter a key
+ * you don't already hold.
+ * - Only the supplied key is ever metered; there is no key/user parameter that would let
+ * a caller charge usage to a different key.
+ *
+ * An API key is unguessable (high-entropy secret), so possession is the authorization.
  */
 export const registerInferenceCallApiKeysAdminUsagePost = <ThrowOnError extends boolean = false>(
 	options: Options<RegisterInferenceCallApiKeysAdminUsagePostData, ThrowOnError>,
@@ -976,6 +1014,66 @@ export const getChatUsersStatsStatsGlobalChatUsersGet = <ThrowOnError extends bo
 	});
 
 /**
+ * Get Latest Subscribers
+ */
+export const getLatestSubscribersStatsGlobalSubscriptionsLatestGet = <ThrowOnError extends boolean = false>(
+	options?: Options<GetLatestSubscribersStatsGlobalSubscriptionsLatestGetData, ThrowOnError>,
+): RequestResult<
+	GetLatestSubscribersStatsGlobalSubscriptionsLatestGetResponses,
+	GetLatestSubscribersStatsGlobalSubscriptionsLatestGetErrors,
+	ThrowOnError
+> =>
+	(options?.client ?? client).get<
+		GetLatestSubscribersStatsGlobalSubscriptionsLatestGetResponses,
+		GetLatestSubscribersStatsGlobalSubscriptionsLatestGetErrors,
+		ThrowOnError
+	>({
+		responseType: "json",
+		url: "/stats/global/subscriptions/latest",
+		...options,
+	});
+
+/**
+ * Get Subscriptions Revenue
+ */
+export const getSubscriptionsRevenueStatsGlobalSubscriptionsRevenueGet = <ThrowOnError extends boolean = false>(
+	options: Options<GetSubscriptionsRevenueStatsGlobalSubscriptionsRevenueGetData, ThrowOnError>,
+): RequestResult<
+	GetSubscriptionsRevenueStatsGlobalSubscriptionsRevenueGetResponses,
+	GetSubscriptionsRevenueStatsGlobalSubscriptionsRevenueGetErrors,
+	ThrowOnError
+> =>
+	(options.client ?? client).get<
+		GetSubscriptionsRevenueStatsGlobalSubscriptionsRevenueGetResponses,
+		GetSubscriptionsRevenueStatsGlobalSubscriptionsRevenueGetErrors,
+		ThrowOnError
+	>({
+		responseType: "json",
+		url: "/stats/global/subscriptions/revenue",
+		...options,
+	});
+
+/**
+ * Get Subscriptions Churn
+ */
+export const getSubscriptionsChurnStatsGlobalSubscriptionsChurnGet = <ThrowOnError extends boolean = false>(
+	options: Options<GetSubscriptionsChurnStatsGlobalSubscriptionsChurnGetData, ThrowOnError>,
+): RequestResult<
+	GetSubscriptionsChurnStatsGlobalSubscriptionsChurnGetResponses,
+	GetSubscriptionsChurnStatsGlobalSubscriptionsChurnGetErrors,
+	ThrowOnError
+> =>
+	(options.client ?? client).get<
+		GetSubscriptionsChurnStatsGlobalSubscriptionsChurnGetResponses,
+		GetSubscriptionsChurnStatsGlobalSubscriptionsChurnGetErrors,
+		ThrowOnError
+	>({
+		responseType: "json",
+		url: "/stats/global/subscriptions/churn",
+		...options,
+	});
+
+/**
  * Get Inference Calls Stats
  */
 export const getInferenceCallsStatsStatsGlobalKeyTypeCallsGet = <ThrowOnError extends boolean = false>(
@@ -1096,6 +1194,86 @@ export const getGlobalSummaryStatsGlobalSummaryGet = <ThrowOnError extends boole
 	});
 
 /**
+ * Get Messages By Segment
+ */
+export const getMessagesBySegmentStatsGlobalMessagesBySegmentGet = <ThrowOnError extends boolean = false>(
+	options: Options<GetMessagesBySegmentStatsGlobalMessagesBySegmentGetData, ThrowOnError>,
+): RequestResult<
+	GetMessagesBySegmentStatsGlobalMessagesBySegmentGetResponses,
+	GetMessagesBySegmentStatsGlobalMessagesBySegmentGetErrors,
+	ThrowOnError
+> =>
+	(options.client ?? client).get<
+		GetMessagesBySegmentStatsGlobalMessagesBySegmentGetResponses,
+		GetMessagesBySegmentStatsGlobalMessagesBySegmentGetErrors,
+		ThrowOnError
+	>({
+		responseType: "json",
+		url: "/stats/global/messages-by-segment",
+		...options,
+	});
+
+/**
+ * Get Credits Consumption
+ */
+export const getCreditsConsumptionStatsGlobalCreditsConsumptionGet = <ThrowOnError extends boolean = false>(
+	options: Options<GetCreditsConsumptionStatsGlobalCreditsConsumptionGetData, ThrowOnError>,
+): RequestResult<
+	GetCreditsConsumptionStatsGlobalCreditsConsumptionGetResponses,
+	GetCreditsConsumptionStatsGlobalCreditsConsumptionGetErrors,
+	ThrowOnError
+> =>
+	(options.client ?? client).get<
+		GetCreditsConsumptionStatsGlobalCreditsConsumptionGetResponses,
+		GetCreditsConsumptionStatsGlobalCreditsConsumptionGetErrors,
+		ThrowOnError
+	>({
+		responseType: "json",
+		url: "/stats/global/credits-consumption",
+		...options,
+	});
+
+/**
+ * Get Subscriptions Stats
+ */
+export const getSubscriptionsStatsStatsGlobalSubscriptionsGet = <ThrowOnError extends boolean = false>(
+	options?: Options<GetSubscriptionsStatsStatsGlobalSubscriptionsGetData, ThrowOnError>,
+): RequestResult<
+	GetSubscriptionsStatsStatsGlobalSubscriptionsGetResponses,
+	GetSubscriptionsStatsStatsGlobalSubscriptionsGetErrors,
+	ThrowOnError
+> =>
+	(options?.client ?? client).get<
+		GetSubscriptionsStatsStatsGlobalSubscriptionsGetResponses,
+		GetSubscriptionsStatsStatsGlobalSubscriptionsGetErrors,
+		ThrowOnError
+	>({
+		responseType: "json",
+		url: "/stats/global/subscriptions",
+		...options,
+	});
+
+/**
+ * Get Subscribers Over Time
+ */
+export const getSubscribersOverTimeStatsGlobalSubscribersOverTimeGet = <ThrowOnError extends boolean = false>(
+	options: Options<GetSubscribersOverTimeStatsGlobalSubscribersOverTimeGetData, ThrowOnError>,
+): RequestResult<
+	GetSubscribersOverTimeStatsGlobalSubscribersOverTimeGetResponses,
+	GetSubscribersOverTimeStatsGlobalSubscribersOverTimeGetErrors,
+	ThrowOnError
+> =>
+	(options.client ?? client).get<
+		GetSubscribersOverTimeStatsGlobalSubscribersOverTimeGetResponses,
+		GetSubscribersOverTimeStatsGlobalSubscribersOverTimeGetErrors,
+		ThrowOnError
+	>({
+		responseType: "json",
+		url: "/stats/global/subscribers-over-time",
+		...options,
+	});
+
+/**
  * Proxy Chat Request
  *
  * Proxy requests to LibertAI chat completions API.
@@ -1124,6 +1302,21 @@ export const proxyChatRequestChatCompletionsPost = <ThrowOnError extends boolean
 			"Content-Type": "application/json",
 			...options.headers,
 		},
+	});
+
+/**
+ * Get Anon Usage
+ *
+ * Anonymous per-IP free-message usage, so the logged-out chat UI can show remaining messages,
+ * a near-limit warning, and the sign-in wall before the next message is rejected.
+ */
+export const getAnonUsageChatAnonUsageGet = <ThrowOnError extends boolean = false>(
+	options?: Options<GetAnonUsageChatAnonUsageGetData, ThrowOnError>,
+): RequestResult<GetAnonUsageChatAnonUsageGetResponses, unknown, ThrowOnError> =>
+	(options?.client ?? client).get<GetAnonUsageChatAnonUsageGetResponses, unknown, ThrowOnError>({
+		responseType: "json",
+		url: "/chat/anon-usage",
+		...options,
 	});
 
 /**
