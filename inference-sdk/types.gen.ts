@@ -546,6 +546,10 @@ export type CurrentUserResponse = {
 	 * Is Libertai Staff
 	 */
 	is_libertai_staff?: boolean;
+	/**
+	 * Monthly Extra Credit Cap
+	 */
+	monthly_extra_credit_cap?: number | null;
 };
 
 /**
@@ -834,12 +838,39 @@ export type GlobalCreditsStats = {
  * GlobalLatestSubscribersStats
  *
  * Most recent plan subscriptions across all providers, newest first.
+ *
+ * ``total`` is the count of ALL rows matching the status filter (ignoring ``limit``),
+ * so callers can show "showing N of total".
  */
 export type GlobalLatestSubscribersStats = {
 	/**
 	 * Subscribers
 	 */
 	subscribers: Array<LatestSubscriber>;
+	/**
+	 * Total
+	 */
+	total: number;
+};
+
+/**
+ * GlobalSegmentCallsStats
+ *
+ * Inference calls per subscription segment over a date range (api/cli key types).
+ *
+ * Segment is the caller's CURRENT active paid tier (go/plus/max) or "free" — no anonymous
+ * bucket, since api/cli use per-user keys. Historical tier at call time isn't recorded, so a
+ * user's past calls are attributed to their tier today, mirroring the messages-by-segment caveat.
+ */
+export type GlobalSegmentCallsStats = {
+	/**
+	 * Total Calls
+	 */
+	total_calls: number;
+	/**
+	 * Calls
+	 */
+	calls: Array<SegmentCallUsage>;
 };
 
 /**
@@ -878,6 +909,18 @@ export type GlobalSubscribersOverTimeStats = {
 	 * Daily
 	 */
 	daily: Array<TierSubscribersDay>;
+};
+
+/**
+ * GlobalSubscriptionActivityStats
+ *
+ * Recent subscription lifecycle events across all providers, newest first.
+ */
+export type GlobalSubscriptionActivityStats = {
+	/**
+	 * Events
+	 */
+	events: Array<SubscriptionActivityEvent>;
 };
 
 /**
@@ -1067,7 +1110,8 @@ export type InferenceKeyType = "api" | "liberclaw" | "x402" | "cli";
  *
  * A single recent plan subscription with a human-friendly label for its user.
  *
- * ``user_label`` resolution order: email > display_name > wallet address > user id.
+ * ``user_label`` is ``display_name (contact)`` when the user set a name, else the bare
+ * ``contact`` (contact resolves email > wallet address > user id).
  */
 export type LatestSubscriber = {
 	/**
@@ -1322,6 +1366,26 @@ export type ResumeResponse = {
 };
 
 /**
+ * SegmentCallUsage
+ *
+ * Inference calls on a single day for one subscription segment.
+ */
+export type SegmentCallUsage = {
+	/**
+	 * Date
+	 */
+	date: string;
+	/**
+	 * Segment
+	 */
+	segment: string;
+	/**
+	 * Call Count
+	 */
+	call_count: number;
+};
+
+/**
  * SegmentMessageUsage
  *
  * Chat messages on a single day for one subscription segment.
@@ -1358,6 +1422,51 @@ export type SubscribeRequest = {
 	 */
 	redirect_base?: string | null;
 };
+
+/**
+ * SubscriptionActivityEvent
+ *
+ * One lifecycle event, mapped from the raw event log to a human-facing type.
+ *
+ * ``tier`` is the resulting tier; for upgrades/downgrades ``from_tier`` is the prior tier
+ * (render as "from_tier -> tier").
+ */
+export type SubscriptionActivityEvent = {
+	/**
+	 * Created At
+	 */
+	created_at: string;
+	type: SubscriptionActivityType;
+	/**
+	 * User Label
+	 */
+	user_label: string;
+	/**
+	 * Tier
+	 */
+	tier: string;
+	/**
+	 * From Tier
+	 */
+	from_tier?: string | null;
+	/**
+	 * Provider
+	 */
+	provider: string;
+};
+
+/**
+ * SubscriptionActivityType
+ *
+ * Human-facing subscription lifecycle events for the activity feed.
+ */
+export type SubscriptionActivityType =
+	| "subscribed"
+	| "upgraded"
+	| "downgraded"
+	| "cancelled"
+	| "churned"
+	| "payment_failed";
 
 /**
  * SubscriptionResponse
@@ -1433,6 +1542,14 @@ export type SubscriptionResponse = {
 	 * Prepaid Balance
 	 */
 	prepaid_balance?: number;
+	/**
+	 * Monthly Extra Credit Cap
+	 */
+	monthly_extra_credit_cap?: number | null;
+	/**
+	 * Extra Credits Used This Month
+	 */
+	extra_credits_used_this_month?: number;
 };
 
 /**
@@ -1793,6 +1910,10 @@ export type UpdateProfileRequest = {
 	 * Display Name
 	 */
 	display_name?: string | null;
+	/**
+	 * Monthly Extra Credit Cap
+	 */
+	monthly_extra_credit_cap?: number | null;
 };
 
 /**
@@ -1939,10 +2060,6 @@ export type VoucherChangeExpireRequest = {
 	 * Expired At
 	 */
 	expired_at: string | null;
-	/**
-	 * Password
-	 */
-	password: string;
 };
 
 /**
@@ -2636,17 +2753,26 @@ export type GetTransactionHistoryCreditsTransactionsGetResponse =
 
 export type GetVouchersCreditsVouchersGetData = {
 	body?: never;
+	headers?: {
+		/**
+		 * Authorization
+		 */
+		authorization?: string | null;
+	};
 	path?: never;
-	query: {
-		chain: LibertaiChain;
+	query?: {
+		/**
+		 * Chain
+		 */
+		chain?: LibertaiChain | null;
 		/**
 		 * Address
 		 */
-		address: string;
+		address?: string | null;
 		/**
-		 * Password
+		 * Email
 		 */
-		password: string;
+		email?: string | null;
 	};
 	url: "/credits/vouchers";
 };
@@ -2710,6 +2836,12 @@ export type AddVoucherCreditsCreditsVouchersPostResponse =
 
 export type ChangeVoucherExpirationCreditsVoucherExpirationPostData = {
 	body: VoucherChangeExpireRequest;
+	headers?: {
+		/**
+		 * Authorization
+		 */
+		authorization?: string | null;
+	};
 	path?: never;
 	query?: never;
 	url: "/credits/voucher/expiration";
@@ -3265,9 +3397,15 @@ export type GetLatestSubscribersStatsGlobalSubscriptionsLatestGetData = {
 		/**
 		 * Limit
 		 *
-		 * Number of most recent subscriptions to return
+		 * Max rows to return; omit for all matching
 		 */
-		limit?: number;
+		limit?: number | null;
+		/**
+		 * Status
+		 *
+		 * Comma-separated subscription statuses; omitted = all except pending
+		 */
+		status?: string | null;
 	};
 	url: "/stats/global/subscriptions/latest";
 };
@@ -3291,6 +3429,52 @@ export type GetLatestSubscribersStatsGlobalSubscriptionsLatestGetResponses = {
 
 export type GetLatestSubscribersStatsGlobalSubscriptionsLatestGetResponse =
 	GetLatestSubscribersStatsGlobalSubscriptionsLatestGetResponses[keyof GetLatestSubscribersStatsGlobalSubscriptionsLatestGetResponses];
+
+export type GetSubscriptionActivityStatsGlobalSubscriptionsActivityGetData = {
+	body?: never;
+	headers?: {
+		/**
+		 * Authorization
+		 */
+		authorization?: string | null;
+	};
+	path?: never;
+	query?: {
+		/**
+		 * Limit
+		 *
+		 * Number of recent activity events to return
+		 */
+		limit?: number;
+		/**
+		 * Types
+		 *
+		 * Comma-separated activity types; omitted = all
+		 */
+		types?: string | null;
+	};
+	url: "/stats/global/subscriptions/activity";
+};
+
+export type GetSubscriptionActivityStatsGlobalSubscriptionsActivityGetErrors = {
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
+};
+
+export type GetSubscriptionActivityStatsGlobalSubscriptionsActivityGetError =
+	GetSubscriptionActivityStatsGlobalSubscriptionsActivityGetErrors[keyof GetSubscriptionActivityStatsGlobalSubscriptionsActivityGetErrors];
+
+export type GetSubscriptionActivityStatsGlobalSubscriptionsActivityGetResponses = {
+	/**
+	 * Successful Response
+	 */
+	200: GlobalSubscriptionActivityStats;
+};
+
+export type GetSubscriptionActivityStatsGlobalSubscriptionsActivityGetResponse =
+	GetSubscriptionActivityStatsGlobalSubscriptionsActivityGetResponses[keyof GetSubscriptionActivityStatsGlobalSubscriptionsActivityGetResponses];
 
 export type GetSubscriptionsRevenueStatsGlobalSubscriptionsRevenueGetData = {
 	body?: never;
@@ -3721,6 +3905,54 @@ export type GetMessagesBySegmentStatsGlobalMessagesBySegmentGetResponses = {
 
 export type GetMessagesBySegmentStatsGlobalMessagesBySegmentGetResponse =
 	GetMessagesBySegmentStatsGlobalMessagesBySegmentGetResponses[keyof GetMessagesBySegmentStatsGlobalMessagesBySegmentGetResponses];
+
+export type GetCallsBySegmentStatsGlobalKeyTypeCallsBySegmentGetData = {
+	body?: never;
+	headers?: {
+		/**
+		 * Authorization
+		 */
+		authorization?: string | null;
+	};
+	path: {
+		key_type: InferenceKeyType;
+	};
+	query: {
+		/**
+		 * Start Date
+		 *
+		 * Start date in format YYYY-MM-DD
+		 */
+		start_date: string;
+		/**
+		 * End Date
+		 *
+		 * End date in format YYYY-MM-DD
+		 */
+		end_date: string;
+	};
+	url: "/stats/global/{key_type}/calls-by-segment";
+};
+
+export type GetCallsBySegmentStatsGlobalKeyTypeCallsBySegmentGetErrors = {
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
+};
+
+export type GetCallsBySegmentStatsGlobalKeyTypeCallsBySegmentGetError =
+	GetCallsBySegmentStatsGlobalKeyTypeCallsBySegmentGetErrors[keyof GetCallsBySegmentStatsGlobalKeyTypeCallsBySegmentGetErrors];
+
+export type GetCallsBySegmentStatsGlobalKeyTypeCallsBySegmentGetResponses = {
+	/**
+	 * Successful Response
+	 */
+	200: GlobalSegmentCallsStats;
+};
+
+export type GetCallsBySegmentStatsGlobalKeyTypeCallsBySegmentGetResponse =
+	GetCallsBySegmentStatsGlobalKeyTypeCallsBySegmentGetResponses[keyof GetCallsBySegmentStatsGlobalKeyTypeCallsBySegmentGetResponses];
 
 export type GetCreditsConsumptionStatsGlobalCreditsConsumptionGetData = {
 	body?: never;

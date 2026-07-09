@@ -47,6 +47,9 @@ import type {
 	GetAuthMessageAuthMessagePostData,
 	GetAuthMessageAuthMessagePostErrors,
 	GetAuthMessageAuthMessagePostResponses,
+	GetCallsBySegmentStatsGlobalKeyTypeCallsBySegmentGetData,
+	GetCallsBySegmentStatsGlobalKeyTypeCallsBySegmentGetErrors,
+	GetCallsBySegmentStatsGlobalKeyTypeCallsBySegmentGetResponses,
 	GetChatApiKeyApiKeysChatGetData,
 	GetChatApiKeyApiKeysChatGetErrors,
 	GetChatApiKeyApiKeysChatGetResponses,
@@ -98,6 +101,9 @@ import type {
 	GetSubscribersOverTimeStatsGlobalSubscribersOverTimeGetData,
 	GetSubscribersOverTimeStatsGlobalSubscribersOverTimeGetErrors,
 	GetSubscribersOverTimeStatsGlobalSubscribersOverTimeGetResponses,
+	GetSubscriptionActivityStatsGlobalSubscriptionsActivityGetData,
+	GetSubscriptionActivityStatsGlobalSubscriptionsActivityGetErrors,
+	GetSubscriptionActivityStatsGlobalSubscriptionsActivityGetResponses,
 	GetSubscriptionPaymentsSubscriptionGetData,
 	GetSubscriptionPaymentsSubscriptionGetErrors,
 	GetSubscriptionPaymentsSubscriptionGetResponses,
@@ -305,7 +311,7 @@ export const getMeAuthMeGet = <ThrowOnError extends boolean = false>(
 /**
  * Update Me
  *
- * Update the authenticated user's editable profile (display name).
+ * Update the authenticated user's editable profile (display name, monthly extra-credit cap).
  */
 export const updateMeAuthMePatch = <ThrowOnError extends boolean = false>(
 	options: Options<UpdateMeAuthMePatchData, ThrowOnError>,
@@ -684,12 +690,12 @@ export const getTransactionHistoryCreditsTransactionsGet = <ThrowOnError extends
 /**
  * Get Vouchers
  *
- * Get all vouchers for a specific address
+ * [staff] Get all vouchers for a wallet address (with chain) or an email account
  */
 export const getVouchersCreditsVouchersGet = <ThrowOnError extends boolean = false>(
-	options: Options<GetVouchersCreditsVouchersGetData, ThrowOnError>,
+	options?: Options<GetVouchersCreditsVouchersGetData, ThrowOnError>,
 ): RequestResult<GetVouchersCreditsVouchersGetResponses, GetVouchersCreditsVouchersGetErrors, ThrowOnError> =>
-	(options.client ?? client).get<
+	(options?.client ?? client).get<
 		GetVouchersCreditsVouchersGetResponses,
 		GetVouchersCreditsVouchersGetErrors,
 		ThrowOnError
@@ -702,7 +708,7 @@ export const getVouchersCreditsVouchersGet = <ThrowOnError extends boolean = fal
 /**
  * Add Voucher Credits
  *
- * [staff] Add credits via voucher to a wallet address or an email account
+ * [staff] Add credits via voucher to a wallet address or an email account (created if new)
  */
 export const addVoucherCreditsCreditsVouchersPost = <ThrowOnError extends boolean = false>(
 	options: Options<AddVoucherCreditsCreditsVouchersPostData, ThrowOnError>,
@@ -728,7 +734,7 @@ export const addVoucherCreditsCreditsVouchersPost = <ThrowOnError extends boolea
 /**
  * Change Voucher Expiration
  *
- * Change a voucher's expiration date
+ * [staff] Change a voucher's expiration date
  */
 export const changeVoucherExpirationCreditsVoucherExpirationPost = <ThrowOnError extends boolean = false>(
 	options: Options<ChangeVoucherExpirationCreditsVoucherExpirationPostData, ThrowOnError>,
@@ -1034,6 +1040,26 @@ export const getLatestSubscribersStatsGlobalSubscriptionsLatestGet = <ThrowOnErr
 	});
 
 /**
+ * Get Subscription Activity
+ */
+export const getSubscriptionActivityStatsGlobalSubscriptionsActivityGet = <ThrowOnError extends boolean = false>(
+	options?: Options<GetSubscriptionActivityStatsGlobalSubscriptionsActivityGetData, ThrowOnError>,
+): RequestResult<
+	GetSubscriptionActivityStatsGlobalSubscriptionsActivityGetResponses,
+	GetSubscriptionActivityStatsGlobalSubscriptionsActivityGetErrors,
+	ThrowOnError
+> =>
+	(options?.client ?? client).get<
+		GetSubscriptionActivityStatsGlobalSubscriptionsActivityGetResponses,
+		GetSubscriptionActivityStatsGlobalSubscriptionsActivityGetErrors,
+		ThrowOnError
+	>({
+		responseType: "json",
+		url: "/stats/global/subscriptions/activity",
+		...options,
+	});
+
+/**
  * Get Subscriptions Revenue
  */
 export const getSubscriptionsRevenueStatsGlobalSubscriptionsRevenueGet = <ThrowOnError extends boolean = false>(
@@ -1210,6 +1236,26 @@ export const getMessagesBySegmentStatsGlobalMessagesBySegmentGet = <ThrowOnError
 	>({
 		responseType: "json",
 		url: "/stats/global/messages-by-segment",
+		...options,
+	});
+
+/**
+ * Get Calls By Segment
+ */
+export const getCallsBySegmentStatsGlobalKeyTypeCallsBySegmentGet = <ThrowOnError extends boolean = false>(
+	options: Options<GetCallsBySegmentStatsGlobalKeyTypeCallsBySegmentGetData, ThrowOnError>,
+): RequestResult<
+	GetCallsBySegmentStatsGlobalKeyTypeCallsBySegmentGetResponses,
+	GetCallsBySegmentStatsGlobalKeyTypeCallsBySegmentGetErrors,
+	ThrowOnError
+> =>
+	(options.client ?? client).get<
+		GetCallsBySegmentStatsGlobalKeyTypeCallsBySegmentGetResponses,
+		GetCallsBySegmentStatsGlobalKeyTypeCallsBySegmentGetErrors,
+		ThrowOnError
+	>({
+		responseType: "json",
+		url: "/stats/global/{key_type}/calls-by-segment",
 		...options,
 	});
 
