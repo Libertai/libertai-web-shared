@@ -108,7 +108,9 @@ export function AccountMenu({
 	const label = isWallet
 		? (me?.display_name ?? ens?.displayName ?? ens?.name ?? formatAddress(address!))
 		: (me?.display_name ?? me?.email ?? "Account");
-	const avatarSrc = isWallet ? ens?.avatar : me?.avatar_url;
+	// An account can hold both a wallet and an OAuth identity, so this can't branch on isWallet:
+	// the OAuth picture is explicit, ENS is only the wallet's fallback.
+	const avatarSrc = me?.avatar_url ?? (isWallet ? ens?.avatar : undefined);
 
 	// Secondary identifier for the top of the dropdown. Only meaningful when the button already shows a
 	// chosen display name — then we surface the email (or cropped wallet address) underneath for context.
@@ -134,10 +136,7 @@ export function AccountMenu({
 			    nested — a <button> inside a <button> is invalid HTML and breaks hydration. */}
 			<div className="flex items-center gap-1 w-full rounded-md border border-border pr-1">
 				<DropdownMenuTrigger asChild>
-					<Button
-						variant="ghost"
-						className="flex items-center gap-3 px-3 py-2 flex-1 min-w-0 justify-start h-auto"
-					>
+					<Button variant="ghost" className="flex items-center gap-3 px-3 py-2 flex-1 min-w-0 justify-start h-auto">
 						<ProfileAvatar src={avatarSrc} address={address} size="md" />
 						<div className="flex flex-col items-start flex-1 min-w-0">
 							<div className="text-md font-medium truncate w-full text-left">{label}</div>

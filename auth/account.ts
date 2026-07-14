@@ -414,8 +414,10 @@ export const useAccountStore = create<AccountStoreState>((set, get) => ({
 	checkAuthStatus: async (accountAddress: string): Promise<boolean> => {
 		try {
 			const response = await checkAuthStatusAuthStatusGet();
-
-			return !!(response.data?.authenticated && response.data.address === accountAddress);
+			// Wallets hand back EIP-55 checksummed addresses; the backend stores them lowercased.
+			// A case-sensitive match never holds, and a miss re-prompts the wallet to sign.
+			const sessionAddress = response.data?.address?.toLowerCase();
+			return !!(response.data?.authenticated && sessionAddress === accountAddress.toLowerCase());
 		} catch (error) {
 			console.error("Auth status check error:", error);
 			return false;
