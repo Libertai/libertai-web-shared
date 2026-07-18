@@ -15,6 +15,7 @@
     /* Primary - Purple  */
     --primary: #644DF9; /* Liberty Purple */
     --primary-foreground: oklch(1 0 0);
+    --primary-text: #644DF9; /* Brand purple for text uses; fills keep --primary */
 
     /* Secondary */
     --secondary: oklch(0.97 0 0);
@@ -22,7 +23,7 @@
 
     /* Muted */
     --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
+    --muted-foreground: oklch(0.50 0 0);
 
     /* Accent */
     --accent: oklch(0.97 0 0);
@@ -37,11 +38,11 @@
     --ring: #644DF9; /* Match primary */
 
     /* Chart colors */
-    --chart-1: oklch(0.5 0.18 264); /* Primary blue */
-    --chart-2: oklch(0.6 0.18 220); /* Lighter blue */
-    --chart-3: oklch(0.7 0.18 280); /* Purple */
-    --chart-4: oklch(0.55 0.22 320); /* Magenta */
-    --chart-5: oklch(0.45 0.2 240); /* Dark blue */
+    --chart-1: #644DF9; /* Liberty Purple */
+    --chart-2: #00A698; /* Teal */
+    --chart-3: #4F3DC7; /* Deep purple */
+    --chart-4: #0B7A70; /* Deep teal */
+    --chart-5: #9B3FE0; /* Violet */
 
     /* Sidebar */
     --sidebar: oklch(0.985 0 0);
@@ -58,26 +59,27 @@
     /* Dark theme colors */
     --background: #0E0F18; /* Dark background */
     --foreground: #FFF;
-    --card: #1F2030; /* Slightly lighter than background */
+    --card: #171825; /* Near-black surface */
     --hover: #313549;
     --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.18 0 0);
+    --popover: #171825;
     --popover-foreground: oklch(0.985 0 0);
 
     /* Primary - Liberty Purple */
     --primary: #644DF9; /* Purple */
     --primary-foreground: oklch(1 0 0);
+    --primary-text: #8B7BFF; /* Brand purple for text uses (5.34:1 on --card); fills keep --primary */
 
     /* Secondary */
-    --secondary: oklch(0.23 0 0);
+    --secondary: #1F2030;
     --secondary-foreground: oklch(0.985 0 0);
 
     /* Muted */
-    --muted: oklch(0.23 0 0);
+    --muted: #1F2030;
     --muted-foreground: oklch(0.708 0 0);
 
     /* Accent */
-    --accent: oklch(0.23 0 0);
+    --accent: #1F2030;
     --accent-foreground: oklch(0.985 0 0);
 
     /* Destructive */
@@ -85,15 +87,15 @@
 
     /* Other colors */
     --border: oklch(1 0 0 / 10%);
-    --input: #1F2030;
+    --input: #171825;
     --ring: #644DF9; /* Match primary */
 
     /* Chart colors */
-    --chart-1: oklch(0.6 0.22 280); /* Primary purple */
-    --chart-2: oklch(0.7 0.2 260); /* Lighter purple */
-    --chart-3: oklch(0.5 0.18 300); /* Magenta */
-    --chart-4: oklch(0.6 0.16 230); /* Blue */
-    --chart-5: oklch(0.65 0.25 310); /* Pink */
+    --chart-1: #8B7BFF; /* Liberty Purple */
+    --chart-2: #2DD4BF; /* Teal */
+    --chart-3: #A99CFF; /* Light purple */
+    --chart-4: #14B8A6; /* Deep teal */
+    --chart-5: #7B5CFA; /* Violet */
 
     /* Sidebar */
     --sidebar: oklch(0.18 0 0);
@@ -120,6 +122,7 @@
     --color-popover-foreground: var(--popover-foreground);
     --color-primary: var(--primary);
     --color-primary-foreground: var(--primary-foreground);
+    --color-primary-text: var(--primary-text);
     --color-secondary: var(--secondary);
     --color-secondary-foreground: var(--secondary-foreground);
     --color-muted: var(--muted);
