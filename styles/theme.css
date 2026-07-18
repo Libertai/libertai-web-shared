@@ -6,8 +6,8 @@
     /* Light theme colors */
     --background: #F0EFED;
     --foreground: #0E0F18;
-    --card: #E1E1E1;
-    --hover: #FFF;
+    --card: #ffffff;
+    --hover: #f5f4f2;
     --card-foreground: oklch(0.145 0 0);
     --popover: oklch(1 0 0);
     --popover-foreground: oklch(0.145 0 0);
@@ -151,8 +151,17 @@
 @font-face {
     font-family: 'Satoshi';
     src: url('./fonts/Satoshi-Medium.woff2') format('woff2');
-    font-weight: normal;
+    font-weight: 300 500;
     font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Satoshi';
+    src: url('./fonts/Satoshi-Bold.woff2') format('woff2');
+    font-weight: 600 800;
+    font-style: normal;
+    font-display: swap;
 }
 
 @layer base {
