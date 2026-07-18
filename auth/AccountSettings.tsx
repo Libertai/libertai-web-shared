@@ -1,8 +1,8 @@
 import { ReactNode, useState } from "react";
 import { Copy, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
 import { ProfileAvatar } from "./ProfileAvatar";
 import { useAccountStore } from "./account";
 

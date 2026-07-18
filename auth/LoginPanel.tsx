@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Github, Loader2, Mail } from "lucide-react";
 import { toast } from "sonner";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
 import { useAccountStore } from "./account";
 import WalletConnectButtons from "./WalletConnectButtons";
 

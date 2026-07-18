@@ -12,8 +12,8 @@ import {
 } from "lucide-react";
 import type { CreditTransactionProvider, CreditTransactionResponse } from "../../inference-sdk";
 import { useTransactions } from "./use-transactions";
-import { Button } from "../ui/button";
-import { Skeleton } from "../ui/skeleton";
+import { Button } from "../../ui/button";
+import { Skeleton } from "../../ui/skeleton";
 import {
 	DropdownMenu,
 	DropdownMenuCheckboxItem,
@@ -21,9 +21,9 @@ import {
 	DropdownMenuLabel,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
-} from "../ui/dropdown-menu";
-import { Calendar } from "../ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+} from "../../ui/dropdown-menu";
+import { Calendar } from "../../ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "../../ui/popover";
 
 const PAGE_SIZE = 10;
 

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { CheckCircle, Loader2, XCircle } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Button } from "../ui/button";
+import { Button } from "../../ui/button";
 import { useSubscription } from "../use-payments";
 
 interface PaymentCallbackProps {

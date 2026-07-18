@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useQueryState } from "nuqs";
 import { CheckCircle } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Button } from "../ui/button";
+import { Button } from "../../ui/button";
 import { usePaymentProviders, useSubscription } from "../use-payments";
 import { useAccountStore } from "../account";
 import { PaymentStage } from "./PaymentStage";

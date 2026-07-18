@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
-import { Skeleton } from "../ui/skeleton";
-import { cn } from "../lib/utils";
+import { Button } from "../../ui/button";
+import { Input } from "../../ui/input";
+import { Skeleton } from "../../ui/skeleton";
+import { cn } from "../../lib/utils";
 import { useBillingActions, usePaymentRegion, useTopupPacks } from "../use-payments";
 
 const MIN_USD = 1;

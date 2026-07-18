@@ -1,6 +1,6 @@
-import { Button } from "../ui/button";
+import { Button } from "../../ui/button";
 import { Coins, Zap } from "lucide-react";
-import { cn } from "../lib/utils";
+import { cn } from "../../lib/utils";
 
 // On-chain methods only. Walletless (card) users never reach this selector — they use CardTopUp.
 export type PaymentMethod = "crypto" | "ltai" | "solana";

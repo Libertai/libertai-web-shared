@@ -3,7 +3,7 @@ import { useConnectModal } from "thirdweb/react";
 import { base } from "thirdweb/chains";
 import { createWallet } from "thirdweb/wallets";
 import { useWalletModal as useSolanaWalletModal } from "@solana/wallet-adapter-react-ui";
-import { Button } from "./ui/button";
+import { Button } from "../ui/button";
 import { libertaiConfig } from "./config";
 
 const EthereumIcon = () => (

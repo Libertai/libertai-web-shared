@@ -2,14 +2,14 @@ import { ReactNode } from "react";
 import { ArrowUpCircle, LogOut, Zap } from "lucide-react";
 import { useActiveAccount, useActiveWallet, useDisconnect } from "thirdweb/react";
 import { useWallet as useSolanaWallet } from "@solana/wallet-adapter-react";
-import { Button } from "./ui/button";
+import { Button } from "../ui/button";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
+} from "../ui/dropdown-menu";
 import { ProfileAvatar } from "./ProfileAvatar";
 import { useAccountStore } from "./account";
 import { useCanUpgrade } from "./use-payments";

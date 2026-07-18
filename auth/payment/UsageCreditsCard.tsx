@@ -3,9 +3,9 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { updateMeAuthMePatch } from "../../inference-sdk";
 import { useAccountStore } from "../account";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../../ui/dialog";
+import { Button } from "../../ui/button";
+import { Input } from "../../ui/input";
 import { useCanUpgrade, useSubscription } from "../use-payments";
 
 interface UsageCreditsCardProps {

@@ -1,6 +1,6 @@
 import { ChangeEvent, useState } from "react";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
+import { Button } from "../../ui/button";
+import { Input } from "../../ui/input";
 import { DollarSign } from "lucide-react";
 import { useQueryState } from "nuqs";
 

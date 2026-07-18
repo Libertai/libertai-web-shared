@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { ChevronLeft } from "lucide-react";
-import { Button } from "../ui/button";
+import { Button } from "../../ui/button";
 import { PaymentMethod, PaymentMethodSelector } from "./PaymentMethodSelector";
 import { CheckoutWidget } from "thirdweb/react";
 import { base } from "thirdweb/chains";

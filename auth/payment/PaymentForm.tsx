@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { Button } from "../ui/button";
+import { Button } from "../../ui/button";
 import { Loader2 } from "lucide-react";
-import { Skeleton } from "../ui/skeleton";
+import { Skeleton } from "../../ui/skeleton";
 import { useAccountStore } from "../account";
 import { toast } from "sonner";
 import { approve } from "thirdweb/extensions/erc20";
