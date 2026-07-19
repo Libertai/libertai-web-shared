@@ -360,7 +360,7 @@ export function TransactionHistory() {
 						<p className="text-xs text-amber-700/80 dark:text-amber-400/80">
 							Your transaction is being processed and credits will be available soon. If it is not confirmed
 							automatically after a few minutes, please reach out to us on{" "}
-							<a href="https://t.me/libertai" className="text-primary hover:underline" target="_blank">
+							<a href="https://t.me/libertai" className="text-primary-text hover:underline" target="_blank">
 								Telegram
 							</a>
 							.

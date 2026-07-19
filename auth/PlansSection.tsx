@@ -156,7 +156,7 @@ export function PlansSection({ onRequireAuth }: { onRequireAuth?: () => void } =
 					<div className="flex items-center gap-3">
 						<Zap className="h-5 w-5 text-primary" />
 						<h2 className="text-xl font-semibold">
-							Plan: <span className="capitalize text-primary">{currentTier}</span>
+							Plan: <span className="capitalize text-primary-text">{currentTier}</span>
 						</h2>
 					</div>
 					{hasActivePaidSub &&
