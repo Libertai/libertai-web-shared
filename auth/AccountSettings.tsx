@@ -71,7 +71,7 @@ export function AccountSettings({ ens, appearance }: Readonly<AccountSettingsPro
 				</div>
 
 				{/* Profile Section */}
-				<div className="border rounded-lg p-6">
+				<div className="bg-card border border-border rounded-xl shadow-sm p-6">
 					<div className="mb-4">
 						<h2 className="text-lg font-semibold">Profile</h2>
 						<p className="text-sm text-muted-foreground">Your account information</p>
@@ -138,7 +138,7 @@ export function AccountSettings({ ens, appearance }: Readonly<AccountSettingsPro
 
 				{/* Appearance Section (app-provided control) */}
 				{appearance && (
-					<div className="border rounded-lg p-6">
+					<div className="bg-card border border-border rounded-xl shadow-sm p-6">
 						<div className="mb-4">
 							<h2 className="text-lg font-semibold">Appearance</h2>
 							<p className="text-sm text-muted-foreground">Customize the appearance of the application</p>

@@ -6,10 +6,10 @@
     /* Light theme colors */
     --background: #F0EFED;
     --foreground: #0E0F18;
-    --card: #ffffff;
+    --card: #F8F7F6;
     --hover: #f5f4f2;
     --card-foreground: oklch(0.145 0 0);
-    --popover: oklch(1 0 0);
+    --popover: #F8F7F6;
     --popover-foreground: oklch(0.145 0 0);
 
     /* Primary - Purple  */
@@ -34,7 +34,7 @@
 
     /* Other colors */
     --border: oklch(0.922 0 0);
-    --input: #FFF;
+    --input: #F8F7F6;
     --ring: #644DF9; /* Match primary */
 
     /* Chart colors */
