@@ -79,6 +79,12 @@ export type ApiKeyAdminListResponse = {
 	 * Keys
 	 */
 	keys: Array<string>;
+	/**
+	 * Invalid Keys
+	 */
+	invalid_keys?: {
+		[key: string]: InvalidKeyInfo;
+	};
 };
 
 /**
@@ -798,6 +804,10 @@ export type GlobalChatTokensStats = {
  * GlobalCreditsConsumptionStats
  *
  * Credit consumption over a date range (api/cli/chat keys), tier-covered vs prepaid.
+ *
+ * ``daily_by_tier`` splits total consumption by the tier the user held THAT day (historical
+ * attribution via subscription event replay), including a ``free`` bucket for users with no
+ * paid subscription. It totals ``credits_used``, so prepaid spend is included.
  */
 export type GlobalCreditsConsumptionStats = {
 	/**
@@ -816,6 +826,10 @@ export type GlobalCreditsConsumptionStats = {
 	 * Daily
 	 */
 	daily: Array<CreditsConsumptionDay>;
+	/**
+	 * Daily By Tier
+	 */
+	daily_by_tier: Array<TierCreditsDay>;
 };
 
 /**
@@ -915,12 +929,19 @@ export type GlobalSubscribersOverTimeStats = {
  * GlobalSubscriptionActivityStats
  *
  * Recent subscription lifecycle events across all providers, newest first.
+ *
+ * ``events`` is one offset/limit page of the mapped stream; ``total`` counts every mapped
+ * event matching the type filter, so clients can render page controls.
  */
 export type GlobalSubscriptionActivityStats = {
 	/**
 	 * Events
 	 */
 	events: Array<SubscriptionActivityEvent>;
+	/**
+	 * Total
+	 */
+	total: number;
 };
 
 /**
@@ -948,6 +969,10 @@ export type GlobalSubscriptionsChurnStats = {
  * GlobalSubscriptionsRevenueStats
  *
  * Revolut (fiat) MRR, nominal and currency-blind; trials excluded. Event-replayed history.
+ *
+ * ``topups_daily`` covers completed Revolut credit purchases, excluding ``upgrade_remainder``
+ * grants and pending checkouts. Its window is widened back to the first day of ``start_date``'s
+ * calendar month so the client can draw a correct month-to-date line for a mid-month range.
  */
 export type GlobalSubscriptionsRevenueStats = {
 	/**
@@ -962,6 +987,14 @@ export type GlobalSubscriptionsRevenueStats = {
 	 * Daily
 	 */
 	daily: Array<MrrDay>;
+	/**
+	 * Topups Daily
+	 */
+	topups_daily: Array<TopupDay>;
+	/**
+	 * Total Topups
+	 */
+	total_topups: number;
 };
 
 /**
@@ -1010,6 +1043,32 @@ export type GlobalSummaryStats = {
 	 * Total Output Tokens
 	 */
 	total_output_tokens: number;
+};
+
+/**
+ * GlobalTierEconomicsStats
+ *
+ * Per-tier subscribers and plan-covered credit draw per day, for value-for-price analysis.
+ *
+ * ``credits`` is ``tier_credits_used`` — the value a subscriber pulled out of their PLAN.
+ * Prepaid overflow is excluded: the user paid for that separately, so charging it against the
+ * subscription would double-count it.
+ *
+ * Spans ALL providers (Revolut and the credits rail), unlike the Revolut-only MRR series: this
+ * measures value-for-price, and a credits-rail subscriber pays the same tier price.
+ *
+ * Ratios and cumulative sums are deliberately NOT computed here — the client derives them, so
+ * new chart lenses need no API change.
+ */
+export type GlobalTierEconomicsStats = {
+	/**
+	 * Daily
+	 */
+	daily: Array<TierEconomicsDay>;
+	/**
+	 * Tier Prices
+	 */
+	tier_prices: Array<TierPrice>;
 };
 
 /**
@@ -1106,6 +1165,30 @@ export type InferenceCallType = "text" | "image" | "audio";
 export type InferenceKeyType = "api" | "liberclaw" | "x402" | "cli";
 
 /**
+ * InvalidKeyInfo
+ */
+export type InvalidKeyInfo = {
+	reason: InvalidKeyReason;
+	/**
+	 * Message
+	 */
+	message: string;
+};
+
+/**
+ * InvalidKeyReason
+ *
+ * Why a real, non-deleted key is currently unusable (distributed with the whitelist).
+ */
+export type InvalidKeyReason =
+	| "disabled"
+	| "expired"
+	| "key_monthly_limit"
+	| "no_credits"
+	| "extra_credit_cap"
+	| "liberclaw_limit";
+
+/**
  * LatestSubscriber
  *
  * A single recent plan subscription with a human-friendly label for its user.
@@ -1177,6 +1260,42 @@ export type LiberclawApiKeyResponse = {
 };
 
 /**
+ * LiberclawExtraCreditsGrant
+ */
+export type LiberclawExtraCreditsGrant = {
+	/**
+	 * User Id
+	 */
+	user_id: string;
+	/**
+	 * User Type
+	 */
+	user_type: string;
+	/**
+	 * From Tier
+	 */
+	from_tier: string;
+	/**
+	 * Unused Fraction
+	 */
+	unused_fraction: number;
+	/**
+	 * External Reference
+	 */
+	external_reference: string;
+};
+
+/**
+ * LiberclawExtraCreditsResponse
+ */
+export type LiberclawExtraCreditsResponse = {
+	/**
+	 * Amount
+	 */
+	amount: number;
+};
+
+/**
  * LiberclawTierUpdate
  */
 export type LiberclawTierUpdate = {
@@ -1226,6 +1345,10 @@ export type LiberclawUserResponse = {
 	 * Rolling Window Days
 	 */
 	rolling_window_days: number;
+	/**
+	 * Extra Credits Left
+	 */
+	extra_credits_left?: number;
 	/**
 	 * Created At
 	 */
@@ -1334,7 +1457,7 @@ export type RefreshRequest = {
 	/**
 	 * Refresh Token
 	 */
-	refresh_token: string;
+	refresh_token?: string | null;
 };
 
 /**
@@ -1753,6 +1876,70 @@ export type ThirdwebWebhookPayload = {
 };
 
 /**
+ * TierCreditsDay
+ *
+ * Total credits consumed on a single day by users who were on one tier that day.
+ */
+export type TierCreditsDay = {
+	/**
+	 * Date
+	 */
+	date: string;
+	/**
+	 * Tier
+	 */
+	tier: string;
+	/**
+	 * Credits
+	 */
+	credits: number;
+};
+
+/**
+ * TierEconomicsDay
+ *
+ * One tier's subscriber count and plan-covered credit draw on a single day.
+ */
+export type TierEconomicsDay = {
+	/**
+	 * Date
+	 */
+	date: string;
+	/**
+	 * Tier
+	 */
+	tier: string;
+	/**
+	 * Active Subscribers
+	 */
+	active_subscribers: number;
+	/**
+	 * Credits
+	 */
+	credits: number;
+};
+
+/**
+ * TierPrice
+ *
+ * A tier's price and the weekly credit allowance it grants.
+ */
+export type TierPrice = {
+	/**
+	 * Tier
+	 */
+	tier: string;
+	/**
+	 * Monthly Price
+	 */
+	monthly_price: number;
+	/**
+	 * Weekly Credits
+	 */
+	weekly_credits: number;
+};
+
+/**
  * TierResponse
  */
 export type TierResponse = {
@@ -1860,6 +2047,22 @@ export type TokenStats = {
 	 * Credits Used
 	 */
 	credits_used: number;
+};
+
+/**
+ * TopupDay
+ *
+ * Completed Revolut credit purchases on a single day.
+ */
+export type TopupDay = {
+	/**
+	 * Date
+	 */
+	date: string;
+	/**
+	 * Amount
+	 */
+	amount: number;
 };
 
 /**
@@ -2186,6 +2389,12 @@ export type LoginWithWalletAuthLoginPostResponse =
 
 export type CheckAuthStatusAuthStatusGetData = {
 	body?: never;
+	headers?: {
+		/**
+		 * Authorization
+		 */
+		authorization?: string | null;
+	};
 	path?: never;
 	query?: never;
 	url: "/auth/status";
@@ -2512,7 +2721,7 @@ export type CliCodeAuthCliCodePostResponses = {
 export type CliCodeAuthCliCodePostResponse = CliCodeAuthCliCodePostResponses[keyof CliCodeAuthCliCodePostResponses];
 
 export type RefreshTokensAuthRefreshPostData = {
-	body: RefreshRequest;
+	body?: RefreshRequest;
 	path?: never;
 	query?: never;
 	url: "/auth/refresh";
@@ -3452,6 +3661,12 @@ export type GetSubscriptionActivityStatsGlobalSubscriptionsActivityGetData = {
 		 * Comma-separated activity types; omitted = all
 		 */
 		types?: string | null;
+		/**
+		 * Offset
+		 *
+		 * Number of matching events to skip (pagination)
+		 */
+		offset?: number;
 	};
 	url: "/stats/global/subscriptions/activity";
 };
@@ -4079,6 +4294,52 @@ export type GetSubscribersOverTimeStatsGlobalSubscribersOverTimeGetResponses = {
 export type GetSubscribersOverTimeStatsGlobalSubscribersOverTimeGetResponse =
 	GetSubscribersOverTimeStatsGlobalSubscribersOverTimeGetResponses[keyof GetSubscribersOverTimeStatsGlobalSubscribersOverTimeGetResponses];
 
+export type GetTierEconomicsStatsGlobalSubscriptionsTierEconomicsGetData = {
+	body?: never;
+	headers?: {
+		/**
+		 * Authorization
+		 */
+		authorization?: string | null;
+	};
+	path?: never;
+	query: {
+		/**
+		 * Start Date
+		 *
+		 * Start date in format YYYY-MM-DD
+		 */
+		start_date: string;
+		/**
+		 * End Date
+		 *
+		 * End date in format YYYY-MM-DD
+		 */
+		end_date: string;
+	};
+	url: "/stats/global/subscriptions/tier-economics";
+};
+
+export type GetTierEconomicsStatsGlobalSubscriptionsTierEconomicsGetErrors = {
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
+};
+
+export type GetTierEconomicsStatsGlobalSubscriptionsTierEconomicsGetError =
+	GetTierEconomicsStatsGlobalSubscriptionsTierEconomicsGetErrors[keyof GetTierEconomicsStatsGlobalSubscriptionsTierEconomicsGetErrors];
+
+export type GetTierEconomicsStatsGlobalSubscriptionsTierEconomicsGetResponses = {
+	/**
+	 * Successful Response
+	 */
+	200: GlobalTierEconomicsStats;
+};
+
+export type GetTierEconomicsStatsGlobalSubscriptionsTierEconomicsGetResponse =
+	GetTierEconomicsStatsGlobalSubscriptionsTierEconomicsGetResponses[keyof GetTierEconomicsStatsGlobalSubscriptionsTierEconomicsGetResponses];
+
 export type ProxyChatRequestChatCompletionsPostData = {
 	body: ChatRequest;
 	path?: never;
@@ -4181,6 +4442,39 @@ export type UpdateTierLiberclawTierPutResponses = {
 	 */
 	200: unknown;
 };
+
+export type GrantExtraCreditsLiberclawExtraCreditsPostData = {
+	body: LiberclawExtraCreditsGrant;
+	headers: {
+		/**
+		 * X-Liberclaw-Token
+		 */
+		"x-liberclaw-token": string;
+	};
+	path?: never;
+	query?: never;
+	url: "/liberclaw/extra-credits";
+};
+
+export type GrantExtraCreditsLiberclawExtraCreditsPostErrors = {
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
+};
+
+export type GrantExtraCreditsLiberclawExtraCreditsPostError =
+	GrantExtraCreditsLiberclawExtraCreditsPostErrors[keyof GrantExtraCreditsLiberclawExtraCreditsPostErrors];
+
+export type GrantExtraCreditsLiberclawExtraCreditsPostResponses = {
+	/**
+	 * Successful Response
+	 */
+	200: LiberclawExtraCreditsResponse;
+};
+
+export type GrantExtraCreditsLiberclawExtraCreditsPostResponse =
+	GrantExtraCreditsLiberclawExtraCreditsPostResponses[keyof GrantExtraCreditsLiberclawExtraCreditsPostResponses];
 
 export type GetUserLiberclawUserGetData = {
 	body?: never;

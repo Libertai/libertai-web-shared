@@ -9,6 +9,7 @@ import {
 	loginEmailAuthLoginEmailPost,
 	loginWithWalletAuthLoginPost,
 	logoutAuthLogoutPost,
+	refreshTokensAuthRefreshPost,
 	updateMeAuthMePatch,
 	verifyMagicLinkRouteAuthVerifyMagicLinkPost,
 } from "../inference-sdk";
@@ -377,11 +378,11 @@ export const useAccountStore = create<AccountStoreState>((set, get) => ({
 		return true;
 	},
 	logout: async (): Promise<void> => {
-		// Best-effort: clear the server session cookie. Errors are non-fatal (we still clear local state).
-		// The cookie-based backend ignores the body; cast since the generated type still expects a refresh_token.
+		// Best-effort: clear the server auth cookies and revoke the session (the backend
+		// reads the httpOnly refresh cookie — no body needed). Errors are non-fatal.
 		authEpoch++;
 		try {
-			await logoutAuthLogoutPost({ body: {} as never });
+			await logoutAuthLogoutPost({ body: {} });
 		} catch {
 			// best-effort
 		}
@@ -392,23 +393,39 @@ export const useAccountStore = create<AccountStoreState>((set, get) => ({
 	checkSession: async (): Promise<boolean> => {
 		const epochAtStart = authEpoch;
 		try {
-			const response = await getMeAuthMeGet();
+			let response = await getMeAuthMeGet();
+			// Expired 24h session cookie → renew it server-side from the httpOnly
+			// libertai_refresh cookie (90-day rotating session), then re-check.
+			if (response.error && response.response?.status === 401) {
+				const refreshed = await refreshTokensAuthRefreshPost({ body: {} });
+				if (!refreshed.error) {
+					response = await getMeAuthMeGet();
+				}
+			}
 			// A login/logout happened while /auth/me was in flight → our result is stale; don't clobber it.
 			if (authEpoch !== epochAtStart) {
 				set({ isInitialLoad: false });
 				return get().isAuthenticated;
 			}
-			const authenticated = !response.error;
-			set({ isAuthenticated: authenticated, me: response.data ?? null, isInitialLoad: false });
-			return authenticated;
-		} catch (error) {
-			console.error("Session check error:", error);
-			if (authEpoch !== epochAtStart) {
+			if (response.error) {
+				const httpStatus = response.response?.status;
+				// Only a definitive rejection of our credentials logs the user out.
+				// Transient failures (API mid-redeploy, network blip, 5xx) must not
+				// clobber a session whose cookie is still perfectly valid.
+				if (httpStatus === 401 || httpStatus === 403) {
+					set({ isAuthenticated: false, me: null, isInitialLoad: false });
+					return false;
+				}
 				set({ isInitialLoad: false });
 				return get().isAuthenticated;
 			}
-			set({ isAuthenticated: false, me: null, isInitialLoad: false });
-			return false;
+			set({ isAuthenticated: true, me: response.data ?? null, isInitialLoad: false });
+			return true;
+		} catch (error) {
+			// Thrown = no HTTP response at all (API unreachable). Keep current state.
+			console.error("Session check error:", error);
+			set({ isInitialLoad: false });
+			return get().isAuthenticated;
 		}
 	},
 	checkAuthStatus: async (accountAddress: string): Promise<boolean> => {

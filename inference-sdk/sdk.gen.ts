@@ -116,6 +116,9 @@ import type {
 	GetSubscriptionsStatsStatsGlobalSubscriptionsGetData,
 	GetSubscriptionsStatsStatsGlobalSubscriptionsGetErrors,
 	GetSubscriptionsStatsStatsGlobalSubscriptionsGetResponses,
+	GetTierEconomicsStatsGlobalSubscriptionsTierEconomicsGetData,
+	GetTierEconomicsStatsGlobalSubscriptionsTierEconomicsGetErrors,
+	GetTierEconomicsStatsGlobalSubscriptionsTierEconomicsGetResponses,
 	GetTransactionHistoryCreditsTransactionsGetData,
 	GetTransactionHistoryCreditsTransactionsGetErrors,
 	GetTransactionHistoryCreditsTransactionsGetResponses,
@@ -134,6 +137,9 @@ import type {
 	GetX402PricesX402PricesGetData,
 	GetX402PricesX402PricesGetErrors,
 	GetX402PricesX402PricesGetResponses,
+	GrantExtraCreditsLiberclawExtraCreditsPostData,
+	GrantExtraCreditsLiberclawExtraCreditsPostErrors,
+	GrantExtraCreditsLiberclawExtraCreditsPostResponses,
 	LinkWalletRouteAuthLinkWalletPostData,
 	LinkWalletRouteAuthLinkWalletPostErrors,
 	LinkWalletRouteAuthLinkWalletPostResponses,
@@ -279,7 +285,7 @@ export const loginWithWalletAuthLoginPost = <ThrowOnError extends boolean = fals
 /**
  * Check Auth Status
  *
- * Check if the user is authenticated with a valid token.
+ * Whether the caller is authenticated, and which wallet (if any) their account holds.
  */
 export const checkAuthStatusAuthStatusGet = <ThrowOnError extends boolean = false>(
 	options?: Options<CheckAuthStatusAuthStatusGetData, ThrowOnError>,
@@ -511,11 +517,15 @@ export const cliCodeAuthCliCodePost = <ThrowOnError extends boolean = false>(
  * Refresh Tokens
  *
  * Rotate a refresh token (one-time use per token) and return a fresh pair.
+ *
+ * Web clients send no body — the token rides the httpOnly libertai_refresh
+ * cookie, and the rotated pair is set back as cookies so the 24h session
+ * cookie renews without tokens ever reaching frontend JS.
  */
 export const refreshTokensAuthRefreshPost = <ThrowOnError extends boolean = false>(
-	options: Options<RefreshTokensAuthRefreshPostData, ThrowOnError>,
+	options?: Options<RefreshTokensAuthRefreshPostData, ThrowOnError>,
 ): RequestResult<RefreshTokensAuthRefreshPostResponses, RefreshTokensAuthRefreshPostErrors, ThrowOnError> =>
-	(options.client ?? client).post<
+	(options?.client ?? client).post<
 		RefreshTokensAuthRefreshPostResponses,
 		RefreshTokensAuthRefreshPostErrors,
 		ThrowOnError
@@ -525,14 +535,14 @@ export const refreshTokensAuthRefreshPost = <ThrowOnError extends boolean = fals
 		...options,
 		headers: {
 			"Content-Type": "application/json",
-			...options.headers,
+			...options?.headers,
 		},
 	});
 
 /**
  * Logout
  *
- * Clear the session cookie; optionally revoke the session if a refresh token is given.
+ * Clear the auth cookies; revoke the session if a refresh token is available.
  */
 export const logoutAuthLogoutPost = <ThrowOnError extends boolean = false>(
 	options?: Options<LogoutAuthLogoutPostData, ThrowOnError>,
@@ -1320,6 +1330,26 @@ export const getSubscribersOverTimeStatsGlobalSubscribersOverTimeGet = <ThrowOnE
 	});
 
 /**
+ * Get Tier Economics
+ */
+export const getTierEconomicsStatsGlobalSubscriptionsTierEconomicsGet = <ThrowOnError extends boolean = false>(
+	options: Options<GetTierEconomicsStatsGlobalSubscriptionsTierEconomicsGetData, ThrowOnError>,
+): RequestResult<
+	GetTierEconomicsStatsGlobalSubscriptionsTierEconomicsGetResponses,
+	GetTierEconomicsStatsGlobalSubscriptionsTierEconomicsGetErrors,
+	ThrowOnError
+> =>
+	(options.client ?? client).get<
+		GetTierEconomicsStatsGlobalSubscriptionsTierEconomicsGetResponses,
+		GetTierEconomicsStatsGlobalSubscriptionsTierEconomicsGetErrors,
+		ThrowOnError
+	>({
+		responseType: "json",
+		url: "/stats/global/subscriptions/tier-economics",
+		...options,
+	});
+
+/**
  * Proxy Chat Request
  *
  * Proxy requests to LibertAI chat completions API.
@@ -1402,6 +1432,32 @@ export const updateTierLiberclawTierPut = <ThrowOnError extends boolean = false>
 	(options.client ?? client).put<UpdateTierLiberclawTierPutResponses, UpdateTierLiberclawTierPutErrors, ThrowOnError>({
 		responseType: "json",
 		url: "/liberclaw/tier",
+		...options,
+		headers: {
+			"Content-Type": "application/json",
+			...options.headers,
+		},
+	});
+
+/**
+ * Grant Extra Credits
+ *
+ * Grant extra usage credits to a Liberclaw user (idempotent on external_reference).
+ */
+export const grantExtraCreditsLiberclawExtraCreditsPost = <ThrowOnError extends boolean = false>(
+	options: Options<GrantExtraCreditsLiberclawExtraCreditsPostData, ThrowOnError>,
+): RequestResult<
+	GrantExtraCreditsLiberclawExtraCreditsPostResponses,
+	GrantExtraCreditsLiberclawExtraCreditsPostErrors,
+	ThrowOnError
+> =>
+	(options.client ?? client).post<
+		GrantExtraCreditsLiberclawExtraCreditsPostResponses,
+		GrantExtraCreditsLiberclawExtraCreditsPostErrors,
+		ThrowOnError
+	>({
+		responseType: "json",
+		url: "/liberclaw/extra-credits",
 		...options,
 		headers: {
 			"Content-Type": "application/json",
