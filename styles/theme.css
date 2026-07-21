@@ -148,6 +148,9 @@
     --color-sidebar-ring: var(--sidebar-ring);
 
     --font-satoshi: "Satoshi", sans-serif;
+    /* Alias the Tailwind default so `font-sans` resolves to Satoshi instead of
+       silently reverting to the stock sans stack over the body default. */
+    --font-sans: var(--font-satoshi);
     --text-tiny: 0.65rem;
 }
 
