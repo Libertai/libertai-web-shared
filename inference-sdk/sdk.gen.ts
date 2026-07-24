@@ -98,6 +98,9 @@ import type {
 	GetOrCreateApiKeyLiberclawApiKeyPostData,
 	GetOrCreateApiKeyLiberclawApiKeyPostErrors,
 	GetOrCreateApiKeyLiberclawApiKeyPostResponses,
+	GetRevenueTopupsStatsGlobalRevenueTopupsGetData,
+	GetRevenueTopupsStatsGlobalRevenueTopupsGetErrors,
+	GetRevenueTopupsStatsGlobalRevenueTopupsGetResponses,
 	GetSubscribersOverTimeStatsGlobalSubscribersOverTimeGetData,
 	GetSubscribersOverTimeStatsGlobalSubscribersOverTimeGetErrors,
 	GetSubscribersOverTimeStatsGlobalSubscribersOverTimeGetResponses,
@@ -128,6 +131,9 @@ import type {
 	GetUserBalanceCreditsBalanceGetData,
 	GetUserBalanceCreditsBalanceGetErrors,
 	GetUserBalanceCreditsBalanceGetResponses,
+	GetUserBaseActivityStatsGlobalUserBaseActivityGetData,
+	GetUserBaseActivityStatsGlobalUserBaseActivityGetErrors,
+	GetUserBaseActivityStatsGlobalUserBaseActivityGetResponses,
 	GetUserLiberclawUserGetData,
 	GetUserLiberclawUserGetErrors,
 	GetUserLiberclawUserGetResponses,
@@ -1090,6 +1096,26 @@ export const getSubscriptionsRevenueStatsGlobalSubscriptionsRevenueGet = <ThrowO
 	});
 
 /**
+ * Get Revenue Topups
+ */
+export const getRevenueTopupsStatsGlobalRevenueTopupsGet = <ThrowOnError extends boolean = false>(
+	options: Options<GetRevenueTopupsStatsGlobalRevenueTopupsGetData, ThrowOnError>,
+): RequestResult<
+	GetRevenueTopupsStatsGlobalRevenueTopupsGetResponses,
+	GetRevenueTopupsStatsGlobalRevenueTopupsGetErrors,
+	ThrowOnError
+> =>
+	(options.client ?? client).get<
+		GetRevenueTopupsStatsGlobalRevenueTopupsGetResponses,
+		GetRevenueTopupsStatsGlobalRevenueTopupsGetErrors,
+		ThrowOnError
+	>({
+		responseType: "json",
+		url: "/stats/global/revenue/topups",
+		...options,
+	});
+
+/**
  * Get Subscriptions Churn
  */
 export const getSubscriptionsChurnStatsGlobalSubscriptionsChurnGet = <ThrowOnError extends boolean = false>(
@@ -1306,6 +1332,26 @@ export const getSubscriptionsStatsStatsGlobalSubscriptionsGet = <ThrowOnError ex
 	>({
 		responseType: "json",
 		url: "/stats/global/subscriptions",
+		...options,
+	});
+
+/**
+ * Get User Base Activity
+ */
+export const getUserBaseActivityStatsGlobalUserBaseActivityGet = <ThrowOnError extends boolean = false>(
+	options: Options<GetUserBaseActivityStatsGlobalUserBaseActivityGetData, ThrowOnError>,
+): RequestResult<
+	GetUserBaseActivityStatsGlobalUserBaseActivityGetResponses,
+	GetUserBaseActivityStatsGlobalUserBaseActivityGetErrors,
+	ThrowOnError
+> =>
+	(options.client ?? client).get<
+		GetUserBaseActivityStatsGlobalUserBaseActivityGetResponses,
+		GetUserBaseActivityStatsGlobalUserBaseActivityGetErrors,
+		ThrowOnError
+	>({
+		responseType: "json",
+		url: "/stats/global/user-base-activity",
 		...options,
 	});
 

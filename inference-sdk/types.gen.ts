@@ -575,6 +575,26 @@ export type DailyActiveUsers = {
 };
 
 /**
+ * DailyTierActiveUsers
+ *
+ * Distinct users active on a single day within one subscription segment.
+ */
+export type DailyTierActiveUsers = {
+	/**
+	 * Date
+	 */
+	date: string;
+	/**
+	 * Tier
+	 */
+	tier: string;
+	/**
+	 * Active Users
+	 */
+	active_users: number;
+};
+
+/**
  * DailyTokens
  *
  * Input and output tokens for a single day.
@@ -1094,6 +1114,42 @@ export type GlobalTokensStats = {
 };
 
 /**
+ * GlobalTopupsStats
+ *
+ * One page of completed Revolut topups in a range; ``total`` counts all matching rows.
+ */
+export type GlobalTopupsStats = {
+	/**
+	 * Total
+	 */
+	total: number;
+	/**
+	 * Topups
+	 */
+	topups: Array<TopupRow>;
+};
+
+/**
+ * GlobalUserBaseActivityStats
+ *
+ * Range-scoped user-base activity for the subscriptions cards.
+ *
+ * ``anonymous_active_users`` approximates logged-out chat IPs active in the range: only each
+ * IP's latest usage window survives (one row per IP, reset in place), so IPs whose last
+ * window predates the range are missed for historical ranges.
+ */
+export type GlobalUserBaseActivityStats = {
+	/**
+	 * Anonymous Active Users
+	 */
+	anonymous_active_users: number;
+	/**
+	 * Free Active Users
+	 */
+	free_active_users: number;
+};
+
+/**
  * GlobalUsersStats
  *
  * Distinct-user (DAU) statistics for a date range.
@@ -1110,6 +1166,10 @@ export type GlobalUsersStats = {
 	 * Daily Active Users
 	 */
 	daily_active_users: Array<DailyActiveUsers>;
+	/**
+	 * Daily Active Users By Tier
+	 */
+	daily_active_users_by_tier?: Array<DailyTierActiveUsers>;
 };
 
 /**
@@ -1585,6 +1645,7 @@ export type SubscriptionActivityEvent = {
  */
 export type SubscriptionActivityType =
 	| "subscribed"
+	| "renewed"
 	| "upgraded"
 	| "downgraded"
 	| "cancelled"
@@ -2103,6 +2164,38 @@ export type TopupRequest = {
 	 * Redirect Base
 	 */
 	redirect_base?: string | null;
+};
+
+/**
+ * TopupRow
+ *
+ * One completed Revolut credit purchase.
+ *
+ * ``subscription``: the buyer's current sub tier (active/overdue), "past" when only ended
+ * subs exist, None when they never subscribed. ``used``: credits already consumed from
+ * this purchase (amount - amount_left).
+ */
+export type TopupRow = {
+	/**
+	 * Created At
+	 */
+	created_at: string;
+	/**
+	 * User Label
+	 */
+	user_label: string;
+	/**
+	 * Amount
+	 */
+	amount: number;
+	/**
+	 * Used
+	 */
+	used: number;
+	/**
+	 * Subscription
+	 */
+	subscription: string | null;
 };
 
 /**
@@ -3737,6 +3830,64 @@ export type GetSubscriptionsRevenueStatsGlobalSubscriptionsRevenueGetResponses =
 export type GetSubscriptionsRevenueStatsGlobalSubscriptionsRevenueGetResponse =
 	GetSubscriptionsRevenueStatsGlobalSubscriptionsRevenueGetResponses[keyof GetSubscriptionsRevenueStatsGlobalSubscriptionsRevenueGetResponses];
 
+export type GetRevenueTopupsStatsGlobalRevenueTopupsGetData = {
+	body?: never;
+	headers?: {
+		/**
+		 * Authorization
+		 */
+		authorization?: string | null;
+	};
+	path?: never;
+	query: {
+		/**
+		 * Start Date
+		 *
+		 * Start date in format YYYY-MM-DD
+		 */
+		start_date: string;
+		/**
+		 * End Date
+		 *
+		 * End date in format YYYY-MM-DD
+		 */
+		end_date: string;
+		/**
+		 * Limit
+		 *
+		 * Rows per page
+		 */
+		limit?: number;
+		/**
+		 * Offset
+		 *
+		 * Rows to skip (pagination)
+		 */
+		offset?: number;
+	};
+	url: "/stats/global/revenue/topups";
+};
+
+export type GetRevenueTopupsStatsGlobalRevenueTopupsGetErrors = {
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
+};
+
+export type GetRevenueTopupsStatsGlobalRevenueTopupsGetError =
+	GetRevenueTopupsStatsGlobalRevenueTopupsGetErrors[keyof GetRevenueTopupsStatsGlobalRevenueTopupsGetErrors];
+
+export type GetRevenueTopupsStatsGlobalRevenueTopupsGetResponses = {
+	/**
+	 * Successful Response
+	 */
+	200: GlobalTopupsStats;
+};
+
+export type GetRevenueTopupsStatsGlobalRevenueTopupsGetResponse =
+	GetRevenueTopupsStatsGlobalRevenueTopupsGetResponses[keyof GetRevenueTopupsStatsGlobalRevenueTopupsGetResponses];
+
 export type GetSubscriptionsChurnStatsGlobalSubscriptionsChurnGetData = {
 	body?: never;
 	headers?: {
@@ -4247,6 +4398,52 @@ export type GetSubscriptionsStatsStatsGlobalSubscriptionsGetResponses = {
 
 export type GetSubscriptionsStatsStatsGlobalSubscriptionsGetResponse =
 	GetSubscriptionsStatsStatsGlobalSubscriptionsGetResponses[keyof GetSubscriptionsStatsStatsGlobalSubscriptionsGetResponses];
+
+export type GetUserBaseActivityStatsGlobalUserBaseActivityGetData = {
+	body?: never;
+	headers?: {
+		/**
+		 * Authorization
+		 */
+		authorization?: string | null;
+	};
+	path?: never;
+	query: {
+		/**
+		 * Start Date
+		 *
+		 * Start date in format YYYY-MM-DD
+		 */
+		start_date: string;
+		/**
+		 * End Date
+		 *
+		 * End date in format YYYY-MM-DD
+		 */
+		end_date: string;
+	};
+	url: "/stats/global/user-base-activity";
+};
+
+export type GetUserBaseActivityStatsGlobalUserBaseActivityGetErrors = {
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
+};
+
+export type GetUserBaseActivityStatsGlobalUserBaseActivityGetError =
+	GetUserBaseActivityStatsGlobalUserBaseActivityGetErrors[keyof GetUserBaseActivityStatsGlobalUserBaseActivityGetErrors];
+
+export type GetUserBaseActivityStatsGlobalUserBaseActivityGetResponses = {
+	/**
+	 * Successful Response
+	 */
+	200: GlobalUserBaseActivityStats;
+};
+
+export type GetUserBaseActivityStatsGlobalUserBaseActivityGetResponse =
+	GetUserBaseActivityStatsGlobalUserBaseActivityGetResponses[keyof GetUserBaseActivityStatsGlobalUserBaseActivityGetResponses];
 
 export type GetSubscribersOverTimeStatsGlobalSubscribersOverTimeGetData = {
 	body?: never;
