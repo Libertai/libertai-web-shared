@@ -35,17 +35,21 @@ interface SortableTableHeadProps {
 	active: boolean;
 	direction: "asc" | "desc";
 	onSort: () => void;
+	align?: "left" | "right";
 }
 
-export function SortableTableHead({ label, active, direction, onSort }: SortableTableHeadProps) {
+export function SortableTableHead({ label, active, direction, onSort, align = "left" }: SortableTableHeadProps) {
 	const Icon = active ? (direction === "asc" ? ArrowUp : ArrowDown) : ArrowUpDown;
 	return (
-		<TableHead>
+		<TableHead className={cn(align === "right" && "text-right")}>
 			<button
 				type="button"
 				onClick={onSort}
 				aria-label={`Sort by ${label}`}
-				className="flex items-center gap-1 hover:text-foreground transition-colors"
+				className={cn(
+					"flex items-center gap-1 hover:text-foreground transition-colors",
+					align === "right" && "ml-auto",
+				)}
 			>
 				{label}
 				<Icon className="h-3.5 w-3.5" aria-hidden />
