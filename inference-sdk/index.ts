@@ -121,6 +121,7 @@ export type {
 	CheckAuthStatusAuthStatusGetResponses,
 	CheckoutResponse,
 	ChurnWeek,
+	CliApiKey,
 	CliApiKeyCreate,
 	CliCodeAuthCliCodePostData,
 	CliCodeAuthCliCodePostError,

@@ -383,6 +383,53 @@ export type ChurnWeek = {
 };
 
 /**
+ * CliApiKey
+ */
+export type CliApiKey = {
+	/**
+	 * Id
+	 */
+	id: string;
+	/**
+	 * Key
+	 */
+	key: string;
+	/**
+	 * Name
+	 */
+	name: string;
+	/**
+	 * User Id
+	 */
+	user_id?: string | null;
+	/**
+	 * User Address
+	 */
+	user_address?: string | null;
+	/**
+	 * Created At
+	 */
+	created_at: string;
+	/**
+	 * Is Active
+	 */
+	is_active: boolean;
+	/**
+	 * Monthly Limit
+	 */
+	monthly_limit?: number | null;
+	type: ApiKeyType;
+	/**
+	 * Expires At
+	 */
+	expires_at?: string | null;
+	/**
+	 * Last Used At
+	 */
+	last_used_at?: string | null;
+};
+
+/**
  * CliApiKeyCreate
  */
 export type CliApiKeyCreate = {
@@ -3294,7 +3341,7 @@ export type GetCliApiKeysApiKeysCliGetResponses = {
 	 *
 	 * Successful Response
 	 */
-	200: Array<ApiKey>;
+	200: Array<CliApiKey>;
 };
 
 export type GetCliApiKeysApiKeysCliGetResponse =
