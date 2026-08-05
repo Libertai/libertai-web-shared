@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
 import {
 	AlertCircle,
 	Calendar as CalendarIcon,
@@ -33,6 +34,11 @@ type FilterState = {
 	dateRange: { from?: Date; to?: Date };
 	timeRange: "None" | "7d" | "30d" | "custom";
 };
+
+dayjs.extend(utc);
+
+// Backend timestamps are naive UTC; bare dayjs() would read them as local.
+const at = (value: string) => dayjs.utc(value).local();
 
 function formatDate(date: Date): string {
 	return dayjs(date).format("YYYY-MM-DD");
@@ -252,7 +258,7 @@ export function TransactionHistory() {
 
 	const filteredTransactions = useMemo(() => {
 		return transactions.filter((transaction) => {
-			const transactionDate = dayjs(transaction.created_at);
+			const transactionDate = at(transaction.created_at);
 			if (filters.dateRange.from && transactionDate.isBefore(dayjs(filters.dateRange.from))) return false;
 			if (filters.dateRange.to && transactionDate.isAfter(dayjs(filters.dateRange.to).endOf("day"))) return false;
 			if (filters.statuses.length > 0) {
@@ -283,21 +289,21 @@ export function TransactionHistory() {
 			headers.join(","),
 			...filteredTransactions.map((tx) =>
 				[
-					dayjs(tx.created_at).format("YYYY-MM-DD HH:mm"),
+					at(tx.created_at).format("YYYY-MM-DD HH:mm"),
 					formatProvider(tx.provider),
 					tx.amount.toLocaleString(undefined, { maximumFractionDigits: 4 }),
 					tx.amount_left.toLocaleString(undefined, { maximumFractionDigits: 4 }),
-					tx.expired_at ? dayjs(tx.expired_at).format("YYYY-MM-DD") : "Never",
+					tx.expired_at ? at(tx.expired_at).format("YYYY-MM-DD") : "Never",
 					getTransactionStatus(tx).label,
 				].join(","),
 			),
 		];
 		const startDate = filters.dateRange.from
 			? formatDateForCSV(filters.dateRange.from)
-			: dayjs(filteredTransactions[filteredTransactions.length - 1].created_at).format("YYYY-MM-DD_HH:mm");
+			: at(filteredTransactions[filteredTransactions.length - 1].created_at).format("YYYY-MM-DD_HH:mm");
 		const endDate = filters.dateRange.to
 			? formatDateForCSV(filters.dateRange.to)
-			: dayjs(filteredTransactions[0].created_at).format("YYYY-MM-DD_HH:mm");
+			: at(filteredTransactions[0].created_at).format("YYYY-MM-DD_HH:mm");
 		const blob = new Blob([csvRows.join("\n")], { type: "text/csv;charset=utf-8;" });
 		const url = URL.createObjectURL(blob);
 		const link = document.createElement("a");
@@ -417,7 +423,7 @@ export function TransactionHistory() {
 									return (
 										<tr key={transaction.id} className="border-b border-border/50 hover:bg-card/70">
 											<td className="px-6 py-4 text-sm font-medium">
-												{dayjs(transaction.created_at).format("YYYY-MM-DD HH:mm")}
+												{at(transaction.created_at).format("YYYY-MM-DD HH:mm")}
 											</td>
 											<td className="px-6 py-4 text-sm">{formatProvider(transaction.provider)}</td>
 											<td className="px-6 py-4 text-sm">
@@ -427,7 +433,7 @@ export function TransactionHistory() {
 												${transaction.amount_left.toLocaleString(undefined, { maximumFractionDigits: 4 })}
 											</td>
 											<td className="px-6 py-4 text-sm text-muted-foreground">
-												{transaction.expired_at ? dayjs(transaction.expired_at).format("YYYY-MM-DD") : "Never"}
+												{transaction.expired_at ? at(transaction.expired_at).format("YYYY-MM-DD") : "Never"}
 											</td>
 											<td className="px-6 py-4 text-sm">
 												<span className={`px-2 py-1 rounded-full text-xs font-medium ${status.className}`}>
