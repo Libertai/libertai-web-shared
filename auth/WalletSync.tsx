@@ -5,6 +5,7 @@ import { useWallet as useSolanaWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton as SolanaWalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { libertaiConfig } from "./config";
 import { useAccountStore } from "./account";
+import { WALLET_CHAINS } from "./chains";
 
 /**
  * Invisible, always-mounted bridge between the connected wallet and the account store
@@ -47,7 +48,7 @@ export default function WalletSync() {
 
 	return (
 		<div className="absolute invisible opacity-0 pointer-events-none -z-10">
-			<ConnectButton client={thirdwebClient} chain={base} />
+			<ConnectButton client={thirdwebClient} chain={base} chains={WALLET_CHAINS} />
 			<SolanaWalletMultiButton />
 		</div>
 	);

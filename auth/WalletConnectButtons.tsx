@@ -4,6 +4,7 @@ import { createWallet } from "thirdweb/wallets";
 import { useWalletModal as useSolanaWalletModal } from "@solana/wallet-adapter-react-ui";
 import { Button } from "../ui/button";
 import { libertaiConfig } from "./config";
+import { WALLET_CHAINS } from "./chains";
 
 const EthereumIcon = () => (
 	<svg fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className="h-4 w-4">
@@ -19,18 +20,20 @@ const SolanaIcon = () => (
 	</svg>
 );
 
-/** `chains` narrows the offer to the ones given — pass the session's chains where an account already
+/** `accountChains` narrows the offer to the ones given — pass the session's chains where an account already
  * exists, so it isn't invited to connect a wallet on a chain its account can't pay from. Omit it
  * before there's a session (sign-in), where every chain is a valid way in. */
-export default function WalletConnectButtons({ chains }: { chains?: string[] } = {}) {
+export default function WalletConnectButtons({ accountChains }: { accountChains?: string[] } = {}) {
 	const { connect } = useConnectModal();
 	const { setVisible: setSolanaModalVisible } = useSolanaWalletModal();
-	const offers = (chain: string) => chains === undefined || chains.length === 0 || chains.includes(chain);
+	const offers = (chain: string) =>
+		accountChains === undefined || accountChains.length === 0 || accountChains.includes(chain);
 
 	const connectEthereum = () =>
 		connect({
 			client: libertaiConfig().thirdwebClient,
 			chain: base,
+			chains: WALLET_CHAINS,
 			appMetadata: { name: "LibertAI", url: "https://console.libertai.io" },
 			wallets: [
 				createWallet("io.metamask"),

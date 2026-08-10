@@ -407,7 +407,7 @@ export const PaymentStage = ({ usdAmount, handleGoBackToSelection, handlePayment
 					<p className="text-sm text-muted-foreground">
 						Connect your wallet to top up on-chain. Credits are added to this account, whichever wallet pays.
 					</p>
-					<WalletConnectButtons chains={walletChains} />
+					<WalletConnectButtons accountChains={walletChains} />
 				</div>
 			)}
 			{hasAnyMethod && (
