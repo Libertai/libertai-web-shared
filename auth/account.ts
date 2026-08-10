@@ -39,6 +39,12 @@ type AccountStoreState = {
 	formattedLTAIBalance: () => string;
 	formattedSOLBalance: () => string;
 	account: ConnectedAccount | null;
+	// A connected wallet that can't answer requests — typically a WalletConnect session restored
+	// from storage whose relay is gone, which fails every signature with "call connect() before
+	// request()". WalletSync drops such a wallet: a connection that can't sign can't pay either,
+	// and leaving it in `account` makes the UI claim a wallet the user doesn't effectively have.
+	staleWalletConnection: boolean;
+	clearStaleWalletConnection: () => void;
 	isAuthenticated: boolean;
 	isAuthenticating: boolean;
 	// The authenticated user's profile from /auth/me (cookie-based session). Null until checkSession() succeeds.
@@ -79,6 +85,14 @@ type AccountStoreState = {
 // returns 401) can't clobber a session that was established while it was in flight.
 let authEpoch = 0;
 
+/** EIP-1193 userRejectedRequest (4001) and the phrasings wallets use for it. A rejection means the
+ * wallet is alive and said no; anything else means it couldn't answer at all. */
+const isUserRejection = (error: unknown): boolean => {
+	if ((error as { code?: unknown })?.code === 4001) return true;
+	const message = error instanceof Error ? error.message : String(error ?? "");
+	return /reject|denied|cancell?ed/i.test(message);
+};
+
 export const useAccountStore = create<AccountStoreState>((set, get) => ({
 	ltaiBalance: 0,
 	solBalance: 0,
@@ -90,6 +104,8 @@ export const useAccountStore = create<AccountStoreState>((set, get) => ({
 	lastTransactionHash: null,
 	isInitialLoad: true,
 	account: null,
+	staleWalletConnection: false,
+	clearStaleWalletConnection: () => set({ staleWalletConnection: false }),
 	queryClient: null,
 
 	setQueryClient: (client: QueryClient) => {
@@ -540,10 +556,18 @@ export const useAccountStore = create<AccountStoreState>((set, get) => ({
 		} catch (error) {
 			console.error("Authentication error:", error);
 
-			// Only show toast if we should show errors
-			if (showErrors) {
-				toast.error("Authentication failed", {
-					description: error instanceof Error ? error.message : "Unknown error",
+			// A wallet that can't answer is reported even on a silent auto-reconnect: suppressing it
+			// leaves the user connected-looking and signed out with nothing on screen to explain it.
+			if (isUserRejection(error)) {
+				if (showErrors) {
+					toast.error("Authentication failed", {
+						description: error instanceof Error ? error.message : "Unknown error",
+					});
+				}
+			} else {
+				set({ staleWalletConnection: true });
+				toast.error("Wallet connection lost", {
+					description: "Your wallet couldn't sign in. Reconnect it and try again.",
 				});
 			}
 			return false;
