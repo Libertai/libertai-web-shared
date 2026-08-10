@@ -1,5 +1,4 @@
-import { useEffect, useMemo } from "react";
-import { createThirdwebClient } from "thirdweb";
+import { useEffect } from "react";
 import { ConnectButton, useActiveAccount, useActiveWallet, useDisconnect } from "thirdweb/react";
 import { base } from "thirdweb/chains";
 import { useWallet as useSolanaWallet } from "@solana/wallet-adapter-react";
@@ -20,7 +19,7 @@ export default function WalletSync() {
 	const staleWalletConnection = useAccountStore((state) => state.staleWalletConnection);
 	const clearStaleWalletConnection = useAccountStore((state) => state.clearStaleWalletConnection);
 	const { disconnect } = useDisconnect();
-	const thirdwebClient = useMemo(() => createThirdwebClient({ clientId: libertaiConfig().thirdwebClientId }), []);
+	const thirdwebClient = libertaiConfig().thirdwebClient;
 
 	useEffect(() => {
 		onAccountChange(thirdwebAccount, solanaWallet).then();

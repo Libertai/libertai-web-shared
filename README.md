@@ -53,7 +53,8 @@ so signing in on one app signs you in on the others. Login state is derived from
    import { initLibertaiAuth } from "@libertai/auth";
    initLibertaiAuth({
      apiBaseUrl: env.LTAI_INFERENCE_API_URL, // or "/api" behind the dev proxy
-     thirdwebClientId: env.THIRDWEB_CLIENT_ID,
+     thirdwebClient, // the app's single createThirdwebClient() — never make a second one
+
      solanaRpc: env.SOLANA_RPC,
      ltaiBaseAddress: env.LTAI_BASE_ADDRESS,
      ltaiSolanaAddress: env.LTAI_SOLANA_ADDRESS,

@@ -1,4 +1,3 @@
-import { createThirdwebClient } from "thirdweb";
 import { useConnectModal } from "thirdweb/react";
 import { base } from "thirdweb/chains";
 import { createWallet } from "thirdweb/wallets";
@@ -30,7 +29,7 @@ export default function WalletConnectButtons({ chains }: { chains?: string[] } =
 
 	const connectEthereum = () =>
 		connect({
-			client: createThirdwebClient({ clientId: libertaiConfig().thirdwebClientId }),
+			client: libertaiConfig().thirdwebClient,
 			chain: base,
 			appMetadata: { name: "LibertAI", url: "https://console.libertai.io" },
 			wallets: [

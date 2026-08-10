@@ -1,3 +1,4 @@
+import { ThirdwebClient } from "thirdweb";
 import { client as inferenceClient } from "../inference-sdk/client.gen";
 
 /** Per-app configuration injected at startup so this shared package stays
@@ -5,7 +6,12 @@ import { client as inferenceClient } from "../inference-sdk/client.gen";
 export type LibertaiConfig = {
 	/** Inference API base, e.g. https://inference.api.libertai.io — or "/api" behind a dev proxy. */
 	apiBaseUrl: string;
-	thirdwebClientId: string;
+	/** The app's ONE thirdweb client, shared by every caller. WalletConnect keys its pairings,
+	 * proposals and session listeners to the client that opened them, so a second instance gets
+	 * relay responses for proposals it never made: "No matching key", "session_request without
+	 * any listeners", and a provider that throws "call connect() before request()" on every
+	 * signature and payment. Create it once per app and pass it here. */
+	thirdwebClient: ThirdwebClient;
 	solanaRpc: string;
 	ltaiBaseAddress: string;
 	ltaiSolanaAddress: string;
