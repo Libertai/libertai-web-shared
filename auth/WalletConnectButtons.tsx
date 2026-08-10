@@ -20,9 +20,13 @@ const SolanaIcon = () => (
 	</svg>
 );
 
-export default function WalletConnectButtons() {
+/** `chains` narrows the offer to the ones given — pass the session's chains where an account already
+ * exists, so it isn't invited to connect a wallet on a chain its account can't pay from. Omit it
+ * before there's a session (sign-in), where every chain is a valid way in. */
+export default function WalletConnectButtons({ chains }: { chains?: string[] } = {}) {
 	const { connect } = useConnectModal();
 	const { setVisible: setSolanaModalVisible } = useSolanaWalletModal();
+	const offers = (chain: string) => chains === undefined || chains.length === 0 || chains.includes(chain);
 
 	const connectEthereum = () =>
 		connect({
@@ -40,14 +44,18 @@ export default function WalletConnectButtons() {
 
 	return (
 		<div className="space-y-2">
-			<Button variant="outline" className="w-full" onClick={connectEthereum}>
-				<EthereumIcon />
-				Ethereum wallet
-			</Button>
-			<Button variant="outline" className="w-full" onClick={() => setSolanaModalVisible(true)}>
-				<SolanaIcon />
-				Solana wallet
-			</Button>
+			{offers("base") && (
+				<Button variant="outline" className="w-full" onClick={connectEthereum}>
+					<EthereumIcon />
+					Ethereum wallet
+				</Button>
+			)}
+			{offers("solana") && (
+				<Button variant="outline" className="w-full" onClick={() => setSolanaModalVisible(true)}>
+					<SolanaIcon />
+					Solana wallet
+				</Button>
+			)}
 		</div>
 	);
 }

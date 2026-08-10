@@ -4,6 +4,7 @@ import { Button } from "../../ui/button";
 import { PaymentMethod, PaymentMethodSelector } from "./PaymentMethodSelector";
 import { CheckoutWidget } from "thirdweb/react";
 import WalletConnectButtons from "../WalletConnectButtons";
+import { useWalletChains } from "../use-payments";
 import { base } from "thirdweb/chains";
 import { PaymentForm } from "./PaymentForm";
 import { useLTAIPrice } from "./use-ltai-price";
@@ -58,6 +59,7 @@ export const PaymentStage = ({ usdAmount, handleGoBackToSelection, handlePayment
 	// The session user id (present for wallet AND email/OAuth users) — credits the right account
 	// even when the payment wallet isn't the user's own (email users pay via a just-connected wallet).
 	const me = useAccountStore((state) => state.me) as { id?: string } | null;
+	const walletChains = useWalletChains();
 	const setLastTransactionHash = useAccountStore((state) => state.setLastTransactionHash);
 	const getLTAIBalance = useAccountStore((state) => state.getLTAIBalance);
 	const getSOLBalance = useAccountStore((state) => state.getSOLBalance);
@@ -402,7 +404,7 @@ export const PaymentStage = ({ usdAmount, handleGoBackToSelection, handlePayment
 					<p className="text-sm text-muted-foreground">
 						Connect your wallet to top up on-chain. Credits are added to this account, whichever wallet pays.
 					</p>
-					<WalletConnectButtons />
+					<WalletConnectButtons chains={walletChains} />
 				</div>
 			)}
 			{hasAnyMethod && (

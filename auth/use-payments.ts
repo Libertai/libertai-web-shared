@@ -42,6 +42,13 @@ export function useIsWalletAccount(): boolean {
 	return !!data?.some((p) => p.kind === "crypto");
 }
 
+/** Chains the session can pay on, from its crypto providers. Empty for a card account and until the
+ * providers query resolves — callers that offer a wallet choice should fall back to offering all. */
+export function useWalletChains(): string[] {
+	const { data } = usePaymentProviders();
+	return (data ?? []).flatMap((p) => (p.kind === "crypto" && p.chain ? [p.chain] : []));
+}
+
 /** Subscription tiers + pricing/allowances (public). */
 export function useTiers() {
 	return useQuery({
