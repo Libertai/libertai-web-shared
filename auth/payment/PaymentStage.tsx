@@ -60,6 +60,7 @@ export const PaymentStage = ({ usdAmount, handleGoBackToSelection, handlePayment
 	// even when the payment wallet isn't the user's own (email users pay via a just-connected wallet).
 	const me = useAccountStore((state) => state.me) as { id?: string } | null;
 	const walletChains = useWalletChains();
+	const reportWalletFailure = useAccountStore((state) => state.reportWalletFailure);
 	const setLastTransactionHash = useAccountStore((state) => state.setLastTransactionHash);
 	const getLTAIBalance = useAccountStore((state) => state.getLTAIBalance);
 	const getSOLBalance = useAccountStore((state) => state.getSOLBalance);
@@ -162,6 +163,7 @@ export const PaymentStage = ({ usdAmount, handleGoBackToSelection, handlePayment
 				}
 			} catch (error) {
 				console.error("Payment error:", error);
+				reportWalletFailure(error);
 				toast.error("Payment failed", {
 					description: error instanceof Error ? error.message : "Unknown error",
 				});
@@ -282,6 +284,7 @@ export const PaymentStage = ({ usdAmount, handleGoBackToSelection, handlePayment
 				}
 			} catch (error) {
 				console.error("Payment error:", error);
+				reportWalletFailure(error);
 				toast.error("Payment failed", {
 					description: error instanceof Error ? error.message : "Unknown error",
 				});
@@ -436,6 +439,9 @@ export const PaymentStage = ({ usdAmount, handleGoBackToSelection, handlePayment
 								setLastTransactionHash(null);
 								handlePaymentSuccess();
 							}}
+							// The widget's own Retry can't fix a wallet that isn't answering — it fails the same
+							// way forever. Route it through the same check so the connection is dropped instead.
+							onError={(error) => reportWalletFailure(error)}
 							className="!w-full"
 						/>
 					)}

@@ -45,6 +45,9 @@ type AccountStoreState = {
 	// and leaving it in `account` makes the UI claim a wallet the user doesn't effectively have.
 	staleWalletConnection: boolean;
 	clearStaleWalletConnection: () => void;
+	/** Report a wallet operation that failed. A rejection is the user's call and changes nothing;
+	 * anything else means the wallet couldn't answer, which drops the connection. */
+	reportWalletFailure: (error: unknown) => void;
 	isAuthenticated: boolean;
 	isAuthenticating: boolean;
 	// The authenticated user's profile from /auth/me (cookie-based session). Null until checkSession() succeeds.
@@ -106,6 +109,13 @@ export const useAccountStore = create<AccountStoreState>((set, get) => ({
 	account: null,
 	staleWalletConnection: false,
 	clearStaleWalletConnection: () => set({ staleWalletConnection: false }),
+	reportWalletFailure: (error: unknown) => {
+		if (isUserRejection(error)) return;
+		set({ staleWalletConnection: true });
+		toast.error("Wallet connection lost", {
+			description: "Your wallet couldn't complete the request. Reconnect it and try again.",
+		});
+	},
 	queryClient: null,
 
 	setQueryClient: (client: QueryClient) => {
@@ -565,10 +575,7 @@ export const useAccountStore = create<AccountStoreState>((set, get) => ({
 					});
 				}
 			} else {
-				set({ staleWalletConnection: true });
-				toast.error("Wallet connection lost", {
-					description: "Your wallet couldn't sign in. Reconnect it and try again.",
-				});
+				get().reportWalletFailure(error);
 			}
 			return false;
 		}
