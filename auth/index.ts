@@ -1,5 +1,5 @@
 export { initLibertaiAuth, libertaiConfig, type LibertaiConfig } from "./config";
-export { useAccountStore } from "./account";
+export { useAccountStore, ACCOUNT_SUSPENDED } from "./account";
 export { AccountMenu, type AccountMenuItem, type AccountMenuProps } from "./AccountMenu";
 export { AccountSettings, type AccountSettingsProps } from "./AccountSettings";
 export { ProfileAvatar } from "./ProfileAvatar";

@@ -52,6 +52,9 @@ type AccountStoreState = {
 	isAuthenticating: boolean;
 	// The authenticated user's profile from /auth/me (cookie-based session). Null until checkSession() succeeds.
 	me: unknown | null;
+	// Why the last login attempt was refused, for callers that render their own failure state.
+	// Cleared at the start of every attempt.
+	loginError: typeof ACCOUNT_SUSPENDED | null;
 	loginWithEmail: (email: string) => Promise<boolean>;
 	verifyEmailCode: (email: string, code: string) => Promise<boolean>;
 	verifyMagicLinkToken: (token: string) => Promise<boolean>;
@@ -96,6 +99,16 @@ const isUserRejection = (error: unknown): boolean => {
 	return /reject|denied|cancell?ed/i.test(message);
 };
 
+/** Backend refuses a suspended account at login with 403 + this code. Matched on the code, not
+ * the message, so copy edits on the API side don't silently turn this back into a generic
+ * "invalid link". Kept in sync with ACCOUNT_SUSPENDED_CODE in libertai-inference. */
+export const ACCOUNT_SUSPENDED = "account_suspended";
+
+function isSuspendedError(error: unknown): boolean {
+	const detail = (error as { detail?: { code?: string } } | undefined)?.detail;
+	return detail?.code === ACCOUNT_SUSPENDED;
+}
+
 export const useAccountStore = create<AccountStoreState>((set, get) => ({
 	ltaiBalance: 0,
 	solBalance: 0,
@@ -104,6 +117,7 @@ export const useAccountStore = create<AccountStoreState>((set, get) => ({
 	isAuthenticated: false,
 	isAuthenticating: false,
 	me: null,
+	loginError: null,
 	lastTransactionHash: null,
 	isInitialLoad: true,
 	account: null,
@@ -348,10 +362,16 @@ export const useAccountStore = create<AccountStoreState>((set, get) => ({
 		return true;
 	},
 	verifyEmailCode: async (email: string, code: string): Promise<boolean> => {
+		set({ loginError: null });
 		// Cookie-based: the backend sets the httpOnly session cookie on success. No tokens stored client-side.
 		const response = await verifyMagicLinkRouteAuthVerifyMagicLinkPost({ body: { email, code } });
 		if (response.error) {
-			toast.error("Invalid or expired code");
+			if (isSuspendedError(response.error)) {
+				set({ loginError: ACCOUNT_SUSPENDED });
+				toast.error("This account has been suspended.");
+			} else {
+				toast.error("Invalid or expired code");
+			}
 			return false;
 		}
 		authEpoch++;
@@ -361,8 +381,11 @@ export const useAccountStore = create<AccountStoreState>((set, get) => ({
 		return true;
 	},
 	verifyMagicLinkToken: async (token: string): Promise<boolean> => {
+		set({ loginError: null });
 		const response = await verifyMagicLinkRouteAuthVerifyMagicLinkPost({ body: { token } });
 		if (response.error) {
+			// No toast here: this runs on a dedicated full-page route that renders the reason itself.
+			if (isSuspendedError(response.error)) set({ loginError: ACCOUNT_SUSPENDED });
 			return false;
 		}
 		authEpoch++;
@@ -383,6 +406,9 @@ export const useAccountStore = create<AccountStoreState>((set, get) => ({
 			: `${base}/auth/oauth/${provider}`;
 	},
 	exchangeOAuthCode: async (code: string): Promise<boolean> => {
+		// A suspended OAuth login never reaches here — the backend redirects to
+		// /auth/callback?error=account_suspended instead of minting a code, and the page reads it.
+		set({ loginError: null });
 		const response = await exchangeCodeAuthExchangePost({ body: { code } });
 		if (response.error) {
 			return false;
