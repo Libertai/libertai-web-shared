@@ -14,6 +14,7 @@ export {
 	useSubscription,
 	useCanUpgrade,
 	useBillingActions,
+	useIsWalletAccount,
 } from "./use-payments";
 export { AllowanceBar } from "./AllowanceBar";
 export { PlansSection } from "./PlansSection";

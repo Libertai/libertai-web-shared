@@ -3,6 +3,7 @@ import { ChevronLeft } from "lucide-react";
 import { Button } from "../../ui/button";
 import { PaymentMethod, PaymentMethodSelector } from "./PaymentMethodSelector";
 import { CheckoutWidget } from "thirdweb/react";
+import WalletConnectButtons from "../WalletConnectButtons";
 import { base } from "thirdweb/chains";
 import { PaymentForm } from "./PaymentForm";
 import { useLTAIPrice } from "./use-ltai-price";
@@ -89,7 +90,9 @@ export const PaymentStage = ({ usdAmount, handleGoBackToSelection, handlePayment
 		},
 	});
 
-	// On-chain methods are wallet-only; walletless users are routed to CardTopUp upstream.
+	// On-chain methods need a wallet to sign with — the payer wallet needn't be the account's own,
+	// since credits land on the session user (purchaseData.userId). Without one, prompt to connect
+	// rather than dead-ending: card payers only reach here when no fiat provider is on offer.
 	const hasAnyMethod = !!account;
 
 	const hasLTAI = ltaiBalance > 0;
@@ -394,7 +397,14 @@ export const PaymentStage = ({ usdAmount, handleGoBackToSelection, handlePayment
 			</div>
 
 			{/* Payment method selector */}
-			{!hasAnyMethod && <p className="text-sm text-muted-foreground">No payment methods are available yet.</p>}
+			{!hasAnyMethod && (
+				<div className="space-y-3">
+					<p className="text-sm text-muted-foreground">
+						Connect your wallet to top up on-chain. Credits are added to this account, whichever wallet pays.
+					</p>
+					<WalletConnectButtons />
+				</div>
+			)}
 			{hasAnyMethod && (
 				<PaymentMethodSelector
 					onSelectMethod={setMethod}

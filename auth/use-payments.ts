@@ -33,6 +33,15 @@ export function usePaymentProviders() {
 	});
 }
 
+/** Whether the *session* is a wallet account, per the rails the API offers it: wallet accounts get
+ * crypto providers only, email/OAuth accounts get fiat only. The locally connected browser wallet is
+ * NOT the answer — an email user can have one connected, and billing routed off it hits a 400.
+ * False until the providers query resolves, so gate actions on a resolved provider, not on this. */
+export function useIsWalletAccount(): boolean {
+	const { data } = usePaymentProviders();
+	return !!data?.some((p) => p.kind === "crypto");
+}
+
 /** Subscription tiers + pricing/allowances (public). */
 export function useTiers() {
 	return useQuery({

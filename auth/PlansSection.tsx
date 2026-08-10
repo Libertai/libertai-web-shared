@@ -2,7 +2,14 @@ import { useMemo, useState } from "react";
 import { Check, Zap } from "lucide-react";
 import { Button } from "../ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog";
-import { useBillingActions, usePaymentProviders, usePaymentRegion, useSubscription, useTiers } from "./use-payments";
+import {
+	useBillingActions,
+	useIsWalletAccount,
+	usePaymentProviders,
+	usePaymentRegion,
+	useSubscription,
+	useTiers,
+} from "./use-payments";
 import { useAccountStore } from "./account";
 
 // Marketing copy per paid tier (Free is the default — reached via "Cancel subscription", not a card).
@@ -44,13 +51,18 @@ export function PlansSection({ onRequireAuth }: { onRequireAuth?: () => void } =
 	const { data: regionData } = usePaymentRegion();
 	const { subscribe, upgrade, downgrade, cancel, resume } = useBillingActions();
 
-	const account = useAccountStore((s) => s.account);
 	const isAuthenticated = useAccountStore((s) => s.isAuthenticated);
-	const isWallet = !!account;
+	// Rails are split by the SESSION's account type, not by whatever wallet the browser has
+	// connected: an email/OAuth user with a wallet connected is still a card payer, and the API
+	// rejects the mismatched rail either way.
+	const isWallet = useIsWalletAccount();
 	// Wallet users pay in USD on-chain (credits) straight to the protocol — no fiat region, no VAT.
 	// The IP-resolved currency/VAT only applies to card payers. Default to USD until region resolves.
 	const region = isWallet ? { currency: "USD", vat_rate: 0 } : (regionData ?? { currency: "USD", vat_rate: 0 });
 	const fiatProvider = useMemo(() => providers?.find((p) => p.kind === "fiat"), [providers]);
+	// Undefined while the providers query is in flight, or when the account's rail has no enabled
+	// provider. Paid actions are disabled in that state rather than posting a guessed provider id.
+	const billingProvider = isWallet ? "credits" : fiatProvider?.id;
 	const tierOrder = useMemo(() => {
 		const map: Record<string, number> = {};
 		(tiers ?? []).forEach((t, i) => (map[t.name] = i));
@@ -80,7 +92,6 @@ export function PlansSection({ onRequireAuth }: { onRequireAuth?: () => void } =
 			onRequireAuth?.();
 			return;
 		}
-		const provider = isWallet ? "credits" : (fiatProvider?.id ?? "revolut");
 		const target = tierOrder[tierName] ?? 0;
 		const current = tierOrder[currentTier] ?? 0;
 		if (tierName === "free") {
@@ -91,9 +102,9 @@ export function PlansSection({ onRequireAuth }: { onRequireAuth?: () => void } =
 			} else if (isWallet) {
 				// Credits subscribe debits prepaid balance immediately — confirm before charging.
 				setConfirm({ kind: "subscribe", tier: tierName });
-			} else {
+			} else if (billingProvider) {
 				// Fiat: redirect straight to the hosted checkout (its own confirmation).
-				subscribe.mutate({ provider, tier: tierName });
+				subscribe.mutate({ provider: billingProvider, tier: tierName });
 			}
 		} else if (target < current) {
 			setConfirm({ kind: "downgrade", tier: tierName });
@@ -102,11 +113,10 @@ export function PlansSection({ onRequireAuth }: { onRequireAuth?: () => void } =
 
 	const runConfirmed = () => {
 		if (!confirm) return;
-		const provider = isWallet ? "credits" : (fiatProvider?.id ?? "revolut");
-		if (confirm.kind === "subscribe" && confirm.tier) {
-			subscribe.mutate({ provider, tier: confirm.tier });
-		} else if (confirm.kind === "upgrade" && confirm.tier) {
-			upgrade.mutate({ provider, tier: confirm.tier });
+		if (confirm.kind === "subscribe" && confirm.tier && billingProvider) {
+			subscribe.mutate({ provider: billingProvider, tier: confirm.tier });
+		} else if (confirm.kind === "upgrade" && confirm.tier && billingProvider) {
+			upgrade.mutate({ provider: billingProvider, tier: confirm.tier });
 		} else if (confirm.kind === "downgrade" && confirm.tier) {
 			downgrade.mutate({ tier: confirm.tier });
 		} else if (confirm.kind === "cancel") {
@@ -234,9 +244,7 @@ export function PlansSection({ onRequireAuth }: { onRequireAuth?: () => void } =
 								<Button
 									className="mt-4 w-full"
 									variant={isCurrent || isScheduled ? "outline" : "default"}
-									disabled={
-										isCurrent || isScheduled || downgrade.isPending || (isAuthenticated && !isWallet && !fiatProvider)
-									}
+									disabled={isCurrent || isScheduled || downgrade.isPending || (isAuthenticated && !billingProvider)}
 									onClick={() => handleTierAction(tier.name)}
 								>
 									{label}
