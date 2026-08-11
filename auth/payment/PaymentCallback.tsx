@@ -16,8 +16,10 @@ interface PaymentCallbackProps {
  * payment). Polls the subscription endpoint and decides the outcome by comparing against the first
  * loaded snapshot:
  * - SUCCESS (latches, wins over everything): the subscription activated while watching (`status`
- *   flipped to "active"), or a top-up landed (`prepaid_balance` rose above the initial value).
- * - FAILURE: `status` polls as "overdue" (payment declined/failed).
+ *   flipped to "active"), a top-up landed (`prepaid_balance` rose above the initial value), or the
+ *   `tier` changed (an upgrade — the baseline is already "active", so status never transitions).
+ * - FAILURE: `status` polls as "overdue" (payment declined/failed). A declined upgrade has no
+ *   visible signal and falls through to the timeout instead.
  * - SOFT-DONE: if the FIRST snapshot is already "active" (the webhook beat the redirect — common),
  *   we can't tell a finished subscription from a still-pending top-up, so after 10s without a
  *   balance change we show a neutral "Almost there" state — while still polling, so a late webhook
@@ -39,10 +41,14 @@ export function PaymentCallback({ backTo, navigate }: Readonly<PaymentCallbackPr
 
 	// First loaded snapshot — the comparison baseline. Set once, in an effect, so renders stay pure.
 	// Declared before the outcome effect so the baseline exists when the outcome effect first runs.
-	const initialRef = useRef<{ status: string | null; balance: number } | null>(null);
+	const initialRef = useRef<{ status: string | null; tier: string | null; balance: number } | null>(null);
 	useEffect(() => {
 		if (data && initialRef.current === null) {
-			initialRef.current = { status: data.status ?? null, balance: data.prepaid_balance ?? 0 };
+			initialRef.current = {
+				status: data.status ?? null,
+				tier: data.tier ?? null,
+				balance: data.prepaid_balance ?? 0,
+			};
 		}
 	}, [data]);
 
@@ -51,7 +57,9 @@ export function PaymentCallback({ backTo, navigate }: Readonly<PaymentCallbackPr
 		const initial = initialRef.current;
 		if (!data || !initial) return;
 		const confirmed =
-			(data.status === "active" && initial.status !== "active") || (data.prepaid_balance ?? 0) > initial.balance;
+			(data.status === "active" && initial.status !== "active") ||
+			(data.tier != null && data.tier !== initial.tier) ||
+			(data.prepaid_balance ?? 0) > initial.balance;
 		if (confirmed) {
 			setSuccess(true);
 		} else if (data.status === "overdue") {
