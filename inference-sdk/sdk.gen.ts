@@ -24,6 +24,9 @@ import type {
 	CreateCliApiKeyApiKeysCliPostData,
 	CreateCliApiKeyApiKeysCliPostErrors,
 	CreateCliApiKeyApiKeysCliPostResponses,
+	DeactivateApiKeyLiberclawApiKeyDeactivatePostData,
+	DeactivateApiKeyLiberclawApiKeyDeactivatePostErrors,
+	DeactivateApiKeyLiberclawApiKeyDeactivatePostResponses,
 	DeleteApiKeyApiKeysKeyIdDeleteData,
 	DeleteApiKeyApiKeysKeyIdDeleteErrors,
 	DeleteApiKeyApiKeysKeyIdDeleteResponses,
@@ -128,6 +131,9 @@ import type {
 	GetUsageStatsStatsUsageGetData,
 	GetUsageStatsStatsUsageGetErrors,
 	GetUsageStatsStatsUsageGetResponses,
+	GetUsageUsageGetData,
+	GetUsageUsageGetErrors,
+	GetUsageUsageGetResponses,
 	GetUserBalanceCreditsBalanceGetData,
 	GetUserBalanceCreditsBalanceGetErrors,
 	GetUserBalanceCreditsBalanceGetResponses,
@@ -1468,6 +1474,32 @@ export const getOrCreateApiKeyLiberclawApiKeyPost = <ThrowOnError extends boolea
 	});
 
 /**
+ * Deactivate Api Key
+ *
+ * Deactivate a Liberclaw user's API key once they have no running agent.
+ */
+export const deactivateApiKeyLiberclawApiKeyDeactivatePost = <ThrowOnError extends boolean = false>(
+	options: Options<DeactivateApiKeyLiberclawApiKeyDeactivatePostData, ThrowOnError>,
+): RequestResult<
+	DeactivateApiKeyLiberclawApiKeyDeactivatePostResponses,
+	DeactivateApiKeyLiberclawApiKeyDeactivatePostErrors,
+	ThrowOnError
+> =>
+	(options.client ?? client).post<
+		DeactivateApiKeyLiberclawApiKeyDeactivatePostResponses,
+		DeactivateApiKeyLiberclawApiKeyDeactivatePostErrors,
+		ThrowOnError
+	>({
+		responseType: "json",
+		url: "/liberclaw/api-key/deactivate",
+		...options,
+		headers: {
+			"Content-Type": "application/json",
+			...options.headers,
+		},
+	});
+
+/**
  * Update Tier
  *
  * Update a Liberclaw user's tier.
@@ -1746,5 +1778,19 @@ export const webhookPaymentsWebhookProviderIdPost = <ThrowOnError extends boolea
 	>({
 		responseType: "json",
 		url: "/payments/webhook/{provider_id}",
+		...options,
+	});
+
+/**
+ * Get Usage
+ *
+ * Allowance usage of the API key's owner
+ */
+export const getUsageUsageGet = <ThrowOnError extends boolean = false>(
+	options?: Options<GetUsageUsageGetData, ThrowOnError>,
+): RequestResult<GetUsageUsageGetResponses, GetUsageUsageGetErrors, ThrowOnError> =>
+	(options?.client ?? client).get<GetUsageUsageGetResponses, GetUsageUsageGetErrors, ThrowOnError>({
+		responseType: "json",
+		url: "/usage",
 		...options,
 	});

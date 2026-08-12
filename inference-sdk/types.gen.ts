@@ -1339,6 +1339,16 @@ export type LatestSubscriber = {
 };
 
 /**
+ * LiberclawApiKeyDeactivateResponse
+ */
+export type LiberclawApiKeyDeactivateResponse = {
+	/**
+	 * Deactivated
+	 */
+	deactivated: boolean;
+};
+
+/**
  * LiberclawApiKeyRequest
  */
 export type LiberclawApiKeyRequest = {
@@ -1460,6 +1470,10 @@ export type LiberclawUserResponse = {
 	 * Created At
 	 */
 	created_at: string;
+	/**
+	 * Last Call At
+	 */
+	last_call_at?: string | null;
 };
 
 /**
@@ -1746,25 +1760,17 @@ export type SubscriptionResponse = {
 	 */
 	source?: string;
 	/**
-	 * Window 5H Used
+	 * Window 5H Used Percent
 	 */
-	window_5h_used?: number;
-	/**
-	 * Window 5H Limit
-	 */
-	window_5h_limit?: number;
+	window_5h_used_percent?: number;
 	/**
 	 * Window 5H Resets At
 	 */
 	window_5h_resets_at?: string | null;
 	/**
-	 * Weekly Used
+	 * Weekly Used Percent
 	 */
-	weekly_used?: number;
-	/**
-	 * Weekly Limit
-	 */
-	weekly_limit?: number;
+	weekly_used_percent?: number;
 	/**
 	 * Weekly Resets At
 	 */
@@ -2049,6 +2055,10 @@ export type TierPrice = {
 
 /**
  * TierResponse
+ *
+ * Public (unauthenticated) tier listing. Credit allowances are deliberately absent:
+ * the plans are sold on qualitative copy, and publishing a limit would also recover a
+ * user's spend from the percentages reported on their allowance windows.
  */
 export type TierResponse = {
 	/**
@@ -2063,14 +2073,6 @@ export type TierResponse = {
 	 * Currency
 	 */
 	currency: string;
-	/**
-	 * Window 5H Credits
-	 */
-	window_5h_credits: number;
-	/**
-	 * Weekly Credits
-	 */
-	weekly_credits: number;
 	/**
 	 * Is Paid
 	 */
@@ -2284,6 +2286,24 @@ export type UsageByEntity = {
 };
 
 /**
+ * UsageResponse
+ *
+ * A key owner's own allowance state.
+ */
+export type UsageResponse = {
+	/**
+	 * Plan
+	 */
+	plan: string;
+	window_5h: UsageWindow;
+	weekly: UsageWindow;
+	/**
+	 * Extra Usage Credits
+	 */
+	extra_usage_credits: number;
+};
+
+/**
  * UsageStats
  *
  * Detailed usage statistics for a date range.
@@ -2323,6 +2343,23 @@ export type UsageStats = {
 	 * Usage By Api Key
 	 */
 	usage_by_api_key: Array<UsageByEntity>;
+};
+
+/**
+ * UsageWindow
+ *
+ * One allowance window's fill level. Shares only the share: the credit amounts
+ * behind it (spend and plan limit) stay server-side.
+ */
+export type UsageWindow = {
+	/**
+	 * Used Percent
+	 */
+	used_percent: number;
+	/**
+	 * Resets At
+	 */
+	resets_at: string | null;
 };
 
 /**
@@ -3752,7 +3789,7 @@ export type GetLatestSubscribersStatsGlobalSubscriptionsLatestGetData = {
 		/**
 		 * Status
 		 *
-		 * Comma-separated subscription statuses; omitted = all except pending
+		 * Comma-separated subscription statuses; omitted = all except unpaid checkouts
 		 */
 		status?: string | null;
 	};
@@ -4658,6 +4695,39 @@ export type GetOrCreateApiKeyLiberclawApiKeyPostResponses = {
 export type GetOrCreateApiKeyLiberclawApiKeyPostResponse =
 	GetOrCreateApiKeyLiberclawApiKeyPostResponses[keyof GetOrCreateApiKeyLiberclawApiKeyPostResponses];
 
+export type DeactivateApiKeyLiberclawApiKeyDeactivatePostData = {
+	body: LiberclawApiKeyRequest;
+	headers: {
+		/**
+		 * X-Liberclaw-Token
+		 */
+		"x-liberclaw-token": string;
+	};
+	path?: never;
+	query?: never;
+	url: "/liberclaw/api-key/deactivate";
+};
+
+export type DeactivateApiKeyLiberclawApiKeyDeactivatePostErrors = {
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
+};
+
+export type DeactivateApiKeyLiberclawApiKeyDeactivatePostError =
+	DeactivateApiKeyLiberclawApiKeyDeactivatePostErrors[keyof DeactivateApiKeyLiberclawApiKeyDeactivatePostErrors];
+
+export type DeactivateApiKeyLiberclawApiKeyDeactivatePostResponses = {
+	/**
+	 * Successful Response
+	 */
+	200: LiberclawApiKeyDeactivateResponse;
+};
+
+export type DeactivateApiKeyLiberclawApiKeyDeactivatePostResponse =
+	DeactivateApiKeyLiberclawApiKeyDeactivatePostResponses[keyof DeactivateApiKeyLiberclawApiKeyDeactivatePostResponses];
+
 export type UpdateTierLiberclawTierPutData = {
 	body: LiberclawTierUpdate;
 	headers: {
@@ -5148,3 +5218,34 @@ export type WebhookPaymentsWebhookProviderIdPostResponses = {
 
 export type WebhookPaymentsWebhookProviderIdPostResponse =
 	WebhookPaymentsWebhookProviderIdPostResponses[keyof WebhookPaymentsWebhookProviderIdPostResponses];
+
+export type GetUsageUsageGetData = {
+	body?: never;
+	headers?: {
+		/**
+		 * Authorization
+		 */
+		authorization?: string | null;
+	};
+	path?: never;
+	query?: never;
+	url: "/usage";
+};
+
+export type GetUsageUsageGetErrors = {
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
+};
+
+export type GetUsageUsageGetError = GetUsageUsageGetErrors[keyof GetUsageUsageGetErrors];
+
+export type GetUsageUsageGetResponses = {
+	/**
+	 * Successful Response
+	 */
+	200: UsageResponse;
+};
+
+export type GetUsageUsageGetResponse = GetUsageUsageGetResponses[keyof GetUsageUsageGetResponses];

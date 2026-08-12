@@ -15,12 +15,11 @@ function formatCountdown(resetsAt: string | null | undefined, now: number): stri
 
 export function AllowanceBar({
 	label,
-	used,
-	limit,
+	percent,
 	resetsAt,
 	now,
-}: Readonly<{ label: string; used: number; limit: number; resetsAt?: string | null; now: number }>) {
-	const pct = limit > 0 ? Math.min(100, Math.round((used / limit) * 100)) : 0;
+}: Readonly<{ label: string; percent: number; resetsAt?: string | null; now: number }>) {
+	const pct = Math.min(100, Math.round(percent));
 	const countdown = formatCountdown(resetsAt, now);
 	// Severity colour by fill: red near the cap, amber when getting close, primary otherwise.
 	const barColor = pct >= 90 ? "bg-red-500" : pct >= 75 ? "bg-amber-500" : "bg-primary";
