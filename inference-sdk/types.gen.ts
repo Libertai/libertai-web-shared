@@ -872,9 +872,10 @@ export type GlobalChatTokensStats = {
  *
  * Credit consumption over a date range (api/cli/chat keys), tier-covered vs prepaid.
  *
- * ``daily_by_tier`` splits total consumption by the tier the user held THAT day (historical
- * attribution via subscription event replay), including a ``free`` bucket for users with no
- * paid subscription. It totals ``credits_used``, so prepaid spend is included.
+ * ``daily_by_tier`` splits the tier-covered portion by the tier the user held THAT day
+ * (historical attribution via subscription event replay), including a ``free`` bucket for users
+ * with no paid subscription (free carries its own weekly entitlement). It totals
+ * ``tier_credits_used``, so it sums to ``total_tier_credits`` and excludes prepaid spend.
  */
 export type GlobalCreditsConsumptionStats = {
 	/**
@@ -1035,7 +1036,16 @@ export type GlobalSubscriptionsChurnStats = {
 /**
  * GlobalSubscriptionsRevenueStats
  *
- * Revolut (fiat) MRR, nominal and currency-blind; trials excluded. Event-replayed history.
+ * MRR on both paid rails, nominal and currency-blind; trials excluded. Event-replayed history.
+ *
+ * The two rails are reported separately because they are denominated differently: ``current_mrr``
+ * and ``daily`` are Revolut card charges, ``credits_mrr`` and ``credits_daily`` are subscriptions
+ * billed by deducting prepaid credits. Summing them is the client's call.
+ *
+ * The credits series counts only subscribers whose credits were **bought** — see
+ * ``StatsService._paid_credits_subscriptions`` for the exclusions. Without them the figure is
+ * dominated by granted credits: at time of writing 5 of 21 live credits subscriptions were
+ * voucher-funded and carried 79% of the rail's nominal MRR.
  *
  * ``topups_daily`` covers completed Revolut credit purchases, excluding ``upgrade_remainder``
  * grants and pending checkouts. Its window is widened back to the first day of ``start_date``'s
@@ -1054,6 +1064,18 @@ export type GlobalSubscriptionsRevenueStats = {
 	 * Daily
 	 */
 	daily: Array<MrrDay>;
+	/**
+	 * Credits Mrr
+	 */
+	credits_mrr: number;
+	/**
+	 * Credits Mrr By Tier
+	 */
+	credits_mrr_by_tier: Array<MrrByTier>;
+	/**
+	 * Credits Daily
+	 */
+	credits_daily: Array<MrrDay>;
 	/**
 	 * Topups Daily
 	 */
@@ -1992,7 +2014,7 @@ export type ThirdwebWebhookPayload = {
 /**
  * TierCreditsDay
  *
- * Total credits consumed on a single day by users who were on one tier that day.
+ * Entitlement-covered credits consumed on a single day by users who were on one tier that day.
  */
 export type TierCreditsDay = {
 	/**
