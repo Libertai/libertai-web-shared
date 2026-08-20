@@ -40,8 +40,8 @@ export function UsageCreditsCard({ balance, description, onUpgrade, onBuyCredits
 	const saveCap = async () => {
 		const trimmed = capInput.trim();
 		const value = trimmed === "" ? null : Number(trimmed);
-		if (value !== null && (!Number.isFinite(value) || value <= 0)) {
-			toast.error("Cap must be a positive amount");
+		if (value !== null && (!Number.isFinite(value) || value < 0)) {
+			toast.error("Cap can't be a negative amount");
 			return;
 		}
 		setSaving(true);
@@ -92,7 +92,8 @@ export function UsageCreditsCard({ balance, description, onUpgrade, onBuyCredits
 					<DialogHeader>
 						<DialogTitle>Monthly spend cap</DialogTitle>
 						<DialogDescription>
-							Maximum usage credits spent per month once your plan allowance runs out. Leave empty for no limit.
+							Maximum usage credits spent per month once your plan allowance runs out. Set 0 to never spend beyond your
+							plan, or leave empty for no limit.
 						</DialogDescription>
 					</DialogHeader>
 					<Input
