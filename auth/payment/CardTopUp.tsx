@@ -4,6 +4,7 @@ import { Input } from "../../ui/input";
 import { Skeleton } from "../../ui/skeleton";
 import { cn } from "../../lib/utils";
 import { useBillingActions, usePaymentRegion, useTopupPacks } from "../use-payments";
+import { ImmediateExecutionConsent } from "./ImmediateExecutionConsent";
 
 const MIN_USD = 1;
 const MAX_USD = 10_000;
@@ -30,6 +31,9 @@ export function CardTopUp({ fiatProviderId, currentBalance }: Readonly<CardTopUp
 	const busy = topup.isPending || topup.isSuccess;
 
 	const [selectedPackId, setSelectedPackId] = useState<string | null>(null);
+	// Withdrawal-right waiver (art. L.221-28 13° c. consom.) — never pre-ticked.
+	const [consented, setConsented] = useState(false);
+	const [consentError, setConsentError] = useState(false);
 	const [isOther, setIsOther] = useState(false);
 	const [custom, setCustom] = useState("");
 
@@ -50,7 +54,11 @@ export function CardTopUp({ fiatProviderId, currentBalance }: Readonly<CardTopUp
 	const customNum = Number(custom);
 	const customValid = custom !== "" && Number.isFinite(customNum) && customNum >= MIN_USD && customNum <= MAX_USD;
 	// USD-only: the dollar amount to charge (preset credits 1:1, or the custom value).
-	const usdAmount = isOther ? (customValid ? Math.round(customNum * 100) / 100 : null) : (selectedPack?.usd_credits ?? null);
+	const usdAmount = isOther
+		? customValid
+			? Math.round(customNum * 100) / 100
+			: null
+		: (selectedPack?.usd_credits ?? null);
 
 	const canPay = isEur ? !!selectedPack : usdAmount != null;
 	const payLabel = busy
@@ -64,6 +72,10 @@ export function CardTopUp({ fiatProviderId, currentBalance }: Readonly<CardTopUp
 				: "Select an amount";
 
 	const onPay = () => {
+		if (!consented) {
+			setConsentError(true);
+			return;
+		}
 		if (isEur && selectedPack) topup.mutate({ provider: fiatProviderId, pack_id: selectedPack.id });
 		else if (!isEur && usdAmount != null) topup.mutate({ provider: fiatProviderId, amount: usdAmount });
 	};
@@ -124,6 +136,17 @@ export function CardTopUp({ fiatProviderId, currentBalance }: Readonly<CardTopUp
 					creditsLabel={`$${(isEur ? selectedPack!.usd_credits : usdAmount!).toFixed(2)}`}
 					totalLabel={isEur ? `€${selectedPack!.eur_charge.toFixed(2)}` : `$${usdAmount!.toFixed(2)}`}
 					note={isEur ? "VAT included" : undefined}
+				/>
+			)}
+
+			{canPay && (
+				<ImmediateExecutionConsent
+					checked={consented}
+					onChange={(v) => {
+						setConsented(v);
+						if (v) setConsentError(false);
+					}}
+					showError={consentError}
 				/>
 			)}
 
