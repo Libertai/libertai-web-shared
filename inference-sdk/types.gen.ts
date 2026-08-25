@@ -246,6 +246,74 @@ export type AuthStatusResponse = {
 };
 
 /**
+ * BillingDetailsResponse
+ */
+export type BillingDetailsResponse = {
+	/**
+	 * Name
+	 */
+	name?: string | null;
+	/**
+	 * Address Line1
+	 */
+	address_line1?: string | null;
+	/**
+	 * Address Line2
+	 */
+	address_line2?: string | null;
+	/**
+	 * Postal Code
+	 */
+	postal_code?: string | null;
+	/**
+	 * City
+	 */
+	city?: string | null;
+	/**
+	 * Country
+	 */
+	country?: string | null;
+	/**
+	 * Vat Number
+	 */
+	vat_number?: string | null;
+};
+
+/**
+ * BillingDetailsUpdate
+ */
+export type BillingDetailsUpdate = {
+	/**
+	 * Name
+	 */
+	name?: string | null;
+	/**
+	 * Address Line1
+	 */
+	address_line1?: string | null;
+	/**
+	 * Address Line2
+	 */
+	address_line2?: string | null;
+	/**
+	 * Postal Code
+	 */
+	postal_code?: string | null;
+	/**
+	 * City
+	 */
+	city?: string | null;
+	/**
+	 * Country
+	 */
+	country?: string | null;
+	/**
+	 * Vat Number
+	 */
+	vat_number?: string | null;
+};
+
+/**
  * Call
  */
 export type Call = {
@@ -1316,6 +1384,70 @@ export type InvalidKeyReason =
 	| "no_credits"
 	| "extra_credit_cap"
 	| "liberclaw_limit";
+
+/**
+ * InvoiceListResponse
+ */
+export type InvoiceListResponse = {
+	/**
+	 * Items
+	 */
+	items: Array<InvoiceResponse>;
+	/**
+	 * Total
+	 */
+	total: number;
+};
+
+/**
+ * InvoiceResponse
+ */
+export type InvoiceResponse = {
+	/**
+	 * Id
+	 */
+	id: string;
+	/**
+	 * Number
+	 */
+	number: string;
+	/**
+	 * Issued At
+	 */
+	issued_at: string;
+	/**
+	 * Payment Date
+	 */
+	payment_date: string;
+	/**
+	 * Currency
+	 */
+	currency: string;
+	/**
+	 * Net Amount
+	 */
+	net_amount: string;
+	/**
+	 * Vat Amount
+	 */
+	vat_amount: string;
+	/**
+	 * Gross Amount
+	 */
+	gross_amount: string;
+	/**
+	 * Line Label
+	 */
+	line_label: string;
+	/**
+	 * Period Start
+	 */
+	period_start: string | null;
+	/**
+	 * Period End
+	 */
+	period_end: string | null;
+};
 
 /**
  * LatestSubscriber
@@ -2498,40 +2630,6 @@ export type VoucherCreditsResponse = {
 	is_active: boolean;
 };
 
-/**
- * WalletChallengeRequest
- */
-export type WalletChallengeRequest = {
-	/**
-	 * Address
-	 */
-	address: string;
-};
-
-/**
- * WalletChallengeResponse
- */
-export type WalletChallengeResponse = {
-	/**
-	 * Message
-	 */
-	message: string;
-};
-
-/**
- * WalletVerifyRequest
- */
-export type WalletVerifyRequest = {
-	/**
-	 * Address
-	 */
-	address: string;
-	/**
-	 * Signature
-	 */
-	signature: string;
-};
-
 export type GetAuthMessageAuthMessagePostData = {
 	body: AuthMessageRequest;
 	path?: never;
@@ -2680,60 +2778,6 @@ export type UpdateMeAuthMePatchResponses = {
 };
 
 export type UpdateMeAuthMePatchResponse = UpdateMeAuthMePatchResponses[keyof UpdateMeAuthMePatchResponses];
-
-export type WalletChallengeAuthWalletChallengePostData = {
-	body: WalletChallengeRequest;
-	path?: never;
-	query?: never;
-	url: "/auth/wallet/challenge";
-};
-
-export type WalletChallengeAuthWalletChallengePostErrors = {
-	/**
-	 * Validation Error
-	 */
-	422: HttpValidationError;
-};
-
-export type WalletChallengeAuthWalletChallengePostError =
-	WalletChallengeAuthWalletChallengePostErrors[keyof WalletChallengeAuthWalletChallengePostErrors];
-
-export type WalletChallengeAuthWalletChallengePostResponses = {
-	/**
-	 * Successful Response
-	 */
-	200: WalletChallengeResponse;
-};
-
-export type WalletChallengeAuthWalletChallengePostResponse =
-	WalletChallengeAuthWalletChallengePostResponses[keyof WalletChallengeAuthWalletChallengePostResponses];
-
-export type WalletVerifyAuthWalletVerifyPostData = {
-	body: WalletVerifyRequest;
-	path?: never;
-	query?: never;
-	url: "/auth/wallet/verify";
-};
-
-export type WalletVerifyAuthWalletVerifyPostErrors = {
-	/**
-	 * Validation Error
-	 */
-	422: HttpValidationError;
-};
-
-export type WalletVerifyAuthWalletVerifyPostError =
-	WalletVerifyAuthWalletVerifyPostErrors[keyof WalletVerifyAuthWalletVerifyPostErrors];
-
-export type WalletVerifyAuthWalletVerifyPostResponses = {
-	/**
-	 * Successful Response
-	 */
-	200: TokenPairResponse;
-};
-
-export type WalletVerifyAuthWalletVerifyPostResponse =
-	WalletVerifyAuthWalletVerifyPostResponses[keyof WalletVerifyAuthWalletVerifyPostResponses];
 
 export type LoginEmailAuthLoginEmailPostData = {
 	body: EmailLoginRequest;
@@ -2970,39 +3014,6 @@ export type LogoutAuthLogoutPostResponses = {
 };
 
 export type LogoutAuthLogoutPostResponse = LogoutAuthLogoutPostResponses[keyof LogoutAuthLogoutPostResponses];
-
-export type LinkWalletRouteAuthLinkWalletPostData = {
-	body: WalletVerifyRequest;
-	headers?: {
-		/**
-		 * Authorization
-		 */
-		authorization?: string | null;
-	};
-	path?: never;
-	query?: never;
-	url: "/auth/link/wallet";
-};
-
-export type LinkWalletRouteAuthLinkWalletPostErrors = {
-	/**
-	 * Validation Error
-	 */
-	422: HttpValidationError;
-};
-
-export type LinkWalletRouteAuthLinkWalletPostError =
-	LinkWalletRouteAuthLinkWalletPostErrors[keyof LinkWalletRouteAuthLinkWalletPostErrors];
-
-export type LinkWalletRouteAuthLinkWalletPostResponses = {
-	/**
-	 * Successful Response
-	 */
-	204: void;
-};
-
-export type LinkWalletRouteAuthLinkWalletPostResponse =
-	LinkWalletRouteAuthLinkWalletPostResponses[keyof LinkWalletRouteAuthLinkWalletPostResponses];
 
 export type ProcessBaseLtaiTransactionsCreditsLtaiBaseProcessPostData = {
 	body?: never;
@@ -3276,6 +3287,70 @@ export type ChangeVoucherExpirationCreditsVoucherExpirationPostResponses = {
 
 export type ChangeVoucherExpirationCreditsVoucherExpirationPostResponse =
 	ChangeVoucherExpirationCreditsVoucherExpirationPostResponses[keyof ChangeVoucherExpirationCreditsVoucherExpirationPostResponses];
+
+export type UnsubscribeGetEmailsUnsubscribeGetData = {
+	body?: never;
+	path?: never;
+	query: {
+		/**
+		 * Token
+		 */
+		token: string;
+	};
+	url: "/emails/unsubscribe";
+};
+
+export type UnsubscribeGetEmailsUnsubscribeGetErrors = {
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
+};
+
+export type UnsubscribeGetEmailsUnsubscribeGetError =
+	UnsubscribeGetEmailsUnsubscribeGetErrors[keyof UnsubscribeGetEmailsUnsubscribeGetErrors];
+
+export type UnsubscribeGetEmailsUnsubscribeGetResponses = {
+	/**
+	 * Successful Response
+	 */
+	200: string;
+};
+
+export type UnsubscribeGetEmailsUnsubscribeGetResponse =
+	UnsubscribeGetEmailsUnsubscribeGetResponses[keyof UnsubscribeGetEmailsUnsubscribeGetResponses];
+
+export type UnsubscribePostEmailsUnsubscribePostData = {
+	body?: never;
+	path?: never;
+	query: {
+		/**
+		 * Token
+		 */
+		token: string;
+	};
+	url: "/emails/unsubscribe";
+};
+
+export type UnsubscribePostEmailsUnsubscribePostErrors = {
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
+};
+
+export type UnsubscribePostEmailsUnsubscribePostError =
+	UnsubscribePostEmailsUnsubscribePostErrors[keyof UnsubscribePostEmailsUnsubscribePostErrors];
+
+export type UnsubscribePostEmailsUnsubscribePostResponses = {
+	/**
+	 * Successful Response
+	 */
+	204: void;
+};
+
+export type UnsubscribePostEmailsUnsubscribePostResponse =
+	UnsubscribePostEmailsUnsubscribePostResponses[keyof UnsubscribePostEmailsUnsubscribePostResponses];
 
 export type GetApiKeysApiKeysGetData = {
 	body?: never;
@@ -5271,3 +5346,144 @@ export type GetUsageUsageGetResponses = {
 };
 
 export type GetUsageUsageGetResponse = GetUsageUsageGetResponses[keyof GetUsageUsageGetResponses];
+
+export type GetBillingDetailsInvoicesBillingDetailsGetData = {
+	body?: never;
+	headers?: {
+		/**
+		 * Authorization
+		 */
+		authorization?: string | null;
+	};
+	path?: never;
+	query?: never;
+	url: "/invoices/billing-details";
+};
+
+export type GetBillingDetailsInvoicesBillingDetailsGetErrors = {
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
+};
+
+export type GetBillingDetailsInvoicesBillingDetailsGetError =
+	GetBillingDetailsInvoicesBillingDetailsGetErrors[keyof GetBillingDetailsInvoicesBillingDetailsGetErrors];
+
+export type GetBillingDetailsInvoicesBillingDetailsGetResponses = {
+	/**
+	 * Successful Response
+	 */
+	200: BillingDetailsResponse;
+};
+
+export type GetBillingDetailsInvoicesBillingDetailsGetResponse =
+	GetBillingDetailsInvoicesBillingDetailsGetResponses[keyof GetBillingDetailsInvoicesBillingDetailsGetResponses];
+
+export type UpdateBillingDetailsInvoicesBillingDetailsPutData = {
+	body: BillingDetailsUpdate;
+	headers?: {
+		/**
+		 * Authorization
+		 */
+		authorization?: string | null;
+	};
+	path?: never;
+	query?: never;
+	url: "/invoices/billing-details";
+};
+
+export type UpdateBillingDetailsInvoicesBillingDetailsPutErrors = {
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
+};
+
+export type UpdateBillingDetailsInvoicesBillingDetailsPutError =
+	UpdateBillingDetailsInvoicesBillingDetailsPutErrors[keyof UpdateBillingDetailsInvoicesBillingDetailsPutErrors];
+
+export type UpdateBillingDetailsInvoicesBillingDetailsPutResponses = {
+	/**
+	 * Successful Response
+	 */
+	200: BillingDetailsResponse;
+};
+
+export type UpdateBillingDetailsInvoicesBillingDetailsPutResponse =
+	UpdateBillingDetailsInvoicesBillingDetailsPutResponses[keyof UpdateBillingDetailsInvoicesBillingDetailsPutResponses];
+
+export type ListInvoicesInvoicesGetData = {
+	body?: never;
+	headers?: {
+		/**
+		 * Authorization
+		 */
+		authorization?: string | null;
+	};
+	path?: never;
+	query?: {
+		/**
+		 * Page
+		 */
+		page?: number;
+		/**
+		 * Page Size
+		 */
+		page_size?: number;
+	};
+	url: "/invoices";
+};
+
+export type ListInvoicesInvoicesGetErrors = {
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
+};
+
+export type ListInvoicesInvoicesGetError = ListInvoicesInvoicesGetErrors[keyof ListInvoicesInvoicesGetErrors];
+
+export type ListInvoicesInvoicesGetResponses = {
+	/**
+	 * Successful Response
+	 */
+	200: InvoiceListResponse;
+};
+
+export type ListInvoicesInvoicesGetResponse = ListInvoicesInvoicesGetResponses[keyof ListInvoicesInvoicesGetResponses];
+
+export type DownloadInvoicePdfInvoicesInvoiceIdPdfGetData = {
+	body?: never;
+	headers?: {
+		/**
+		 * Authorization
+		 */
+		authorization?: string | null;
+	};
+	path: {
+		/**
+		 * Invoice Id
+		 */
+		invoice_id: string;
+	};
+	query?: never;
+	url: "/invoices/{invoice_id}/pdf";
+};
+
+export type DownloadInvoicePdfInvoicesInvoiceIdPdfGetErrors = {
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
+};
+
+export type DownloadInvoicePdfInvoicesInvoiceIdPdfGetError =
+	DownloadInvoicePdfInvoicesInvoiceIdPdfGetErrors[keyof DownloadInvoicePdfInvoicesInvoiceIdPdfGetErrors];
+
+export type DownloadInvoicePdfInvoicesInvoiceIdPdfGetResponses = {
+	/**
+	 * Successful Response
+	 */
+	200: unknown;
+};

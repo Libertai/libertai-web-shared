@@ -30,3 +30,6 @@ export { useTransactions } from "./payment/use-transactions";
 export { TopUpFlow } from "./payment/TopUpFlow";
 export { CardTopUp } from "./payment/CardTopUp";
 export { PaymentCallback } from "./payment/PaymentCallback";
+export { InvoiceHistory } from "./payment/InvoiceHistory";
+export { BillingDetailsForm } from "./payment/BillingDetailsForm";
+export { useInvoices, useBillingDetails, useUpdateBillingDetails, useDownloadInvoice } from "./payment/use-invoices";

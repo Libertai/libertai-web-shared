@@ -33,6 +33,9 @@ import type {
 	DowngradePaymentsDowngradePostData,
 	DowngradePaymentsDowngradePostErrors,
 	DowngradePaymentsDowngradePostResponses,
+	DownloadInvoicePdfInvoicesInvoiceIdPdfGetData,
+	DownloadInvoicePdfInvoicesInvoiceIdPdfGetErrors,
+	DownloadInvoicePdfInvoicesInvoiceIdPdfGetResponses,
 	ExchangeCodeAuthExchangePostData,
 	ExchangeCodeAuthExchangePostErrors,
 	ExchangeCodeAuthExchangePostResponses,
@@ -50,6 +53,9 @@ import type {
 	GetAuthMessageAuthMessagePostData,
 	GetAuthMessageAuthMessagePostErrors,
 	GetAuthMessageAuthMessagePostResponses,
+	GetBillingDetailsInvoicesBillingDetailsGetData,
+	GetBillingDetailsInvoicesBillingDetailsGetErrors,
+	GetBillingDetailsInvoicesBillingDetailsGetResponses,
 	GetCallsBySegmentStatsGlobalKeyTypeCallsBySegmentGetData,
 	GetCallsBySegmentStatsGlobalKeyTypeCallsBySegmentGetErrors,
 	GetCallsBySegmentStatsGlobalKeyTypeCallsBySegmentGetResponses,
@@ -152,9 +158,9 @@ import type {
 	GrantExtraCreditsLiberclawExtraCreditsPostData,
 	GrantExtraCreditsLiberclawExtraCreditsPostErrors,
 	GrantExtraCreditsLiberclawExtraCreditsPostResponses,
-	LinkWalletRouteAuthLinkWalletPostData,
-	LinkWalletRouteAuthLinkWalletPostErrors,
-	LinkWalletRouteAuthLinkWalletPostResponses,
+	ListInvoicesInvoicesGetData,
+	ListInvoicesInvoicesGetErrors,
+	ListInvoicesInvoicesGetResponses,
 	ListProvidersPaymentsProvidersGetData,
 	ListProvidersPaymentsProvidersGetErrors,
 	ListProvidersPaymentsProvidersGetResponses,
@@ -204,9 +210,18 @@ import type {
 	TopupPaymentsTopupPostData,
 	TopupPaymentsTopupPostErrors,
 	TopupPaymentsTopupPostResponses,
+	UnsubscribeGetEmailsUnsubscribeGetData,
+	UnsubscribeGetEmailsUnsubscribeGetErrors,
+	UnsubscribeGetEmailsUnsubscribeGetResponses,
+	UnsubscribePostEmailsUnsubscribePostData,
+	UnsubscribePostEmailsUnsubscribePostErrors,
+	UnsubscribePostEmailsUnsubscribePostResponses,
 	UpdateApiKeyApiKeysKeyIdPutData,
 	UpdateApiKeyApiKeysKeyIdPutErrors,
 	UpdateApiKeyApiKeysKeyIdPutResponses,
+	UpdateBillingDetailsInvoicesBillingDetailsPutData,
+	UpdateBillingDetailsInvoicesBillingDetailsPutErrors,
+	UpdateBillingDetailsInvoicesBillingDetailsPutResponses,
 	UpdateExpiredCreditTransactionsCreditsUpdateExpiredPostData,
 	UpdateExpiredCreditTransactionsCreditsUpdateExpiredPostResponses,
 	UpdateMeAuthMePatchData,
@@ -221,12 +236,6 @@ import type {
 	VerifyMagicLinkRouteAuthVerifyMagicLinkPostData,
 	VerifyMagicLinkRouteAuthVerifyMagicLinkPostErrors,
 	VerifyMagicLinkRouteAuthVerifyMagicLinkPostResponses,
-	WalletChallengeAuthWalletChallengePostData,
-	WalletChallengeAuthWalletChallengePostErrors,
-	WalletChallengeAuthWalletChallengePostResponses,
-	WalletVerifyAuthWalletVerifyPostData,
-	WalletVerifyAuthWalletVerifyPostErrors,
-	WalletVerifyAuthWalletVerifyPostResponses,
 	WebhookPaymentsWebhookProviderIdPostData,
 	WebhookPaymentsWebhookProviderIdPostErrors,
 	WebhookPaymentsWebhookProviderIdPostResponses,
@@ -337,54 +346,6 @@ export const updateMeAuthMePatch = <ThrowOnError extends boolean = false>(
 	(options.client ?? client).patch<UpdateMeAuthMePatchResponses, UpdateMeAuthMePatchErrors, ThrowOnError>({
 		responseType: "json",
 		url: "/auth/me",
-		...options,
-		headers: {
-			"Content-Type": "application/json",
-			...options.headers,
-		},
-	});
-
-/**
- * Wallet Challenge
- *
- * Issue a nonce message for an EVM wallet to sign.
- */
-export const walletChallengeAuthWalletChallengePost = <ThrowOnError extends boolean = false>(
-	options: Options<WalletChallengeAuthWalletChallengePostData, ThrowOnError>,
-): RequestResult<
-	WalletChallengeAuthWalletChallengePostResponses,
-	WalletChallengeAuthWalletChallengePostErrors,
-	ThrowOnError
-> =>
-	(options.client ?? client).post<
-		WalletChallengeAuthWalletChallengePostResponses,
-		WalletChallengeAuthWalletChallengePostErrors,
-		ThrowOnError
-	>({
-		responseType: "json",
-		url: "/auth/wallet/challenge",
-		...options,
-		headers: {
-			"Content-Type": "application/json",
-			...options.headers,
-		},
-	});
-
-/**
- * Wallet Verify
- *
- * Verify a signed challenge and return a token pair (creates/links the wallet user).
- */
-export const walletVerifyAuthWalletVerifyPost = <ThrowOnError extends boolean = false>(
-	options: Options<WalletVerifyAuthWalletVerifyPostData, ThrowOnError>,
-): RequestResult<WalletVerifyAuthWalletVerifyPostResponses, WalletVerifyAuthWalletVerifyPostErrors, ThrowOnError> =>
-	(options.client ?? client).post<
-		WalletVerifyAuthWalletVerifyPostResponses,
-		WalletVerifyAuthWalletVerifyPostErrors,
-		ThrowOnError
-	>({
-		responseType: "json",
-		url: "/auth/wallet/verify",
 		...options,
 		headers: {
 			"Content-Type": "application/json",
@@ -565,27 +526,6 @@ export const logoutAuthLogoutPost = <ThrowOnError extends boolean = false>(
 		headers: {
 			"Content-Type": "application/json",
 			...options?.headers,
-		},
-	});
-
-/**
- * Link Wallet Route
- *
- * Attach a verified EVM wallet to the logged-in user (e.g. a fiat user adding crypto).
- */
-export const linkWalletRouteAuthLinkWalletPost = <ThrowOnError extends boolean = false>(
-	options: Options<LinkWalletRouteAuthLinkWalletPostData, ThrowOnError>,
-): RequestResult<LinkWalletRouteAuthLinkWalletPostResponses, LinkWalletRouteAuthLinkWalletPostErrors, ThrowOnError> =>
-	(options.client ?? client).post<
-		LinkWalletRouteAuthLinkWalletPostResponses,
-		LinkWalletRouteAuthLinkWalletPostErrors,
-		ThrowOnError
-	>({
-		url: "/auth/link/wallet",
-		...options,
-		headers: {
-			"Content-Type": "application/json",
-			...options.headers,
 		},
 	});
 
@@ -778,6 +718,40 @@ export const changeVoucherExpirationCreditsVoucherExpirationPost = <ThrowOnError
 			...options.headers,
 		},
 	});
+
+/**
+ * Unsubscribe Get
+ */
+export const unsubscribeGetEmailsUnsubscribeGet = <ThrowOnError extends boolean = false>(
+	options: Options<UnsubscribeGetEmailsUnsubscribeGetData, ThrowOnError>,
+): RequestResult<UnsubscribeGetEmailsUnsubscribeGetResponses, UnsubscribeGetEmailsUnsubscribeGetErrors, ThrowOnError> =>
+	(options.client ?? client).get<
+		UnsubscribeGetEmailsUnsubscribeGetResponses,
+		UnsubscribeGetEmailsUnsubscribeGetErrors,
+		ThrowOnError
+	>({
+		responseType: "text",
+		url: "/emails/unsubscribe",
+		...options,
+	});
+
+/**
+ * Unsubscribe Post
+ *
+ * RFC 8058 one-click unsubscribe, called by the mail provider rather than the user.
+ */
+export const unsubscribePostEmailsUnsubscribePost = <ThrowOnError extends boolean = false>(
+	options: Options<UnsubscribePostEmailsUnsubscribePostData, ThrowOnError>,
+): RequestResult<
+	UnsubscribePostEmailsUnsubscribePostResponses,
+	UnsubscribePostEmailsUnsubscribePostErrors,
+	ThrowOnError
+> =>
+	(options.client ?? client).post<
+		UnsubscribePostEmailsUnsubscribePostResponses,
+		UnsubscribePostEmailsUnsubscribePostErrors,
+		ThrowOnError
+	>({ url: "/emails/unsubscribe", ...options });
 
 /**
  * Get Api Keys
@@ -1792,5 +1766,83 @@ export const getUsageUsageGet = <ThrowOnError extends boolean = false>(
 	(options?.client ?? client).get<GetUsageUsageGetResponses, GetUsageUsageGetErrors, ThrowOnError>({
 		responseType: "json",
 		url: "/usage",
+		...options,
+	});
+
+/**
+ * Get Billing Details
+ */
+export const getBillingDetailsInvoicesBillingDetailsGet = <ThrowOnError extends boolean = false>(
+	options?: Options<GetBillingDetailsInvoicesBillingDetailsGetData, ThrowOnError>,
+): RequestResult<
+	GetBillingDetailsInvoicesBillingDetailsGetResponses,
+	GetBillingDetailsInvoicesBillingDetailsGetErrors,
+	ThrowOnError
+> =>
+	(options?.client ?? client).get<
+		GetBillingDetailsInvoicesBillingDetailsGetResponses,
+		GetBillingDetailsInvoicesBillingDetailsGetErrors,
+		ThrowOnError
+	>({
+		responseType: "json",
+		url: "/invoices/billing-details",
+		...options,
+	});
+
+/**
+ * Update Billing Details
+ *
+ * Full replace: omitted fields are cleared, so always send the complete object
+ */
+export const updateBillingDetailsInvoicesBillingDetailsPut = <ThrowOnError extends boolean = false>(
+	options: Options<UpdateBillingDetailsInvoicesBillingDetailsPutData, ThrowOnError>,
+): RequestResult<
+	UpdateBillingDetailsInvoicesBillingDetailsPutResponses,
+	UpdateBillingDetailsInvoicesBillingDetailsPutErrors,
+	ThrowOnError
+> =>
+	(options.client ?? client).put<
+		UpdateBillingDetailsInvoicesBillingDetailsPutResponses,
+		UpdateBillingDetailsInvoicesBillingDetailsPutErrors,
+		ThrowOnError
+	>({
+		responseType: "json",
+		url: "/invoices/billing-details",
+		...options,
+		headers: {
+			"Content-Type": "application/json",
+			...options.headers,
+		},
+	});
+
+/**
+ * List Invoices
+ */
+export const listInvoicesInvoicesGet = <ThrowOnError extends boolean = false>(
+	options?: Options<ListInvoicesInvoicesGetData, ThrowOnError>,
+): RequestResult<ListInvoicesInvoicesGetResponses, ListInvoicesInvoicesGetErrors, ThrowOnError> =>
+	(options?.client ?? client).get<ListInvoicesInvoicesGetResponses, ListInvoicesInvoicesGetErrors, ThrowOnError>({
+		responseType: "json",
+		url: "/invoices",
+		...options,
+	});
+
+/**
+ * Download Invoice Pdf
+ */
+export const downloadInvoicePdfInvoicesInvoiceIdPdfGet = <ThrowOnError extends boolean = false>(
+	options: Options<DownloadInvoicePdfInvoicesInvoiceIdPdfGetData, ThrowOnError>,
+): RequestResult<
+	DownloadInvoicePdfInvoicesInvoiceIdPdfGetResponses,
+	DownloadInvoicePdfInvoicesInvoiceIdPdfGetErrors,
+	ThrowOnError
+> =>
+	(options.client ?? client).get<
+		DownloadInvoicePdfInvoicesInvoiceIdPdfGetResponses,
+		DownloadInvoicePdfInvoicesInvoiceIdPdfGetErrors,
+		ThrowOnError
+	>({
+		responseType: "json",
+		url: "/invoices/{invoice_id}/pdf",
 		...options,
 	});

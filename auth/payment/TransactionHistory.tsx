@@ -7,6 +7,7 @@ import {
 	ChevronLeft,
 	ChevronRight,
 	Download,
+	History,
 	FilterIcon,
 	LucideBrushCleaning,
 	X,
@@ -321,7 +322,10 @@ export function TransactionHistory() {
 	return (
 		<div className="flex flex-col space-y-4">
 			<div className="flex items-center justify-between flex-wrap gap-3">
-				<h2 className="text-xl font-semibold">Transaction history</h2>
+				<h2 className="flex items-center gap-3 text-xl font-semibold">
+					<History className="w-5 h-5" />
+					Transaction history
+				</h2>
 				<div className="flex gap-1">
 					<Popover open={showFilterModal} onOpenChange={setShowFilterModal}>
 						<PopoverTrigger asChild>
