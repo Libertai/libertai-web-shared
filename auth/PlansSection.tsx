@@ -10,6 +10,7 @@ import {
 	useSubscription,
 	useTiers,
 } from "./use-payments";
+import { ImmediateExecutionConsent } from "./payment/ImmediateExecutionConsent";
 import { useAccountStore } from "./account";
 
 // Marketing copy per paid tier (Free is the default — reached via "Cancel subscription", not a card).
@@ -40,8 +41,9 @@ const TIER_COPY: Record<string, { tagline: string; inheritsFrom: string; feature
 const CURRENCY_SYMBOL: Record<string, string> = { USD: "$", EUR: "€" };
 
 /** Money moves (subscribe/upgrade) or entitlement shrinks (downgrade/cancel) — every one of
- * these is confirmed in a dialog before acting. (Fiat subscribe skips this: its hosted checkout
- * is the confirmation. Only the credits/wallet subscribe, which debits instantly, needs it.) */
+ * these is confirmed in a dialog before acting. Paid subscribe/upgrade goes through the dialog on
+ * BOTH rails, including fiat: the withdrawal-right waiver has to be collected before the redirect
+ * to the hosted checkout, not after. */
 type ConfirmAction = { kind: "subscribe" | "upgrade" | "downgrade" | "cancel"; tier?: string };
 
 export function PlansSection({ onRequireAuth }: { onRequireAuth?: () => void } = {}) {
@@ -84,6 +86,17 @@ export function PlansSection({ onRequireAuth }: { onRequireAuth?: () => void } =
 		: "at period end";
 
 	const [confirm, setConfirm] = useState<ConfirmAction | null>(null);
+	// Withdrawal-right waiver (art. L.221-28 13° c. consom.) for paid, immediately-started plans.
+	const [consented, setConsented] = useState(false);
+	const [consentError, setConsentError] = useState(false);
+	// A paid plan that starts at once needs the waiver; scheduled changes and cancellations do not.
+	const needsConsent = confirm?.kind === "subscribe" || confirm?.kind === "upgrade";
+
+	const closeConfirm = () => {
+		setConfirm(null);
+		setConsented(false);
+		setConsentError(false);
+	};
 
 	const handleTierAction = (tierName: string) => {
 		// Signed-out visitors can browse plans but must sign in before any billing action.
@@ -99,12 +112,8 @@ export function PlansSection({ onRequireAuth }: { onRequireAuth?: () => void } =
 		} else if (target > current) {
 			if (hasActivePaidSub) {
 				setConfirm({ kind: "upgrade", tier: tierName });
-			} else if (isWallet) {
-				// Credits subscribe debits prepaid balance immediately — confirm before charging.
+			} else {
 				setConfirm({ kind: "subscribe", tier: tierName });
-			} else if (billingProvider) {
-				// Fiat: redirect straight to the hosted checkout (its own confirmation).
-				subscribe.mutate({ provider: billingProvider, tier: tierName });
 			}
 		} else if (target < current) {
 			setConfirm({ kind: "downgrade", tier: tierName });
@@ -113,6 +122,10 @@ export function PlansSection({ onRequireAuth }: { onRequireAuth?: () => void } =
 
 	const runConfirmed = () => {
 		if (!confirm) return;
+		if (needsConsent && !consented) {
+			setConsentError(true);
+			return;
+		}
 		if (confirm.kind === "subscribe" && confirm.tier && billingProvider) {
 			subscribe.mutate({ provider: billingProvider, tier: confirm.tier });
 		} else if (confirm.kind === "upgrade" && confirm.tier && billingProvider) {
@@ -122,7 +135,7 @@ export function PlansSection({ onRequireAuth }: { onRequireAuth?: () => void } =
 		} else if (confirm.kind === "cancel") {
 			cancel.mutate();
 		}
-		setConfirm(null);
+		closeConfirm();
 	};
 
 	// Rough refund preview for fiat upgrades: days left on the current cycle x its monthly price.
@@ -270,18 +283,26 @@ export function PlansSection({ onRequireAuth }: { onRequireAuth?: () => void } =
 				<p className="text-xs text-muted-foreground">Paid plans become available once card payments are configured.</p>
 			)}
 
-			{/* Confirmation before money moves (credits subscribe/upgrade) or entitlement shrinks (downgrade/cancel). */}
-			<Dialog open={confirm !== null} onOpenChange={(open) => !open && setConfirm(null)}>
+			{/* Confirmation before money moves (subscribe/upgrade) or entitlement shrinks (downgrade/cancel). */}
+			<Dialog open={confirm !== null} onOpenChange={(open) => !open && closeConfirm()}>
 				<DialogContent className="sm:max-w-md">
 					<DialogHeader>
 						<DialogTitle>{confirmTitle}</DialogTitle>
 						<DialogDescription className="space-y-2 pt-1">
 							{confirm?.kind === "subscribe" ? (
-								<span>
-									${confirmTierPrice.toFixed(0)} in credits will be deducted now, and your{" "}
-									<span className="capitalize">{confirm.tier}</span> plan starts immediately. It renews each month from
-									your prepaid credits.
-								</span>
+								isWallet ? (
+									<span>
+										${confirmTierPrice.toFixed(0)} in credits will be deducted now, and your{" "}
+										<span className="capitalize">{confirm.tier}</span> plan starts immediately. It renews each month
+										from your prepaid credits.
+									</span>
+								) : (
+									<span>
+										You'll be taken to the payment page to set up your{" "}
+										<span className="capitalize">{confirm.tier}</span> subscription. It starts as soon as the payment
+										goes through, and renews each month.
+									</span>
+								)
 							) : confirm?.kind === "upgrade" ? (
 								isWallet ? (
 									<span>
@@ -310,8 +331,18 @@ export function PlansSection({ onRequireAuth }: { onRequireAuth?: () => void } =
 							)}
 						</DialogDescription>
 					</DialogHeader>
+					{needsConsent && (
+						<ImmediateExecutionConsent
+							checked={consented}
+							onChange={(v) => {
+								setConsented(v);
+								if (v) setConsentError(false);
+							}}
+							showError={consentError}
+						/>
+					)}
 					<DialogFooter>
-						<Button variant="outline" onClick={() => setConfirm(null)}>
+						<Button variant="outline" onClick={closeConfirm}>
 							Back
 						</Button>
 						<Button
@@ -319,15 +350,15 @@ export function PlansSection({ onRequireAuth }: { onRequireAuth?: () => void } =
 							onClick={runConfirmed}
 							disabled={subscribe.isPending || upgrade.isPending || downgrade.isPending || cancel.isPending}
 						>
-							{confirm?.kind === "subscribe"
-								? "Confirm subscription"
-								: confirm?.kind === "upgrade"
-									? isWallet
-										? "Confirm upgrade"
-										: "Continue to payment"
-									: isEndingToFree
-										? "Cancel subscription"
-										: "Confirm switch"}
+							{confirm?.kind === "subscribe" || confirm?.kind === "upgrade"
+								? isWallet
+									? confirm?.kind === "subscribe"
+										? "Confirm subscription"
+										: "Confirm upgrade"
+									: "Continue to payment"
+								: isEndingToFree
+									? "Cancel subscription"
+									: "Confirm switch"}
 						</Button>
 					</DialogFooter>
 				</DialogContent>
