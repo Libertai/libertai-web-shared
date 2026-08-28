@@ -439,8 +439,8 @@ export const PaymentStage = ({ usdAmount, handleGoBackToSelection, handlePayment
 								setLastTransactionHash(null);
 								handlePaymentSuccess();
 							}}
-							// The widget's own Retry can't fix a wallet that isn't answering — it fails the same
-							// way forever. Route it through the same check so the connection is dropped instead.
+							// Quote and payment-method failures land here and the widget renders its own error
+							// screen for them; reportWalletFailure only acts on a wallet that couldn't answer.
 							onError={(error) => reportWalletFailure(error)}
 							className="!w-full"
 						/>

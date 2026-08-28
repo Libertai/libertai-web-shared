@@ -45,8 +45,9 @@ type AccountStoreState = {
 	// and leaving it in `account` makes the UI claim a wallet the user doesn't effectively have.
 	staleWalletConnection: boolean;
 	clearStaleWalletConnection: () => void;
-	/** Report a wallet operation that failed. A rejection is the user's call and changes nothing;
-	 * anything else means the wallet couldn't answer, which drops the connection. */
+	/** Report a wallet operation that failed. Only a wallet that couldn't answer drops the
+	 * connection: a rejection is the user's call, and a chain or API failure is the request's
+	 * fault, not the wallet's. Callers own the error UI for those two. */
 	reportWalletFailure: (error: unknown) => void;
 	isAuthenticated: boolean;
 	isAuthenticating: boolean;
@@ -99,6 +100,18 @@ const isUserRejection = (error: unknown): boolean => {
 	return /reject|denied|cancell?ed/i.test(message);
 };
 
+/** Failures the wallet answered fine but that came back from the chain, a simulation or an API —
+ * a revert, an unroutable bridge quote, a 500. Reconnecting fixes none of them, so they must not
+ * drop the connection: doing so strands the user mid-payment with no wallet to retry with. */
+const isDownstreamFailure = (error: unknown): boolean => {
+	const shape = error as { status?: unknown; statusCode?: unknown } | null | undefined;
+	if (typeof shape?.statusCode === "number" || typeof shape?.status === "number") return true;
+	const message = error instanceof Error ? error.message : String(error ?? "");
+	return /revert|not found on ABI|insufficient|exceeds the balance|gas|simulation failed|custom program error/i.test(
+		message,
+	);
+};
+
 /** Backend refuses a suspended account at login with 403 + this code. Matched on the code, not
  * the message, so copy edits on the API side don't silently turn this back into a generic
  * "invalid link". Kept in sync with ACCOUNT_SUSPENDED_CODE in libertai-inference. */
@@ -124,7 +137,7 @@ export const useAccountStore = create<AccountStoreState>((set, get) => ({
 	staleWalletConnection: false,
 	clearStaleWalletConnection: () => set({ staleWalletConnection: false }),
 	reportWalletFailure: (error: unknown) => {
-		if (isUserRejection(error)) return;
+		if (isUserRejection(error) || isDownstreamFailure(error)) return;
 		set({ staleWalletConnection: true });
 		toast.error("Wallet connection lost", {
 			description: "Your wallet couldn't complete the request. Reconnect it and try again.",
@@ -594,14 +607,12 @@ export const useAccountStore = create<AccountStoreState>((set, get) => ({
 
 			// A wallet that can't answer is reported even on a silent auto-reconnect: suppressing it
 			// leaves the user connected-looking and signed out with nothing on screen to explain it.
-			if (isUserRejection(error)) {
-				if (showErrors) {
-					toast.error("Authentication failed", {
-						description: error instanceof Error ? error.message : "Unknown error",
-					});
-				}
-			} else {
+			if (!isUserRejection(error) && !isDownstreamFailure(error)) {
 				get().reportWalletFailure(error);
+			} else if (showErrors) {
+				toast.error("Authentication failed", {
+					description: error instanceof Error ? error.message : "Unknown error",
+				});
 			}
 			return false;
 		}
