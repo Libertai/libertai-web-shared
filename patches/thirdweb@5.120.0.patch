@@ -1,0 +1,63 @@
+diff --git a/dist/cjs/react/web/ui/Bridge/payment-details/PaymentDetails.js b/dist/cjs/react/web/ui/Bridge/payment-details/PaymentDetails.js
+index 3ce0840c48c876487d81b7b1b8eaabfdbec6adde..d5882348c962ffe26e845deac0270e296c4cbe46 100644
+--- a/dist/cjs/react/web/ui/Bridge/payment-details/PaymentDetails.js
++++ b/dist/cjs/react/web/ui/Bridge/payment-details/PaymentDetails.js
+@@ -131,6 +131,18 @@ function PaymentDetails({ metadata, confirmButtonLabel, client, paymentMethod, p
+             }
+         }
+     };
++    // originAmount is what the wallet is actually charged, fees included. The payment-method list
++    // only weighs the balance against the destination amount, so a token whose fees push it over
++    // the balance still reaches this screen. Onramp quotes are fiat and carry no originAmount.
++    const shortfall = paymentMethod.type === "wallet" &&
++        preparedQuote.type !== "onramp" &&
++        paymentMethod.balance < preparedQuote.originAmount
++        ? {
++            balance: paymentMethod.balance,
++            required: preparedQuote.originAmount,
++            token: paymentMethod.originToken,
++        }
++        : undefined;
+     const displayData = getDisplayData();
+     return ((0, jsx_runtime_1.jsxs)(basic_js_1.Container, { flex: "column", fullHeight: true, px: "md", pb: "md", pt: "md+", children: [(0, jsx_runtime_1.jsx)(basic_js_1.ModalHeader, { onBack: onBack, title: metadata.title || "Payment Details" }), (0, jsx_runtime_1.jsx)(Spacer_js_1.Spacer, { y: "lg" }), (0, jsx_runtime_1.jsxs)(basic_js_1.Container, { flex: "column", children: [(0, jsx_runtime_1.jsxs)(basic_js_1.Container, { flex: "column", children: [displayData.destinationToken && ((0, jsx_runtime_1.jsx)(PaymentOverview_js_1.PaymentOverview, { currency: currency, metadata: metadata, modeInfo: modeInfo, client: client, fromAmount: displayData.originAmount, paymentMethod: paymentMethod, receiver: preparedQuote.intent.receiver, sender: preparedQuote.intent.sender ||
+                                     paymentMethod.payerWallet?.getAccount()?.address, toAmount: displayData.destinationAmount, toToken: displayData.destinationToken })), (0, jsx_runtime_1.jsx)(Spacer_js_1.Spacer, { y: "md" }), (0, jsx_runtime_1.jsxs)(basic_js_1.Container, { flex: "row", gap: "sm", children: [(0, jsx_runtime_1.jsxs)(basic_js_1.Container, { flex: "row", gap: "xs", style: { flex: 1, justifyContent: "center" }, children: [(0, jsx_runtime_1.jsx)(text_js_1.Text, { color: "secondaryText", size: "sm", children: "Estimated Time" }), (0, jsx_runtime_1.jsx)(text_js_1.Text, { color: "primaryText", size: "sm", children: displayData.estimatedTime
+@@ -154,6 +166,6 @@ function PaymentDetails({ metadata, confirmButtonLabel, client, paymentMethod, p
+                                                                         step.destinationToken.symbol
+                                                                         ? step.originToken.symbol
+                                                                         : `${step.originToken.symbol} to ${step.destinationToken.symbol}`] })) : ((0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: ["Swap ", step.originToken.symbol, " to", " ", step.destinationToken.symbol] })) }), (0, jsx_runtime_1.jsx)(text_js_1.Text, { color: "secondaryText", size: "xs", children: step.originToken.chainId !==
+-                                                                step.destinationToken.chainId ? ((0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [chainsMetadata.find((c) => c.chainId === step.originToken.chainId)?.name, " ", "to", " ", chainsMetadata.find((c) => c.chainId === step.destinationToken.chainId)?.name] })) : (chainsMetadata.find((c) => c.chainId === step.originToken.chainId)?.name) })] }) })] }) }, `step-${stepIndex}-${step.originToken.address}-${step.destinationToken.address}`))) })] })), (0, jsx_runtime_1.jsx)(Spacer_js_1.Spacer, { y: "md" }), (0, jsx_runtime_1.jsx)(basic_js_1.Container, { flex: "column", gap: "sm", children: (0, jsx_runtime_1.jsx)(buttons_js_1.Button, { fullWidth: true, onClick: handleConfirm, variant: "primary", style: { borderRadius: index_js_1.radius.full }, children: confirmButtonLabel || "Confirm Payment" }) })] })] }));
++                                                                step.destinationToken.chainId ? ((0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [chainsMetadata.find((c) => c.chainId === step.originToken.chainId)?.name, " ", "to", " ", chainsMetadata.find((c) => c.chainId === step.destinationToken.chainId)?.name] })) : (chainsMetadata.find((c) => c.chainId === step.originToken.chainId)?.name) })] }) })] }) }, `step-${stepIndex}-${step.originToken.address}-${step.destinationToken.address}`))) })] })), (0, jsx_runtime_1.jsx)(Spacer_js_1.Spacer, { y: "md" }), (0, jsx_runtime_1.jsxs)(basic_js_1.Container, { flex: "column", gap: "sm", children: [shortfall && (0, jsx_runtime_1.jsxs)(text_js_1.Text, { center: true, color: "danger", multiline: true, size: "sm", children: ["This payment needs ", (0, formatTokenBalance_js_1.formatTokenAmount)(shortfall.required, shortfall.token.decimals), " ", shortfall.token.symbol, " including fees, and this wallet holds ", (0, formatTokenBalance_js_1.formatTokenAmount)(shortfall.balance, shortfall.token.decimals), "."] }), (0, jsx_runtime_1.jsx)(buttons_js_1.Button, { disabled: !!shortfall, fullWidth: true, onClick: handleConfirm, variant: "primary", style: { borderRadius: index_js_1.radius.full }, children: shortfall ? `Not enough ${shortfall.token.symbol}` : (confirmButtonLabel || "Confirm Payment") })] })] })] }));
+ }
+ //# sourceMappingURL=PaymentDetails.js.map
+\ No newline at end of file
+diff --git a/dist/esm/react/web/ui/Bridge/payment-details/PaymentDetails.js b/dist/esm/react/web/ui/Bridge/payment-details/PaymentDetails.js
+index 85ed3e3bd7f5888194325d0fb8a9aa9e1994c615..c9aabaca3a75c8296041d8cda9d37a242147d73a 100644
+--- a/dist/esm/react/web/ui/Bridge/payment-details/PaymentDetails.js
++++ b/dist/esm/react/web/ui/Bridge/payment-details/PaymentDetails.js
+@@ -128,6 +128,18 @@ export function PaymentDetails({ metadata, confirmButtonLabel, client, paymentMe
+             }
+         }
+     };
++    // originAmount is what the wallet is actually charged, fees included. The payment-method list
++    // only weighs the balance against the destination amount, so a token whose fees push it over
++    // the balance still reaches this screen. Onramp quotes are fiat and carry no originAmount.
++    const shortfall = paymentMethod.type === "wallet" &&
++        preparedQuote.type !== "onramp" &&
++        paymentMethod.balance < preparedQuote.originAmount
++        ? {
++            balance: paymentMethod.balance,
++            required: preparedQuote.originAmount,
++            token: paymentMethod.originToken,
++        }
++        : undefined;
+     const displayData = getDisplayData();
+     return (_jsxs(Container, { flex: "column", fullHeight: true, px: "md", pb: "md", pt: "md+", children: [_jsx(ModalHeader, { onBack: onBack, title: metadata.title || "Payment Details" }), _jsx(Spacer, { y: "lg" }), _jsxs(Container, { flex: "column", children: [_jsxs(Container, { flex: "column", children: [displayData.destinationToken && (_jsx(PaymentOverview, { currency: currency, metadata: metadata, modeInfo: modeInfo, client: client, fromAmount: displayData.originAmount, paymentMethod: paymentMethod, receiver: preparedQuote.intent.receiver, sender: preparedQuote.intent.sender ||
+                                     paymentMethod.payerWallet?.getAccount()?.address, toAmount: displayData.destinationAmount, toToken: displayData.destinationToken })), _jsx(Spacer, { y: "md" }), _jsxs(Container, { flex: "row", gap: "sm", children: [_jsxs(Container, { flex: "row", gap: "xs", style: { flex: 1, justifyContent: "center" }, children: [_jsx(Text, { color: "secondaryText", size: "sm", children: "Estimated Time" }), _jsx(Text, { color: "primaryText", size: "sm", children: displayData.estimatedTime
+@@ -151,6 +163,6 @@ export function PaymentDetails({ metadata, confirmButtonLabel, client, paymentMe
+                                                                         step.destinationToken.symbol
+                                                                         ? step.originToken.symbol
+                                                                         : `${step.originToken.symbol} to ${step.destinationToken.symbol}`] })) : (_jsxs(_Fragment, { children: ["Swap ", step.originToken.symbol, " to", " ", step.destinationToken.symbol] })) }), _jsx(Text, { color: "secondaryText", size: "xs", children: step.originToken.chainId !==
+-                                                                step.destinationToken.chainId ? (_jsxs(_Fragment, { children: [chainsMetadata.find((c) => c.chainId === step.originToken.chainId)?.name, " ", "to", " ", chainsMetadata.find((c) => c.chainId === step.destinationToken.chainId)?.name] })) : (chainsMetadata.find((c) => c.chainId === step.originToken.chainId)?.name) })] }) })] }) }, `step-${stepIndex}-${step.originToken.address}-${step.destinationToken.address}`))) })] })), _jsx(Spacer, { y: "md" }), _jsx(Container, { flex: "column", gap: "sm", children: _jsx(Button, { fullWidth: true, onClick: handleConfirm, variant: "primary", style: { borderRadius: radius.full }, children: confirmButtonLabel || "Confirm Payment" }) })] })] }));
++                                                                step.destinationToken.chainId ? (_jsxs(_Fragment, { children: [chainsMetadata.find((c) => c.chainId === step.originToken.chainId)?.name, " ", "to", " ", chainsMetadata.find((c) => c.chainId === step.destinationToken.chainId)?.name] })) : (chainsMetadata.find((c) => c.chainId === step.originToken.chainId)?.name) })] }) })] }) }, `step-${stepIndex}-${step.originToken.address}-${step.destinationToken.address}`))) })] })), _jsx(Spacer, { y: "md" }), _jsxs(Container, { flex: "column", gap: "sm", children: [shortfall && _jsxs(Text, { center: true, color: "danger", multiline: true, size: "sm", children: ["This payment needs ", formatTokenAmount(shortfall.required, shortfall.token.decimals), " ", shortfall.token.symbol, " including fees, and this wallet holds ", formatTokenAmount(shortfall.balance, shortfall.token.decimals), "."] }), _jsx(Button, { disabled: !!shortfall, fullWidth: true, onClick: handleConfirm, variant: "primary", style: { borderRadius: radius.full }, children: shortfall ? `Not enough ${shortfall.token.symbol}` : (confirmButtonLabel || "Confirm Payment") })] })] })] }));
+ }
+ //# sourceMappingURL=PaymentDetails.js.map
