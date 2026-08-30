@@ -203,7 +203,6 @@ import type {
 	SubscribePaymentsSubscribePostErrors,
 	SubscribePaymentsSubscribePostResponses,
 	ThirdwebWebhookCreditsThirdwebWebhookPostData,
-	ThirdwebWebhookCreditsThirdwebWebhookPostErrors,
 	ThirdwebWebhookCreditsThirdwebWebhookPostResponses,
 	TopupPacksPaymentsTopupPacksGetData,
 	TopupPacksPaymentsTopupPacksGetResponses,
@@ -571,24 +570,12 @@ export const processSolanaLtaiTransactionsCreditsLtaiSolanaProcessPost = <ThrowO
  * Receive webhooks from Thirdweb
  */
 export const thirdwebWebhookCreditsThirdwebWebhookPost = <ThrowOnError extends boolean = false>(
-	options: Options<ThirdwebWebhookCreditsThirdwebWebhookPostData, ThrowOnError>,
-): RequestResult<
-	ThirdwebWebhookCreditsThirdwebWebhookPostResponses,
-	ThirdwebWebhookCreditsThirdwebWebhookPostErrors,
-	ThrowOnError
-> =>
-	(options.client ?? client).post<
-		ThirdwebWebhookCreditsThirdwebWebhookPostResponses,
-		ThirdwebWebhookCreditsThirdwebWebhookPostErrors,
-		ThrowOnError
-	>({
+	options?: Options<ThirdwebWebhookCreditsThirdwebWebhookPostData, ThrowOnError>,
+): RequestResult<ThirdwebWebhookCreditsThirdwebWebhookPostResponses, unknown, ThrowOnError> =>
+	(options?.client ?? client).post<ThirdwebWebhookCreditsThirdwebWebhookPostResponses, unknown, ThrowOnError>({
 		responseType: "json",
 		url: "/credits/thirdweb/webhook",
 		...options,
-		headers: {
-			"Content-Type": "application/json",
-			...options.headers,
-		},
 	});
 
 /**

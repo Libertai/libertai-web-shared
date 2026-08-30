@@ -712,7 +712,7 @@ export type DailyTierActiveUsers = {
 /**
  * DailyTokens
  *
- * Input and output tokens for a single day.
+ * Input, output and cached tokens for a single day.
  */
 export type DailyTokens = {
 	/**
@@ -723,6 +723,10 @@ export type DailyTokens = {
 	 * Output Tokens
 	 */
 	output_tokens: number;
+	/**
+	 * Cached Tokens
+	 */
+	cached_tokens: number;
 };
 
 /**
@@ -1114,6 +1118,10 @@ export type GlobalSubscriptionsChurnStats = {
  * ``StatsService._paid_credits_subscriptions`` for the exclusions. Without them the figure is
  * dominated by granted credits: at time of writing 5 of 21 live credits subscriptions were
  * voucher-funded and carried 79% of the rail's nominal MRR.
+ *
+ * A subscription earns no MRR from the day a cycle fails to bill until the day a retry covers it;
+ * one that never recovers earns nothing for the rest of its life, though it still churns on its
+ * cancellation day rather than on the failure.
  *
  * ``topups_daily`` covers completed Revolut credit purchases, excluding ``upgrade_remainder``
  * grants and pending checkouts. Its window is widened back to the first day of ``start_date``'s
@@ -1976,171 +1984,6 @@ export type TextInferenceCallData = {
 	 * Payment Requirements
 	 */
 	payment_requirements?: string | null;
-};
-
-/**
- * ThirdwebOnchainTransactionData
- */
-export type ThirdwebOnchainTransactionData = {
-	/**
-	 * Transactionid
-	 */
-	transactionId: string;
-	/**
-	 * Paymentid
-	 */
-	paymentId: string;
-	/**
-	 * Clientid
-	 */
-	clientId: string;
-	/**
-	 * Action
-	 */
-	action: "BUY" | "SELL";
-	/**
-	 * Status
-	 */
-	status: "COMPLETED" | "PENDING";
-	originToken: ThirdwebToken;
-	/**
-	 * Originamount
-	 */
-	originAmount: string;
-	destinationToken: ThirdwebToken;
-	/**
-	 * Destinationamount
-	 */
-	destinationAmount: string;
-	/**
-	 * Sender
-	 */
-	sender: string;
-	/**
-	 * Receiver
-	 */
-	receiver: string;
-	/**
-	 * Type
-	 */
-	type: string;
-	/**
-	 * Transactions
-	 */
-	transactions: Array<ThirdwebTransactionReference>;
-	purchaseData: ThirdwebPurchaseData;
-};
-
-/**
- * ThirdwebOnrampTransactionData
- */
-export type ThirdwebOnrampTransactionData = {
-	/**
-	 * Id
-	 */
-	id: string;
-	/**
-	 * Onramp
-	 */
-	onramp: string;
-	token: ThirdwebToken;
-	/**
-	 * Amount
-	 */
-	amount: string;
-	/**
-	 * Currency
-	 */
-	currency: string;
-	/**
-	 * Currencyamount
-	 */
-	currencyAmount: number;
-	/**
-	 * Receiver
-	 */
-	receiver: string;
-	/**
-	 * Status
-	 */
-	status: "PENDING" | "COMPLETED";
-	purchaseData: ThirdwebPurchaseData;
-};
-
-/**
- * ThirdwebPurchaseData
- */
-export type ThirdwebPurchaseData = {
-	/**
-	 * Userid
-	 */
-	userId: string;
-};
-
-/**
- * ThirdwebToken
- */
-export type ThirdwebToken = {
-	/**
-	 * Chainid
-	 */
-	chainId: number;
-	/**
-	 * Address
-	 */
-	address: string;
-	/**
-	 * Symbol
-	 */
-	symbol: string;
-	/**
-	 * Name
-	 */
-	name: string;
-	/**
-	 * Decimals
-	 */
-	decimals: number;
-	/**
-	 * Priceusd
-	 */
-	priceUsd: number;
-	/**
-	 * Iconuri
-	 */
-	iconUri: string;
-};
-
-/**
- * ThirdwebTransactionReference
- */
-export type ThirdwebTransactionReference = {
-	/**
-	 * Chainid
-	 */
-	chainId: number;
-	/**
-	 * Transactionhash
-	 */
-	transactionHash: string;
-};
-
-/**
- * ThirdwebWebhookPayload
- */
-export type ThirdwebWebhookPayload = {
-	/**
-	 * Version
-	 */
-	version: number;
-	/**
-	 * Type
-	 */
-	type: string;
-	/**
-	 * Data
-	 */
-	data: ThirdwebOnchainTransactionData | ThirdwebOnrampTransactionData;
 };
 
 /**
@@ -3054,31 +2897,11 @@ export type ProcessSolanaLtaiTransactionsCreditsLtaiSolanaProcessPostResponse =
 	ProcessSolanaLtaiTransactionsCreditsLtaiSolanaProcessPostResponses[keyof ProcessSolanaLtaiTransactionsCreditsLtaiSolanaProcessPostResponses];
 
 export type ThirdwebWebhookCreditsThirdwebWebhookPostData = {
-	body: ThirdwebWebhookPayload;
-	headers?: {
-		/**
-		 * X-Pay-Signature
-		 */
-		"X-Pay-Signature"?: string;
-		/**
-		 * X-Pay-Timestamp
-		 */
-		"X-Pay-Timestamp"?: string;
-	};
+	body?: never;
 	path?: never;
 	query?: never;
 	url: "/credits/thirdweb/webhook";
 };
-
-export type ThirdwebWebhookCreditsThirdwebWebhookPostErrors = {
-	/**
-	 * Validation Error
-	 */
-	422: HttpValidationError;
-};
-
-export type ThirdwebWebhookCreditsThirdwebWebhookPostError =
-	ThirdwebWebhookCreditsThirdwebWebhookPostErrors[keyof ThirdwebWebhookCreditsThirdwebWebhookPostErrors];
 
 export type ThirdwebWebhookCreditsThirdwebWebhookPostResponses = {
 	/**
