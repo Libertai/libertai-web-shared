@@ -39,6 +39,9 @@
 
     /* Chart colors */
     --chart-1: #644DF9; /* Liberty Purple */
+    /* Recessive companion to chart-1, for a subdivision of the same series (e.g. the cached share of
+       input tokens). Must stay far enough from chart-1 to read as a distinct segment: OKLab ΔE 21.7. */
+    --chart-1-subtle: #A99CFF; /* Light purple */
     --chart-2: #00A698; /* Teal */
     --chart-3: #4F3DC7; /* Deep purple */
     --chart-4: #0B7A70; /* Deep teal */
@@ -92,6 +95,9 @@
 
     /* Chart colors */
     --chart-1: #8B7BFF; /* Liberty Purple */
+    /* Deeper, not lighter: on the dark surface a paler purple can't clear chart-1 by enough to be
+       told apart (ΔE < 15) before it washes out. This one sits at ΔE 16.4. */
+    --chart-1-subtle: #5B4AC4; /* Deep purple */
     --chart-2: #2DD4BF; /* Teal */
     --chart-3: #A99CFF; /* Light purple */
     --chart-4: #14B8A6; /* Deep teal */
@@ -134,6 +140,7 @@
     --color-input: var(--input);
     --color-ring: var(--ring);
     --color-chart-1: var(--chart-1);
+    --color-chart-1-subtle: var(--chart-1-subtle);
     --color-chart-2: var(--chart-2);
     --color-chart-3: var(--chart-3);
     --color-chart-4: var(--chart-4);
