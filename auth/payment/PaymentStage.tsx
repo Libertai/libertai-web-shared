@@ -34,6 +34,7 @@ import { waitForBaseTransaction } from "./transactions";
 import idl from "./solana/libertai_payment_processor.json";
 import { LibertaiPaymentProcessor } from "./solana/libertai_payment_processor";
 import { usePaymentConfig } from "./config";
+import { formatMoney } from "../../lib/utils";
 
 type PaymentStageProps = {
 	usdAmount: number;
@@ -397,7 +398,7 @@ export const PaymentStage = ({ usdAmount, handleGoBackToSelection, handlePayment
 					Back
 				</Button>
 				<span className="text-sm text-muted-foreground">
-					Total: <span className="font-semibold text-foreground">${usdAmount.toFixed(2)}</span>
+					Total: <span className="font-semibold text-foreground">{formatMoney(usdAmount)}</span>
 				</span>
 			</div>
 
@@ -430,7 +431,7 @@ export const PaymentStage = ({ usdAmount, handleGoBackToSelection, handlePayment
 							seller={paymentProcessorBaseAddress as `0x${string}`}
 							tokenAddress={usdcBaseAddress as `0x${string}`}
 							name="Checkout"
-							description={`${usdAmount.toFixed(2)}$ of LibertAI credits`}
+							description={`${formatMoney(usdAmount)} of LibertAI credits`}
 							paymentMethods={["crypto"]}
 							purchaseData={{
 								userId: me?.id,

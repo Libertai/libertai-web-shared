@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "../../ui/button";
 import { Input } from "../../ui/input";
 import { Skeleton } from "../../ui/skeleton";
-import { cn } from "../../lib/utils";
+import { cn, formatMoney } from "../../lib/utils";
 import { useBillingActions, usePaymentRegion, useTopupPacks } from "../use-payments";
 import { ImmediateExecutionConsent } from "./ImmediateExecutionConsent";
 
@@ -65,8 +65,8 @@ export function CardTopUp({ fiatProviderId, currentBalance }: Readonly<CardTopUp
 		? "Redirecting to checkout…"
 		: canPay
 			? isEur
-				? `Pay €${selectedPack!.eur_charge.toFixed(2)}`
-				: `Pay $${usdAmount!.toFixed(2)}`
+				? `Pay ${formatMoney(selectedPack!.eur_charge, "€")}`
+				: `Pay ${formatMoney(usdAmount!)}`
 			: isOther
 				? "Enter an amount"
 				: "Select an amount";
@@ -83,7 +83,7 @@ export function CardTopUp({ fiatProviderId, currentBalance }: Readonly<CardTopUp
 	return (
 		<div className="space-y-6">
 			<p className="text-sm text-muted-foreground">
-				Current balance: <span className="font-semibold text-foreground">${currentBalance.toFixed(2)}</span>
+				Current balance: <span className="font-semibold text-foreground">{formatMoney(currentBalance)}</span>
 			</p>
 
 			<div className={cn("grid grid-cols-2 gap-3", isEur ? "sm:grid-cols-4" : "sm:grid-cols-5")}>
@@ -95,8 +95,8 @@ export function CardTopUp({ fiatProviderId, currentBalance }: Readonly<CardTopUp
 							setIsOther(false);
 							setSelectedPackId(p.id);
 						}}
-						title={`$${p.usd_credits}`}
-						subtitle={isEur ? `€${p.eur_charge.toFixed(2)} incl. VAT` : undefined}
+						title={`$${p.usd_credits.toLocaleString()}`}
+						subtitle={isEur ? `${formatMoney(p.eur_charge, "€")} incl. VAT` : undefined}
 					/>
 				))}
 				{/* Custom amounts are USD-only — EU sales must use the fixed VAT-inclusive packs. */}
@@ -133,8 +133,8 @@ export function CardTopUp({ fiatProviderId, currentBalance }: Readonly<CardTopUp
 
 			{canPay && (
 				<Summary
-					creditsLabel={`$${(isEur ? selectedPack!.usd_credits : usdAmount!).toFixed(2)}`}
-					totalLabel={isEur ? `€${selectedPack!.eur_charge.toFixed(2)}` : `$${usdAmount!.toFixed(2)}`}
+					creditsLabel={formatMoney(isEur ? selectedPack!.usd_credits : usdAmount!)}
+					totalLabel={isEur ? formatMoney(selectedPack!.eur_charge, "€") : formatMoney(usdAmount!)}
 					note={isEur ? "VAT included" : undefined}
 				/>
 			)}

@@ -16,6 +16,7 @@ import type { CreditTransactionProvider, CreditTransactionResponse } from "../..
 import { useTransactions } from "./use-transactions";
 import { Button } from "../../ui/button";
 import { Skeleton } from "../../ui/skeleton";
+import { formatMoney } from "../../lib/utils";
 import {
 	DropdownMenu,
 	DropdownMenuCheckboxItem,
@@ -292,8 +293,8 @@ export function TransactionHistory() {
 				[
 					at(tx.created_at).format("YYYY-MM-DD HH:mm"),
 					formatProvider(tx.provider),
-					tx.amount.toLocaleString(undefined, { maximumFractionDigits: 4 }),
-					tx.amount_left.toLocaleString(undefined, { maximumFractionDigits: 4 }),
+					tx.amount.toFixed(2),
+					tx.amount_left.toFixed(2),
 					tx.expired_at ? at(tx.expired_at).format("YYYY-MM-DD") : "Never",
 					getTransactionStatus(tx).label,
 				].join(","),
@@ -431,10 +432,10 @@ export function TransactionHistory() {
 											</td>
 											<td className="px-6 py-4 text-sm">{formatProvider(transaction.provider)}</td>
 											<td className="px-6 py-4 text-sm">
-												${transaction.amount.toLocaleString(undefined, { maximumFractionDigits: 4 })}
+												{formatMoney(transaction.amount)}
 											</td>
 											<td className="px-6 py-4 text-sm">
-												${transaction.amount_left.toLocaleString(undefined, { maximumFractionDigits: 4 })}
+												{formatMoney(transaction.amount_left)}
 											</td>
 											<td className="px-6 py-4 text-sm text-muted-foreground">
 												{transaction.expired_at ? at(transaction.expired_at).format("YYYY-MM-DD") : "Never"}

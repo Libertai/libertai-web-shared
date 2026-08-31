@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Button } from "../../ui/button";
 import { Input } from "../../ui/input";
 import { useCanUpgrade, useSubscription } from "../use-payments";
+import { formatMoney } from "../../lib/utils";
 
 interface UsageCreditsCardProps {
 	balance: number;
@@ -51,7 +52,7 @@ export function UsageCreditsCard({ balance, description, onUpgrade, onBuyCredits
 			toast.error("Failed to update spend cap");
 			return;
 		}
-		toast.success(value === null ? "Monthly spend cap removed" : `Monthly spend cap set to $${value.toFixed(2)}`);
+		toast.success(value === null ? "Monthly spend cap removed" : `Monthly spend cap set to ${formatMoney(value)}`);
 		setCapDialogOpen(false);
 		void queryClient.invalidateQueries({ queryKey: ["subscription"] });
 	};
@@ -62,7 +63,7 @@ export function UsageCreditsCard({ balance, description, onUpgrade, onBuyCredits
 			<p className="mb-4 text-sm text-muted-foreground">{description}</p>
 			<div className="flex items-center justify-between border-t border-border pt-4">
 				<div>
-					<div className="text-xl font-bold">${balance.toFixed(2)}</div>
+					<div className="text-xl font-bold">{formatMoney(balance)}</div>
 					<div className="text-sm text-muted-foreground">Current balance</div>
 				</div>
 				<div className="flex gap-2">
@@ -79,7 +80,7 @@ export function UsageCreditsCard({ balance, description, onUpgrade, onBuyCredits
 					<div>
 						<div className="text-sm font-medium">Monthly spend cap</div>
 						<div className="text-sm text-muted-foreground">
-							{cap != null ? `$${spent.toFixed(2)} used of $${cap.toFixed(2)} this month` : "Unlimited"}
+							{cap != null ? `${formatMoney(spent)} used of ${formatMoney(cap)} this month` : "Unlimited"}
 						</div>
 					</div>
 					<Button variant="outline" onClick={openCapDialog}>

@@ -12,6 +12,7 @@ import {
 } from "./use-payments";
 import { ImmediateExecutionConsent } from "./payment/ImmediateExecutionConsent";
 import { useAccountStore } from "./account";
+import { formatMoney } from "../lib/utils";
 
 // Marketing copy per paid tier (Free is the default — reached via "Cancel subscription", not a card).
 // Qualitative on purpose: we don't surface raw allowance numbers. Each tier lists what it adds on
@@ -313,7 +314,7 @@ export function PlansSection({ onRequireAuth }: { onRequireAuth?: () => void } =
 									<span>
 										Your new plan starts now with a fresh monthly cycle, billed at full price. The unused time left on
 										your <span className="capitalize">{currentTier}</span> plan
-										{upgradeRefundEstimate != null && <> (≈ ${upgradeRefundEstimate.toFixed(2)})</>} is refunded to your
+										{upgradeRefundEstimate != null && <> (≈ {formatMoney(upgradeRefundEstimate)})</>} is refunded to your
 										usage credits.
 									</span>
 								)

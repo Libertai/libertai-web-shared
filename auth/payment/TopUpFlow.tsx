@@ -8,6 +8,7 @@ import { useAccountStore } from "../account";
 import { PaymentStage } from "./PaymentStage";
 import { TopUpAmountInput } from "./TopUpAmountInput";
 import { CardTopUp } from "./CardTopUp";
+import { formatMoney } from "../../lib/utils";
 
 interface TopUpFlowProps {
 	onDone: () => void;
@@ -60,7 +61,7 @@ export function TopUpFlow({ onDone }: Readonly<TopUpFlowProps>) {
 							<p className="text-sm text-muted-foreground">
 								Current balance:{" "}
 								<span className="font-semibold text-foreground">
-									${(subscription?.prepaid_balance ?? 0).toFixed(2)}
+									{formatMoney(subscription?.prepaid_balance ?? 0)}
 								</span>
 							</p>
 							<TopUpAmountInput onSelectAmount={() => setStage("payment")} />
