@@ -17,6 +17,7 @@ import { useTransactions } from "./use-transactions";
 import { Button } from "../../ui/button";
 import { Skeleton } from "../../ui/skeleton";
 import { formatMoney } from "../../lib/utils";
+import { SUPPORT_EMAIL, SUPPORT_TELEGRAM_URL } from "../../lib/support";
 import {
 	DropdownMenu,
 	DropdownMenuCheckboxItem,
@@ -370,8 +371,12 @@ export function TransactionHistory() {
 						<p className="text-sm font-medium">You have pending transactions</p>
 						<p className="text-xs text-amber-700/80 dark:text-amber-400/80">
 							Your transaction is being processed and credits will be available soon. If it is not confirmed
-							automatically after a few minutes, please reach out to us on{" "}
-							<a href="https://t.me/libertai" className="text-primary-text hover:underline" target="_blank">
+							automatically after a few minutes, please reach out to us at{" "}
+							<a href={`mailto:${SUPPORT_EMAIL}`} className="text-primary-text hover:underline">
+								{SUPPORT_EMAIL}
+							</a>{" "}
+							or on{" "}
+							<a href={SUPPORT_TELEGRAM_URL} className="text-primary-text hover:underline" target="_blank">
 								Telegram
 							</a>
 							.
@@ -431,12 +436,8 @@ export function TransactionHistory() {
 												{at(transaction.created_at).format("YYYY-MM-DD HH:mm")}
 											</td>
 											<td className="px-6 py-4 text-sm">{formatProvider(transaction.provider)}</td>
-											<td className="px-6 py-4 text-sm">
-												{formatMoney(transaction.amount)}
-											</td>
-											<td className="px-6 py-4 text-sm">
-												{formatMoney(transaction.amount_left)}
-											</td>
+											<td className="px-6 py-4 text-sm">{formatMoney(transaction.amount)}</td>
+											<td className="px-6 py-4 text-sm">{formatMoney(transaction.amount_left)}</td>
 											<td className="px-6 py-4 text-sm text-muted-foreground">
 												{transaction.expired_at ? at(transaction.expired_at).format("YYYY-MM-DD") : "Never"}
 											</td>

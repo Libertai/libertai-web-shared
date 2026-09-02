@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { ArrowUpCircle, LogOut, Zap } from "lucide-react";
+import { ArrowUpCircle, LogOut, Mail, Zap } from "lucide-react";
 import { useActiveAccount, useActiveWallet, useDisconnect } from "thirdweb/react";
 import { useWallet as useSolanaWallet } from "@solana/wallet-adapter-react";
 import { Button } from "../ui/button";
@@ -13,6 +13,7 @@ import {
 import { ProfileAvatar } from "./ProfileAvatar";
 import { useAccountStore } from "./account";
 import { useCanUpgrade } from "./use-payments";
+import { SUPPORT_EMAIL } from "../lib/support";
 
 type Me = {
 	email?: string | null;
@@ -205,7 +206,14 @@ export function AccountMenu({
 					</DropdownMenuItem>
 				))}
 
-				{(items.length > 0 || showUpgrade) && <DropdownMenuSeparator />}
+				<DropdownMenuItem asChild className="cursor-pointer gap-2">
+					<a href={`mailto:${SUPPORT_EMAIL}`} onClick={() => onAction?.()}>
+						<Mail className="h-4 w-4" />
+						Contact support
+					</a>
+				</DropdownMenuItem>
+
+				<DropdownMenuSeparator />
 
 				<DropdownMenuItem onClick={handleSignOut} className="cursor-pointer gap-2">
 					<LogOut className="h-4 w-4" />
