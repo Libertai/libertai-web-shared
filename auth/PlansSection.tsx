@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Check, Zap } from "lucide-react";
+import { AlertCircle, Check, Zap } from "lucide-react";
 import { Button } from "../ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog";
 import {
@@ -45,14 +45,14 @@ const CURRENCY_SYMBOL: Record<string, string> = { USD: "$", EUR: "€" };
  * these is confirmed in a dialog before acting. Paid subscribe/upgrade goes through the dialog on
  * BOTH rails, including fiat: the withdrawal-right waiver has to be collected before the redirect
  * to the hosted checkout, not after. */
-type ConfirmAction = { kind: "subscribe" | "upgrade" | "downgrade" | "cancel"; tier?: string };
+type ConfirmAction = { kind: "subscribe" | "upgrade" | "downgrade" | "cancel" | "restart"; tier?: string };
 
 export function PlansSection({ onRequireAuth }: { onRequireAuth?: () => void } = {}) {
 	const { data: subscription } = useSubscription();
 	const { data: tiers } = useTiers();
 	const { data: providers } = usePaymentProviders();
 	const { data: regionData } = usePaymentRegion();
-	const { subscribe, upgrade, downgrade, cancel, resume } = useBillingActions();
+	const { subscribe, upgrade, restart, downgrade, cancel, resume } = useBillingActions();
 
 	const isAuthenticated = useAccountStore((s) => s.isAuthenticated);
 	// Rails are split by the SESSION's account type, not by whatever wallet the browser has
@@ -80,6 +80,10 @@ export function PlansSection({ onRequireAuth }: { onRequireAuth?: () => void } =
 	// it can be resumed.
 	const pendingTier = subscription?.pending_tier ?? null;
 	const cancelScheduled = !!subscription?.cancel_at_period_end;
+	// A declined charge suspends the plan (effective tier is free) and names the tier it was
+	// suspended from. The card cannot be swapped on the provider's subscription, so recovery
+	// sells that tier again on a fresh one — offered only while the plan isn't also winding down.
+	const pausedTier = !cancelScheduled ? (subscription?.paused_tier ?? null) : null;
 	const hasScheduledChange = !!pendingTier || cancelScheduled;
 	// "at period end" is meaningless without the date — show it when we have it (e.g. "on Jun 28").
 	const periodEnd = subscription?.current_period_end
@@ -91,7 +95,7 @@ export function PlansSection({ onRequireAuth }: { onRequireAuth?: () => void } =
 	const [consented, setConsented] = useState(false);
 	const [consentError, setConsentError] = useState(false);
 	// A paid plan that starts at once needs the waiver; scheduled changes and cancellations do not.
-	const needsConsent = confirm?.kind === "subscribe" || confirm?.kind === "upgrade";
+	const needsConsent = confirm?.kind === "subscribe" || confirm?.kind === "upgrade" || confirm?.kind === "restart";
 
 	const closeConfirm = () => {
 		setConfirm(null);
@@ -131,6 +135,8 @@ export function PlansSection({ onRequireAuth }: { onRequireAuth?: () => void } =
 			subscribe.mutate({ provider: billingProvider, tier: confirm.tier });
 		} else if (confirm.kind === "upgrade" && confirm.tier && billingProvider) {
 			upgrade.mutate({ provider: billingProvider, tier: confirm.tier });
+		} else if (confirm.kind === "restart" && billingProvider) {
+			restart.mutate({ provider: billingProvider });
 		} else if (confirm.kind === "downgrade" && confirm.tier) {
 			downgrade.mutate({ tier: confirm.tier });
 		} else if (confirm.kind === "cancel") {
@@ -164,6 +170,10 @@ export function PlansSection({ onRequireAuth }: { onRequireAuth?: () => void } =
 			<>
 				Upgrade to <span className="capitalize">{confirm.tier}</span>?
 			</>
+		) : confirm?.kind === "restart" ? (
+			<>
+				Restore <span className="capitalize">{confirm.tier}</span> with a new card?
+			</>
 		) : isEndingToFree ? (
 			<>Cancel your subscription?</>
 		) : (
@@ -174,6 +184,28 @@ export function PlansSection({ onRequireAuth }: { onRequireAuth?: () => void } =
 
 	return (
 		<div className="flex flex-col space-y-4">
+			{isAuthenticated && !isWallet && pausedTier && (
+				<div className="rounded-xl border border-destructive/40 bg-destructive/5 p-4 flex items-start gap-3 flex-wrap sm:flex-nowrap">
+					<AlertCircle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+					<div className="flex-1 min-w-[16rem] space-y-1">
+						<p className="text-sm font-medium">
+							Your last payment failed, so <span className="capitalize">{pausedTier}</span> is paused
+						</p>
+						<p className="text-sm text-muted-foreground">
+							The card on file can't be changed on this subscription — restoring your plan starts a new one, so you'll
+							enter your card details again at checkout.
+						</p>
+					</div>
+					<Button
+						className="shrink-0"
+						onClick={() => setConfirm({ kind: "restart", tier: pausedTier })}
+						disabled={restart.isPending || !billingProvider}
+					>
+						Update payment method
+					</Button>
+				</div>
+			)}
+
 			{/* Current-plan header is only meaningful for a signed-in user. */}
 			{isAuthenticated && (
 				<div className="flex items-center justify-between flex-wrap gap-3">
@@ -314,10 +346,17 @@ export function PlansSection({ onRequireAuth }: { onRequireAuth?: () => void } =
 									<span>
 										Your new plan starts now with a fresh monthly cycle, billed at full price. The unused time left on
 										your <span className="capitalize">{currentTier}</span> plan
-										{upgradeRefundEstimate != null && <> (≈ {formatMoney(upgradeRefundEstimate)})</>} is refunded to your
-										usage credits.
+										{upgradeRefundEstimate != null && <> (≈ {formatMoney(upgradeRefundEstimate)})</>} is refunded to
+										your usage credits.
 									</span>
 								)
+							) : confirm?.kind === "restart" ? (
+								<span>
+									You'll be taken to the payment page to enter your card. Your{" "}
+									<span className="capitalize">{confirm.tier}</span> plan restarts as soon as the payment goes through,
+									with a fresh monthly cycle at {formatMoney(confirmTierPrice)}. The payment that failed is not charged
+									again.
+								</span>
 							) : isEndingToFree ? (
 								<span>
 									You keep <span className="capitalize">{currentTier}</span> until {periodEnd.replace(/^on /, "")}, then
@@ -347,11 +386,17 @@ export function PlansSection({ onRequireAuth }: { onRequireAuth?: () => void } =
 							Back
 						</Button>
 						<Button
-							variant={confirm?.kind === "upgrade" || confirm?.kind === "subscribe" ? "default" : "destructive"}
+							variant={
+								confirm?.kind === "upgrade" || confirm?.kind === "subscribe" || confirm?.kind === "restart"
+									? "default"
+									: "destructive"
+							}
 							onClick={runConfirmed}
-							disabled={subscribe.isPending || upgrade.isPending || downgrade.isPending || cancel.isPending}
+							disabled={
+								subscribe.isPending || upgrade.isPending || restart.isPending || downgrade.isPending || cancel.isPending
+							}
 						>
-							{confirm?.kind === "subscribe" || confirm?.kind === "upgrade"
+							{confirm?.kind === "subscribe" || confirm?.kind === "upgrade" || confirm?.kind === "restart"
 								? isWallet
 									? confirm?.kind === "subscribe"
 										? "Confirm subscription"

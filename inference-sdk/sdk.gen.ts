@@ -30,12 +30,18 @@ import type {
 	DeleteApiKeyApiKeysKeyIdDeleteData,
 	DeleteApiKeyApiKeysKeyIdDeleteErrors,
 	DeleteApiKeyApiKeysKeyIdDeleteResponses,
+	DeleteBillingDetailsLiberclawBillingDetailsDeleteData,
+	DeleteBillingDetailsLiberclawBillingDetailsDeleteErrors,
+	DeleteBillingDetailsLiberclawBillingDetailsDeleteResponses,
 	DowngradePaymentsDowngradePostData,
 	DowngradePaymentsDowngradePostErrors,
 	DowngradePaymentsDowngradePostResponses,
 	DownloadInvoicePdfInvoicesInvoiceIdPdfGetData,
 	DownloadInvoicePdfInvoicesInvoiceIdPdfGetErrors,
 	DownloadInvoicePdfInvoicesInvoiceIdPdfGetResponses,
+	DownloadInvoicePdfLiberclawInvoicesInvoiceIdPdfGetData,
+	DownloadInvoicePdfLiberclawInvoicesInvoiceIdPdfGetErrors,
+	DownloadInvoicePdfLiberclawInvoicesInvoiceIdPdfGetResponses,
 	ExchangeCodeAuthExchangePostData,
 	ExchangeCodeAuthExchangePostErrors,
 	ExchangeCodeAuthExchangePostResponses,
@@ -56,6 +62,9 @@ import type {
 	GetBillingDetailsInvoicesBillingDetailsGetData,
 	GetBillingDetailsInvoicesBillingDetailsGetErrors,
 	GetBillingDetailsInvoicesBillingDetailsGetResponses,
+	GetBillingDetailsLiberclawBillingDetailsGetData,
+	GetBillingDetailsLiberclawBillingDetailsGetErrors,
+	GetBillingDetailsLiberclawBillingDetailsGetResponses,
 	GetCallsBySegmentStatsGlobalKeyTypeCallsBySegmentGetData,
 	GetCallsBySegmentStatsGlobalKeyTypeCallsBySegmentGetErrors,
 	GetCallsBySegmentStatsGlobalKeyTypeCallsBySegmentGetResponses,
@@ -158,12 +167,54 @@ import type {
 	GrantExtraCreditsLiberclawExtraCreditsPostData,
 	GrantExtraCreditsLiberclawExtraCreditsPostErrors,
 	GrantExtraCreditsLiberclawExtraCreditsPostResponses,
+	LiberclawAdminExtendLiberclawSubscriptionAdminExtendPostData,
+	LiberclawAdminExtendLiberclawSubscriptionAdminExtendPostErrors,
+	LiberclawAdminExtendLiberclawSubscriptionAdminExtendPostResponses,
+	LiberclawAdminForceCancelLiberclawSubscriptionAdminForceCancelPostData,
+	LiberclawAdminForceCancelLiberclawSubscriptionAdminForceCancelPostErrors,
+	LiberclawAdminForceCancelLiberclawSubscriptionAdminForceCancelPostResponses,
+	LiberclawAdminGrantTrialLiberclawSubscriptionAdminGrantTrialPostData,
+	LiberclawAdminGrantTrialLiberclawSubscriptionAdminGrantTrialPostErrors,
+	LiberclawAdminGrantTrialLiberclawSubscriptionAdminGrantTrialPostResponses,
+	LiberclawAdminOverrideTierLiberclawSubscriptionAdminOverrideTierPostData,
+	LiberclawAdminOverrideTierLiberclawSubscriptionAdminOverrideTierPostErrors,
+	LiberclawAdminOverrideTierLiberclawSubscriptionAdminOverrideTierPostResponses,
+	LiberclawCancelLiberclawSubscriptionCancelPostData,
+	LiberclawCancelLiberclawSubscriptionCancelPostErrors,
+	LiberclawCancelLiberclawSubscriptionCancelPostResponses,
+	LiberclawCheckoutLiberclawCheckoutPostData,
+	LiberclawCheckoutLiberclawCheckoutPostErrors,
+	LiberclawCheckoutLiberclawCheckoutPostResponses,
+	LiberclawDowngradeLiberclawSubscriptionDowngradePostData,
+	LiberclawDowngradeLiberclawSubscriptionDowngradePostErrors,
+	LiberclawDowngradeLiberclawSubscriptionDowngradePostResponses,
+	LiberclawResumeLiberclawSubscriptionResumePostData,
+	LiberclawResumeLiberclawSubscriptionResumePostErrors,
+	LiberclawResumeLiberclawSubscriptionResumePostResponses,
+	LiberclawStartTrialLiberclawSubscriptionTrialPostData,
+	LiberclawStartTrialLiberclawSubscriptionTrialPostErrors,
+	LiberclawStartTrialLiberclawSubscriptionTrialPostResponses,
+	LiberclawSubscriptionStateLiberclawSubscriptionStateGetData,
+	LiberclawSubscriptionStateLiberclawSubscriptionStateGetErrors,
+	LiberclawSubscriptionStateLiberclawSubscriptionStateGetResponses,
+	LiberclawTrialEligibilityLiberclawSubscriptionTrialEligibilityGetData,
+	LiberclawTrialEligibilityLiberclawSubscriptionTrialEligibilityGetErrors,
+	LiberclawTrialEligibilityLiberclawSubscriptionTrialEligibilityGetResponses,
+	LiberclawUpgradeLiberclawSubscriptionUpgradePostData,
+	LiberclawUpgradeLiberclawSubscriptionUpgradePostErrors,
+	LiberclawUpgradeLiberclawSubscriptionUpgradePostResponses,
 	ListInvoicesInvoicesGetData,
 	ListInvoicesInvoicesGetErrors,
 	ListInvoicesInvoicesGetResponses,
+	ListInvoicesLiberclawInvoicesGetData,
+	ListInvoicesLiberclawInvoicesGetErrors,
+	ListInvoicesLiberclawInvoicesGetResponses,
 	ListProvidersPaymentsProvidersGetData,
 	ListProvidersPaymentsProvidersGetErrors,
 	ListProvidersPaymentsProvidersGetResponses,
+	ListSubscriptionCyclesLiberclawSubscriptionCyclesGetData,
+	ListSubscriptionCyclesLiberclawSubscriptionCyclesGetErrors,
+	ListSubscriptionCyclesLiberclawSubscriptionCyclesGetResponses,
 	ListTiersPaymentsTiersGetData,
 	ListTiersPaymentsTiersGetResponses,
 	LoginEmailAuthLoginEmailPostData,
@@ -196,6 +247,9 @@ import type {
 	RegisterInferenceCallApiKeysAdminUsagePostData,
 	RegisterInferenceCallApiKeysAdminUsagePostErrors,
 	RegisterInferenceCallApiKeysAdminUsagePostResponses,
+	RestartPaymentsRestartPostData,
+	RestartPaymentsRestartPostErrors,
+	RestartPaymentsRestartPostResponses,
 	ResumePaymentsResumePostData,
 	ResumePaymentsResumePostErrors,
 	ResumePaymentsResumePostResponses,
@@ -221,14 +275,14 @@ import type {
 	UpdateBillingDetailsInvoicesBillingDetailsPutData,
 	UpdateBillingDetailsInvoicesBillingDetailsPutErrors,
 	UpdateBillingDetailsInvoicesBillingDetailsPutResponses,
+	UpdateBillingDetailsLiberclawBillingDetailsPutData,
+	UpdateBillingDetailsLiberclawBillingDetailsPutErrors,
+	UpdateBillingDetailsLiberclawBillingDetailsPutResponses,
 	UpdateExpiredCreditTransactionsCreditsUpdateExpiredPostData,
 	UpdateExpiredCreditTransactionsCreditsUpdateExpiredPostResponses,
 	UpdateMeAuthMePatchData,
 	UpdateMeAuthMePatchErrors,
 	UpdateMeAuthMePatchResponses,
-	UpdateTierLiberclawTierPutData,
-	UpdateTierLiberclawTierPutErrors,
-	UpdateTierLiberclawTierPutResponses,
 	UpgradePaymentsUpgradePostData,
 	UpgradePaymentsUpgradePostErrors,
 	UpgradePaymentsUpgradePostResponses,
@@ -357,7 +411,7 @@ export const updateMeAuthMePatch = <ThrowOnError extends boolean = false>(
  *
  * Send a magic-link email (token + 6-digit code).
  *
- * The email is dispatched in the background so SMTP latency/failures never block the
+ * The email is dispatched in the background so send latency/failures never block the
  * login request (the magic link is persisted before we return).
  */
 export const loginEmailAuthLoginEmailPost = <ThrowOnError extends boolean = false>(
@@ -859,6 +913,10 @@ export const updateApiKeyApiKeysKeyIdPut = <ThrowOnError extends boolean = false
  * Register Inference Call
  *
  * Usage report by bearer API key — meter one inference call against the key that made it.
+ *
+ * The response says whether the key is still usable now that this call is metered, so the
+ * reporting model server can evict a key that just ran out instead of serving it until the
+ * next whitelist push.
  *
  * NOT an admin endpoint despite the ``/admin`` path prefix (legacy naming, kept only to
  * avoid breaking the gateway that calls it). It intentionally takes NO admin token: the
@@ -1461,24 +1519,6 @@ export const deactivateApiKeyLiberclawApiKeyDeactivatePost = <ThrowOnError exten
 	});
 
 /**
- * Update Tier
- *
- * Update a Liberclaw user's tier.
- */
-export const updateTierLiberclawTierPut = <ThrowOnError extends boolean = false>(
-	options: Options<UpdateTierLiberclawTierPutData, ThrowOnError>,
-): RequestResult<UpdateTierLiberclawTierPutResponses, UpdateTierLiberclawTierPutErrors, ThrowOnError> =>
-	(options.client ?? client).put<UpdateTierLiberclawTierPutResponses, UpdateTierLiberclawTierPutErrors, ThrowOnError>({
-		responseType: "json",
-		url: "/liberclaw/tier",
-		...options,
-		headers: {
-			"Content-Type": "application/json",
-			...options.headers,
-		},
-	});
-
-/**
  * Grant Extra Credits
  *
  * Grant extra usage credits to a Liberclaw user (idempotent on external_reference).
@@ -1516,6 +1556,424 @@ export const getUserLiberclawUserGet = <ThrowOnError extends boolean = false>(
 		responseType: "json",
 		url: "/liberclaw/user",
 		...options,
+	});
+
+/**
+ * List Invoices
+ */
+export const listInvoicesLiberclawInvoicesGet = <ThrowOnError extends boolean = false>(
+	options: Options<ListInvoicesLiberclawInvoicesGetData, ThrowOnError>,
+): RequestResult<ListInvoicesLiberclawInvoicesGetResponses, ListInvoicesLiberclawInvoicesGetErrors, ThrowOnError> =>
+	(options.client ?? client).get<
+		ListInvoicesLiberclawInvoicesGetResponses,
+		ListInvoicesLiberclawInvoicesGetErrors,
+		ThrowOnError
+	>({
+		responseType: "json",
+		url: "/liberclaw/invoices",
+		...options,
+	});
+
+/**
+ * List Subscription Cycles
+ *
+ * Walk a subscription's cycle chain for the LiberClaw backfill script.
+ *
+ * Newest first, via ``get_current_cycle`` then ``previous_cycle_id`` (capped at
+ * MAX_CYCLES hops). Entries may carry a null ``order_id`` — callers skip them.
+ */
+export const listSubscriptionCyclesLiberclawSubscriptionCyclesGet = <ThrowOnError extends boolean = false>(
+	options: Options<ListSubscriptionCyclesLiberclawSubscriptionCyclesGetData, ThrowOnError>,
+): RequestResult<
+	ListSubscriptionCyclesLiberclawSubscriptionCyclesGetResponses,
+	ListSubscriptionCyclesLiberclawSubscriptionCyclesGetErrors,
+	ThrowOnError
+> =>
+	(options.client ?? client).get<
+		ListSubscriptionCyclesLiberclawSubscriptionCyclesGetResponses,
+		ListSubscriptionCyclesLiberclawSubscriptionCyclesGetErrors,
+		ThrowOnError
+	>({
+		responseType: "json",
+		url: "/liberclaw/subscription-cycles",
+		...options,
+	});
+
+/**
+ * Download Invoice Pdf
+ */
+export const downloadInvoicePdfLiberclawInvoicesInvoiceIdPdfGet = <ThrowOnError extends boolean = false>(
+	options: Options<DownloadInvoicePdfLiberclawInvoicesInvoiceIdPdfGetData, ThrowOnError>,
+): RequestResult<
+	DownloadInvoicePdfLiberclawInvoicesInvoiceIdPdfGetResponses,
+	DownloadInvoicePdfLiberclawInvoicesInvoiceIdPdfGetErrors,
+	ThrowOnError
+> =>
+	(options.client ?? client).get<
+		DownloadInvoicePdfLiberclawInvoicesInvoiceIdPdfGetResponses,
+		DownloadInvoicePdfLiberclawInvoicesInvoiceIdPdfGetErrors,
+		ThrowOnError
+	>({
+		responseType: "json",
+		url: "/liberclaw/invoices/{invoice_id}/pdf",
+		...options,
+	});
+
+/**
+ * Delete Billing Details
+ *
+ * Erases the editable profile only — invoice buyer snapshots are retained (legal basis).
+ */
+export const deleteBillingDetailsLiberclawBillingDetailsDelete = <ThrowOnError extends boolean = false>(
+	options: Options<DeleteBillingDetailsLiberclawBillingDetailsDeleteData, ThrowOnError>,
+): RequestResult<
+	DeleteBillingDetailsLiberclawBillingDetailsDeleteResponses,
+	DeleteBillingDetailsLiberclawBillingDetailsDeleteErrors,
+	ThrowOnError
+> =>
+	(options.client ?? client).delete<
+		DeleteBillingDetailsLiberclawBillingDetailsDeleteResponses,
+		DeleteBillingDetailsLiberclawBillingDetailsDeleteErrors,
+		ThrowOnError
+	>({
+		responseType: "json",
+		url: "/liberclaw/billing-details",
+		...options,
+	});
+
+/**
+ * Get Billing Details
+ */
+export const getBillingDetailsLiberclawBillingDetailsGet = <ThrowOnError extends boolean = false>(
+	options: Options<GetBillingDetailsLiberclawBillingDetailsGetData, ThrowOnError>,
+): RequestResult<
+	GetBillingDetailsLiberclawBillingDetailsGetResponses,
+	GetBillingDetailsLiberclawBillingDetailsGetErrors,
+	ThrowOnError
+> =>
+	(options.client ?? client).get<
+		GetBillingDetailsLiberclawBillingDetailsGetResponses,
+		GetBillingDetailsLiberclawBillingDetailsGetErrors,
+		ThrowOnError
+	>({
+		responseType: "json",
+		url: "/liberclaw/billing-details",
+		...options,
+	});
+
+/**
+ * Update Billing Details
+ *
+ * Full replace: omitted fields are cleared, so always send the complete object
+ */
+export const updateBillingDetailsLiberclawBillingDetailsPut = <ThrowOnError extends boolean = false>(
+	options: Options<UpdateBillingDetailsLiberclawBillingDetailsPutData, ThrowOnError>,
+): RequestResult<
+	UpdateBillingDetailsLiberclawBillingDetailsPutResponses,
+	UpdateBillingDetailsLiberclawBillingDetailsPutErrors,
+	ThrowOnError
+> =>
+	(options.client ?? client).put<
+		UpdateBillingDetailsLiberclawBillingDetailsPutResponses,
+		UpdateBillingDetailsLiberclawBillingDetailsPutErrors,
+		ThrowOnError
+	>({
+		responseType: "json",
+		url: "/liberclaw/billing-details",
+		...options,
+		headers: {
+			"Content-Type": "application/json",
+			...options.headers,
+		},
+	});
+
+/**
+ * Liberclaw Checkout
+ */
+export const liberclawCheckoutLiberclawCheckoutPost = <ThrowOnError extends boolean = false>(
+	options: Options<LiberclawCheckoutLiberclawCheckoutPostData, ThrowOnError>,
+): RequestResult<
+	LiberclawCheckoutLiberclawCheckoutPostResponses,
+	LiberclawCheckoutLiberclawCheckoutPostErrors,
+	ThrowOnError
+> =>
+	(options.client ?? client).post<
+		LiberclawCheckoutLiberclawCheckoutPostResponses,
+		LiberclawCheckoutLiberclawCheckoutPostErrors,
+		ThrowOnError
+	>({
+		responseType: "json",
+		url: "/liberclaw/checkout",
+		...options,
+		headers: {
+			"Content-Type": "application/json",
+			...options.headers,
+		},
+	});
+
+/**
+ * Liberclaw Upgrade
+ */
+export const liberclawUpgradeLiberclawSubscriptionUpgradePost = <ThrowOnError extends boolean = false>(
+	options: Options<LiberclawUpgradeLiberclawSubscriptionUpgradePostData, ThrowOnError>,
+): RequestResult<
+	LiberclawUpgradeLiberclawSubscriptionUpgradePostResponses,
+	LiberclawUpgradeLiberclawSubscriptionUpgradePostErrors,
+	ThrowOnError
+> =>
+	(options.client ?? client).post<
+		LiberclawUpgradeLiberclawSubscriptionUpgradePostResponses,
+		LiberclawUpgradeLiberclawSubscriptionUpgradePostErrors,
+		ThrowOnError
+	>({
+		responseType: "json",
+		url: "/liberclaw/subscription/upgrade",
+		...options,
+		headers: {
+			"Content-Type": "application/json",
+			...options.headers,
+		},
+	});
+
+/**
+ * Liberclaw Cancel
+ */
+export const liberclawCancelLiberclawSubscriptionCancelPost = <ThrowOnError extends boolean = false>(
+	options: Options<LiberclawCancelLiberclawSubscriptionCancelPostData, ThrowOnError>,
+): RequestResult<
+	LiberclawCancelLiberclawSubscriptionCancelPostResponses,
+	LiberclawCancelLiberclawSubscriptionCancelPostErrors,
+	ThrowOnError
+> =>
+	(options.client ?? client).post<
+		LiberclawCancelLiberclawSubscriptionCancelPostResponses,
+		LiberclawCancelLiberclawSubscriptionCancelPostErrors,
+		ThrowOnError
+	>({
+		responseType: "json",
+		url: "/liberclaw/subscription/cancel",
+		...options,
+		headers: {
+			"Content-Type": "application/json",
+			...options.headers,
+		},
+	});
+
+/**
+ * Liberclaw Resume
+ */
+export const liberclawResumeLiberclawSubscriptionResumePost = <ThrowOnError extends boolean = false>(
+	options: Options<LiberclawResumeLiberclawSubscriptionResumePostData, ThrowOnError>,
+): RequestResult<
+	LiberclawResumeLiberclawSubscriptionResumePostResponses,
+	LiberclawResumeLiberclawSubscriptionResumePostErrors,
+	ThrowOnError
+> =>
+	(options.client ?? client).post<
+		LiberclawResumeLiberclawSubscriptionResumePostResponses,
+		LiberclawResumeLiberclawSubscriptionResumePostErrors,
+		ThrowOnError
+	>({
+		responseType: "json",
+		url: "/liberclaw/subscription/resume",
+		...options,
+		headers: {
+			"Content-Type": "application/json",
+			...options.headers,
+		},
+	});
+
+/**
+ * Liberclaw Downgrade
+ */
+export const liberclawDowngradeLiberclawSubscriptionDowngradePost = <ThrowOnError extends boolean = false>(
+	options: Options<LiberclawDowngradeLiberclawSubscriptionDowngradePostData, ThrowOnError>,
+): RequestResult<
+	LiberclawDowngradeLiberclawSubscriptionDowngradePostResponses,
+	LiberclawDowngradeLiberclawSubscriptionDowngradePostErrors,
+	ThrowOnError
+> =>
+	(options.client ?? client).post<
+		LiberclawDowngradeLiberclawSubscriptionDowngradePostResponses,
+		LiberclawDowngradeLiberclawSubscriptionDowngradePostErrors,
+		ThrowOnError
+	>({
+		responseType: "json",
+		url: "/liberclaw/subscription/downgrade",
+		...options,
+		headers: {
+			"Content-Type": "application/json",
+			...options.headers,
+		},
+	});
+
+/**
+ * Liberclaw Start Trial
+ */
+export const liberclawStartTrialLiberclawSubscriptionTrialPost = <ThrowOnError extends boolean = false>(
+	options: Options<LiberclawStartTrialLiberclawSubscriptionTrialPostData, ThrowOnError>,
+): RequestResult<
+	LiberclawStartTrialLiberclawSubscriptionTrialPostResponses,
+	LiberclawStartTrialLiberclawSubscriptionTrialPostErrors,
+	ThrowOnError
+> =>
+	(options.client ?? client).post<
+		LiberclawStartTrialLiberclawSubscriptionTrialPostResponses,
+		LiberclawStartTrialLiberclawSubscriptionTrialPostErrors,
+		ThrowOnError
+	>({
+		responseType: "json",
+		url: "/liberclaw/subscription/trial",
+		...options,
+		headers: {
+			"Content-Type": "application/json",
+			...options.headers,
+		},
+	});
+
+/**
+ * Liberclaw Trial Eligibility
+ */
+export const liberclawTrialEligibilityLiberclawSubscriptionTrialEligibilityGet = <ThrowOnError extends boolean = false>(
+	options: Options<LiberclawTrialEligibilityLiberclawSubscriptionTrialEligibilityGetData, ThrowOnError>,
+): RequestResult<
+	LiberclawTrialEligibilityLiberclawSubscriptionTrialEligibilityGetResponses,
+	LiberclawTrialEligibilityLiberclawSubscriptionTrialEligibilityGetErrors,
+	ThrowOnError
+> =>
+	(options.client ?? client).get<
+		LiberclawTrialEligibilityLiberclawSubscriptionTrialEligibilityGetResponses,
+		LiberclawTrialEligibilityLiberclawSubscriptionTrialEligibilityGetErrors,
+		ThrowOnError
+	>({
+		responseType: "json",
+		url: "/liberclaw/subscription/trial-eligibility",
+		...options,
+	});
+
+/**
+ * Liberclaw Subscription State
+ *
+ * The account's live-status row (pending/active/overdue) — the raw state feed used by
+ * pull-reconcile and checkout recording, unlike LC's own filtered /current.
+ */
+export const liberclawSubscriptionStateLiberclawSubscriptionStateGet = <ThrowOnError extends boolean = false>(
+	options: Options<LiberclawSubscriptionStateLiberclawSubscriptionStateGetData, ThrowOnError>,
+): RequestResult<
+	LiberclawSubscriptionStateLiberclawSubscriptionStateGetResponses,
+	LiberclawSubscriptionStateLiberclawSubscriptionStateGetErrors,
+	ThrowOnError
+> =>
+	(options.client ?? client).get<
+		LiberclawSubscriptionStateLiberclawSubscriptionStateGetResponses,
+		LiberclawSubscriptionStateLiberclawSubscriptionStateGetErrors,
+		ThrowOnError
+	>({
+		responseType: "json",
+		url: "/liberclaw/subscription-state",
+		...options,
+	});
+
+/**
+ * Liberclaw Admin Grant Trial
+ */
+export const liberclawAdminGrantTrialLiberclawSubscriptionAdminGrantTrialPost = <ThrowOnError extends boolean = false>(
+	options: Options<LiberclawAdminGrantTrialLiberclawSubscriptionAdminGrantTrialPostData, ThrowOnError>,
+): RequestResult<
+	LiberclawAdminGrantTrialLiberclawSubscriptionAdminGrantTrialPostResponses,
+	LiberclawAdminGrantTrialLiberclawSubscriptionAdminGrantTrialPostErrors,
+	ThrowOnError
+> =>
+	(options.client ?? client).post<
+		LiberclawAdminGrantTrialLiberclawSubscriptionAdminGrantTrialPostResponses,
+		LiberclawAdminGrantTrialLiberclawSubscriptionAdminGrantTrialPostErrors,
+		ThrowOnError
+	>({
+		responseType: "json",
+		url: "/liberclaw/subscription/admin/grant-trial",
+		...options,
+		headers: {
+			"Content-Type": "application/json",
+			...options.headers,
+		},
+	});
+
+/**
+ * Liberclaw Admin Override Tier
+ */
+export const liberclawAdminOverrideTierLiberclawSubscriptionAdminOverrideTierPost = <
+	ThrowOnError extends boolean = false,
+>(
+	options: Options<LiberclawAdminOverrideTierLiberclawSubscriptionAdminOverrideTierPostData, ThrowOnError>,
+): RequestResult<
+	LiberclawAdminOverrideTierLiberclawSubscriptionAdminOverrideTierPostResponses,
+	LiberclawAdminOverrideTierLiberclawSubscriptionAdminOverrideTierPostErrors,
+	ThrowOnError
+> =>
+	(options.client ?? client).post<
+		LiberclawAdminOverrideTierLiberclawSubscriptionAdminOverrideTierPostResponses,
+		LiberclawAdminOverrideTierLiberclawSubscriptionAdminOverrideTierPostErrors,
+		ThrowOnError
+	>({
+		responseType: "json",
+		url: "/liberclaw/subscription/admin/override-tier",
+		...options,
+		headers: {
+			"Content-Type": "application/json",
+			...options.headers,
+		},
+	});
+
+/**
+ * Liberclaw Admin Force Cancel
+ *
+ * Immediate terminal cancel, bypassing the deferred wind-down.
+ */
+export const liberclawAdminForceCancelLiberclawSubscriptionAdminForceCancelPost = <
+	ThrowOnError extends boolean = false,
+>(
+	options: Options<LiberclawAdminForceCancelLiberclawSubscriptionAdminForceCancelPostData, ThrowOnError>,
+): RequestResult<
+	LiberclawAdminForceCancelLiberclawSubscriptionAdminForceCancelPostResponses,
+	LiberclawAdminForceCancelLiberclawSubscriptionAdminForceCancelPostErrors,
+	ThrowOnError
+> =>
+	(options.client ?? client).post<
+		LiberclawAdminForceCancelLiberclawSubscriptionAdminForceCancelPostResponses,
+		LiberclawAdminForceCancelLiberclawSubscriptionAdminForceCancelPostErrors,
+		ThrowOnError
+	>({
+		responseType: "json",
+		url: "/liberclaw/subscription/admin/force-cancel",
+		...options,
+		headers: {
+			"Content-Type": "application/json",
+			...options.headers,
+		},
+	});
+
+/**
+ * Liberclaw Admin Extend
+ */
+export const liberclawAdminExtendLiberclawSubscriptionAdminExtendPost = <ThrowOnError extends boolean = false>(
+	options: Options<LiberclawAdminExtendLiberclawSubscriptionAdminExtendPostData, ThrowOnError>,
+): RequestResult<
+	LiberclawAdminExtendLiberclawSubscriptionAdminExtendPostResponses,
+	LiberclawAdminExtendLiberclawSubscriptionAdminExtendPostErrors,
+	ThrowOnError
+> =>
+	(options.client ?? client).post<
+		LiberclawAdminExtendLiberclawSubscriptionAdminExtendPostResponses,
+		LiberclawAdminExtendLiberclawSubscriptionAdminExtendPostErrors,
+		ThrowOnError
+	>({
+		responseType: "json",
+		url: "/liberclaw/subscription/admin/extend",
+		...options,
+		headers: {
+			"Content-Type": "application/json",
+			...options.headers,
+		},
 	});
 
 /**
@@ -1641,6 +2099,24 @@ export const upgradePaymentsUpgradePost = <ThrowOnError extends boolean = false>
 	(options.client ?? client).post<UpgradePaymentsUpgradePostResponses, UpgradePaymentsUpgradePostErrors, ThrowOnError>({
 		responseType: "json",
 		url: "/payments/upgrade",
+		...options,
+		headers: {
+			"Content-Type": "application/json",
+			...options.headers,
+		},
+	});
+
+/**
+ * Restart
+ *
+ * Replace a subscription whose payment failed with a fresh checkout
+ */
+export const restartPaymentsRestartPost = <ThrowOnError extends boolean = false>(
+	options: Options<RestartPaymentsRestartPostData, ThrowOnError>,
+): RequestResult<RestartPaymentsRestartPostResponses, RestartPaymentsRestartPostErrors, ThrowOnError> =>
+	(options.client ?? client).post<RestartPaymentsRestartPostResponses, RestartPaymentsRestartPostErrors, ThrowOnError>({
+		responseType: "json",
+		url: "/payments/restart",
 		...options,
 		headers: {
 			"Content-Type": "application/json",

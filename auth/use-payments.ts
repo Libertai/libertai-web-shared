@@ -7,6 +7,7 @@ import {
 	listProvidersPaymentsProvidersGet,
 	listTiersPaymentsTiersGet,
 	regionPaymentsRegionGet,
+	restartPaymentsRestartPost,
 	resumePaymentsResumePost,
 	subscribePaymentsSubscribePost,
 	topupPacksPaymentsTopupPacksGet,
@@ -121,7 +122,10 @@ export function useBillingActions() {
 
 	const topup = useMutation({
 		mutationFn: async ({ provider, amount, pack_id }: { provider: string; amount?: number; pack_id?: string }) =>
-			unwrap(await topupPaymentsTopupPost({ body: { provider, amount, pack_id, redirect_base } }), "Failed to start top-up"),
+			unwrap(
+				await topupPaymentsTopupPost({ body: { provider, amount, pack_id, redirect_base } }),
+				"Failed to start top-up",
+			),
 		onSuccess: (data) => redirectTo(data.checkout_url),
 		onError: onError("start top-up"),
 	});
@@ -156,6 +160,15 @@ export function useBillingActions() {
 		onError: onError("upgrade"),
 	});
 
+	// A declined charge cannot be retried on a new card: the provider binds the card to the
+	// subscription for life, so recovering the tier replaces the subscription entirely.
+	const restart = useMutation({
+		mutationFn: async ({ provider }: { provider: string }) =>
+			unwrap(await restartPaymentsRestartPost({ body: { provider, redirect_base } }), "Failed to restart subscription"),
+		onSuccess: (data) => redirectTo(data.checkout_url),
+		onError: onError("restart the subscription"),
+	});
+
 	const cancel = useMutation({
 		mutationFn: async () => unwrap(await cancelPaymentsCancelPost(), "Failed to cancel"),
 		onSuccess: async (data) => {
@@ -184,5 +197,5 @@ export function useBillingActions() {
 		onError: onError("resume subscription"),
 	});
 
-	return { topup, subscribe, upgrade, cancel, downgrade, resume };
+	return { topup, subscribe, upgrade, restart, cancel, downgrade, resume };
 }

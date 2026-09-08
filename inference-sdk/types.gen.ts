@@ -85,6 +85,12 @@ export type ApiKeyAdminListResponse = {
 	invalid_keys?: {
 		[key: string]: InvalidKeyInfo;
 	};
+	/**
+	 * Tiers
+	 */
+	tiers?: {
+		[key: string]: string;
+	};
 };
 
 /**
@@ -1355,6 +1361,18 @@ export type ImageInferenceCallData = {
 };
 
 /**
+ * InferenceCallResponse
+ *
+ * Answer to a usage report: whether the reported key is still usable after that call.
+ *
+ * Metering is post-hoc, so a key that just ran out stays on the model servers' whitelists
+ * until the next push; ``invalid`` lets the reporting server drop it right away.
+ */
+export type InferenceCallResponse = {
+	invalid?: InvalidKeyInfo | null;
+};
+
+/**
  * InferenceCallType
  */
 export type InferenceCallType = "text" | "image" | "audio";
@@ -1464,6 +1482,10 @@ export type InvoiceResponse = {
  *
  * ``user_label`` is ``display_name (contact)`` when the user set a name, else the bare
  * ``contact`` (contact resolves email > wallet address > user id).
+ *
+ * The window fields measure the user's live entitlement consumption against the tier they
+ * are on *now* (their active subscription, else free), which is not the row's ``tier`` for
+ * an ended subscription. A user with no open window of a kind reads as 0 used.
  */
 export type LatestSubscriber = {
 	/**
@@ -1498,6 +1520,54 @@ export type LatestSubscriber = {
 	 * Current Period End
 	 */
 	current_period_end: string | null;
+	window_5h: SubscriberWindowUsage;
+	weekly: SubscriberWindowUsage;
+};
+
+/**
+ * LiberclawAccountRequest
+ */
+export type LiberclawAccountRequest = {
+	/**
+	 * Liberclaw Account Id
+	 */
+	liberclaw_account_id: string;
+};
+
+/**
+ * LiberclawAdminExtendRequest
+ */
+export type LiberclawAdminExtendRequest = {
+	/**
+	 * Liberclaw Account Id
+	 */
+	liberclaw_account_id: string;
+	/**
+	 * Days
+	 */
+	days: number;
+};
+
+/**
+ * LiberclawAdminGrantTrialRequest
+ */
+export type LiberclawAdminGrantTrialRequest = {
+	/**
+	 * Liberclaw Account Id
+	 */
+	liberclaw_account_id: string;
+	/**
+	 * Tier
+	 */
+	tier: string;
+	/**
+	 * Days
+	 */
+	days: number;
+	/**
+	 * Granted By
+	 */
+	granted_by?: string | null;
 };
 
 /**
@@ -1522,6 +1592,10 @@ export type LiberclawApiKeyRequest = {
 	 * User Type
 	 */
 	user_type: string;
+	/**
+	 * Liberclaw Account Id
+	 */
+	liberclaw_account_id?: string | null;
 };
 
 /**
@@ -1536,6 +1610,52 @@ export type LiberclawApiKeyResponse = {
 	 * Is New
 	 */
 	is_new: boolean;
+};
+
+/**
+ * LiberclawCheckoutRequest
+ */
+export type LiberclawCheckoutRequest = {
+	/**
+	 * Liberclaw Account Id
+	 */
+	liberclaw_account_id: string;
+	/**
+	 * Email
+	 */
+	email: string;
+	/**
+	 * Tier
+	 */
+	tier: string;
+	/**
+	 * Redirect Url
+	 */
+	redirect_url: string;
+};
+
+/**
+ * LiberclawCheckoutResponse
+ */
+export type LiberclawCheckoutResponse = {
+	/**
+	 * Url
+	 */
+	url: string | null;
+	/**
+	 * Subscription Id
+	 */
+	subscription_id: string | null;
+};
+
+/**
+ * LiberclawExtendResponse
+ */
+export type LiberclawExtendResponse = {
+	/**
+	 * New Period End
+	 */
+	new_period_end: string;
 };
 
 /**
@@ -1575,21 +1695,67 @@ export type LiberclawExtraCreditsResponse = {
 };
 
 /**
- * LiberclawTierUpdate
+ * LiberclawTierRequest
  */
-export type LiberclawTierUpdate = {
+export type LiberclawTierRequest = {
 	/**
-	 * User Id
+	 * Liberclaw Account Id
 	 */
-	user_id: string;
-	/**
-	 * User Type
-	 */
-	user_type: string;
+	liberclaw_account_id: string;
 	/**
 	 * Tier
 	 */
 	tier: string;
+};
+
+/**
+ * LiberclawTrialEligibilityResponse
+ */
+export type LiberclawTrialEligibilityResponse = {
+	/**
+	 * Eligible
+	 */
+	eligible: boolean;
+	/**
+	 * Reason
+	 */
+	reason: string | null;
+};
+
+/**
+ * LiberclawTrialRequest
+ */
+export type LiberclawTrialRequest = {
+	/**
+	 * Liberclaw Account Id
+	 */
+	liberclaw_account_id: string;
+	/**
+	 * Email
+	 */
+	email: string;
+	/**
+	 * Days
+	 */
+	days: number;
+};
+
+/**
+ * LiberclawUpgradeRequest
+ */
+export type LiberclawUpgradeRequest = {
+	/**
+	 * Liberclaw Account Id
+	 */
+	liberclaw_account_id: string;
+	/**
+	 * Tier
+	 */
+	tier: string;
+	/**
+	 * Redirect Url
+	 */
+	redirect_url: string;
 };
 
 /**
@@ -1758,6 +1924,22 @@ export type RegionResponse = {
 };
 
 /**
+ * RestartRequest
+ *
+ * Tier comes from the subscription being recovered, so the caller cannot pick one.
+ */
+export type RestartRequest = {
+	/**
+	 * Provider
+	 */
+	provider?: string;
+	/**
+	 * Redirect Base
+	 */
+	redirect_base?: string | null;
+};
+
+/**
  * ResumeResponse
  */
 export type ResumeResponse = {
@@ -1830,6 +2012,28 @@ export type SubscribeRequest = {
 };
 
 /**
+ * SubscriberWindowUsage
+ *
+ * Fill level of one entitlement window, in credits plus the derived share.
+ *
+ * ``limit`` of 0 means the tier grants no allowance for this window; ``percent`` is then 0.
+ */
+export type SubscriberWindowUsage = {
+	/**
+	 * Used
+	 */
+	used: number;
+	/**
+	 * Limit
+	 */
+	limit: number;
+	/**
+	 * Percent
+	 */
+	percent: number;
+};
+
+/**
  * SubscriptionActivityEvent
  *
  * One lifecycle event, mapped from the raw event log to a human-facing type.
@@ -1876,6 +2080,38 @@ export type SubscriptionActivityType =
 	| "payment_failed";
 
 /**
+ * SubscriptionCycle
+ */
+export type SubscriptionCycle = {
+	/**
+	 * Cycle Id
+	 */
+	cycle_id: string;
+	/**
+	 * Order Id
+	 */
+	order_id?: string | null;
+	/**
+	 * Start Date
+	 */
+	start_date?: string | null;
+	/**
+	 * End Date
+	 */
+	end_date?: string | null;
+};
+
+/**
+ * SubscriptionCyclesResponse
+ */
+export type SubscriptionCyclesResponse = {
+	/**
+	 * Cycles
+	 */
+	cycles: Array<SubscriptionCycle>;
+};
+
+/**
  * SubscriptionResponse
  *
  * Current subscription state. ``tier`` is the effective entitlement tier.
@@ -1909,6 +2145,10 @@ export type SubscriptionResponse = {
 	 * Pending Tier
 	 */
 	pending_tier?: string | null;
+	/**
+	 * Paused Tier
+	 */
+	paused_tier?: string | null;
 	/**
 	 * Is Trial
 	 */
@@ -2294,6 +2534,10 @@ export type UsageResponse = {
 	plan: string;
 	window_5h: UsageWindow;
 	weekly: UsageWindow;
+	/**
+	 * Current Period End
+	 */
+	current_period_end: string | null;
 	/**
 	 * Extra Usage Credits
 	 */
@@ -3434,8 +3678,11 @@ export type RegisterInferenceCallApiKeysAdminUsagePostResponses = {
 	/**
 	 * Successful Response
 	 */
-	200: unknown;
+	200: InferenceCallResponse;
 };
+
+export type RegisterInferenceCallApiKeysAdminUsagePostResponse =
+	RegisterInferenceCallApiKeysAdminUsagePostResponses[keyof RegisterInferenceCallApiKeysAdminUsagePostResponses];
 
 export type GetAdminAllApiKeysApiKeysAdminListGetData = {
 	body?: never;
@@ -4648,35 +4895,6 @@ export type DeactivateApiKeyLiberclawApiKeyDeactivatePostResponses = {
 export type DeactivateApiKeyLiberclawApiKeyDeactivatePostResponse =
 	DeactivateApiKeyLiberclawApiKeyDeactivatePostResponses[keyof DeactivateApiKeyLiberclawApiKeyDeactivatePostResponses];
 
-export type UpdateTierLiberclawTierPutData = {
-	body: LiberclawTierUpdate;
-	headers: {
-		/**
-		 * X-Liberclaw-Token
-		 */
-		"x-liberclaw-token": string;
-	};
-	path?: never;
-	query?: never;
-	url: "/liberclaw/tier";
-};
-
-export type UpdateTierLiberclawTierPutErrors = {
-	/**
-	 * Validation Error
-	 */
-	422: HttpValidationError;
-};
-
-export type UpdateTierLiberclawTierPutError = UpdateTierLiberclawTierPutErrors[keyof UpdateTierLiberclawTierPutErrors];
-
-export type UpdateTierLiberclawTierPutResponses = {
-	/**
-	 * Successful Response
-	 */
-	200: unknown;
-};
-
 export type GrantExtraCreditsLiberclawExtraCreditsPostData = {
 	body: LiberclawExtraCreditsGrant;
 	headers: {
@@ -4749,6 +4967,679 @@ export type GetUserLiberclawUserGetResponses = {
 };
 
 export type GetUserLiberclawUserGetResponse = GetUserLiberclawUserGetResponses[keyof GetUserLiberclawUserGetResponses];
+
+export type ListInvoicesLiberclawInvoicesGetData = {
+	body?: never;
+	headers: {
+		/**
+		 * X-Liberclaw-Token
+		 */
+		"x-liberclaw-token": string;
+	};
+	path?: never;
+	query: {
+		/**
+		 * Liberclaw Account Id
+		 */
+		liberclaw_account_id: string;
+		/**
+		 * Page
+		 */
+		page?: number;
+		/**
+		 * Page Size
+		 */
+		page_size?: number;
+	};
+	url: "/liberclaw/invoices";
+};
+
+export type ListInvoicesLiberclawInvoicesGetErrors = {
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
+};
+
+export type ListInvoicesLiberclawInvoicesGetError =
+	ListInvoicesLiberclawInvoicesGetErrors[keyof ListInvoicesLiberclawInvoicesGetErrors];
+
+export type ListInvoicesLiberclawInvoicesGetResponses = {
+	/**
+	 * Successful Response
+	 */
+	200: InvoiceListResponse;
+};
+
+export type ListInvoicesLiberclawInvoicesGetResponse =
+	ListInvoicesLiberclawInvoicesGetResponses[keyof ListInvoicesLiberclawInvoicesGetResponses];
+
+export type ListSubscriptionCyclesLiberclawSubscriptionCyclesGetData = {
+	body?: never;
+	headers: {
+		/**
+		 * X-Liberclaw-Token
+		 */
+		"x-liberclaw-token": string;
+	};
+	path?: never;
+	query: {
+		/**
+		 * Provider Subscription Id
+		 */
+		provider_subscription_id: string;
+	};
+	url: "/liberclaw/subscription-cycles";
+};
+
+export type ListSubscriptionCyclesLiberclawSubscriptionCyclesGetErrors = {
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
+};
+
+export type ListSubscriptionCyclesLiberclawSubscriptionCyclesGetError =
+	ListSubscriptionCyclesLiberclawSubscriptionCyclesGetErrors[keyof ListSubscriptionCyclesLiberclawSubscriptionCyclesGetErrors];
+
+export type ListSubscriptionCyclesLiberclawSubscriptionCyclesGetResponses = {
+	/**
+	 * Successful Response
+	 */
+	200: SubscriptionCyclesResponse;
+};
+
+export type ListSubscriptionCyclesLiberclawSubscriptionCyclesGetResponse =
+	ListSubscriptionCyclesLiberclawSubscriptionCyclesGetResponses[keyof ListSubscriptionCyclesLiberclawSubscriptionCyclesGetResponses];
+
+export type DownloadInvoicePdfLiberclawInvoicesInvoiceIdPdfGetData = {
+	body?: never;
+	headers: {
+		/**
+		 * X-Liberclaw-Token
+		 */
+		"x-liberclaw-token": string;
+	};
+	path: {
+		/**
+		 * Invoice Id
+		 */
+		invoice_id: string;
+	};
+	query: {
+		/**
+		 * Liberclaw Account Id
+		 */
+		liberclaw_account_id: string;
+	};
+	url: "/liberclaw/invoices/{invoice_id}/pdf";
+};
+
+export type DownloadInvoicePdfLiberclawInvoicesInvoiceIdPdfGetErrors = {
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
+};
+
+export type DownloadInvoicePdfLiberclawInvoicesInvoiceIdPdfGetError =
+	DownloadInvoicePdfLiberclawInvoicesInvoiceIdPdfGetErrors[keyof DownloadInvoicePdfLiberclawInvoicesInvoiceIdPdfGetErrors];
+
+export type DownloadInvoicePdfLiberclawInvoicesInvoiceIdPdfGetResponses = {
+	/**
+	 * Successful Response
+	 */
+	200: unknown;
+};
+
+export type DeleteBillingDetailsLiberclawBillingDetailsDeleteData = {
+	body?: never;
+	headers: {
+		/**
+		 * X-Liberclaw-Token
+		 */
+		"x-liberclaw-token": string;
+	};
+	path?: never;
+	query: {
+		/**
+		 * Liberclaw Account Id
+		 */
+		liberclaw_account_id: string;
+	};
+	url: "/liberclaw/billing-details";
+};
+
+export type DeleteBillingDetailsLiberclawBillingDetailsDeleteErrors = {
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
+};
+
+export type DeleteBillingDetailsLiberclawBillingDetailsDeleteError =
+	DeleteBillingDetailsLiberclawBillingDetailsDeleteErrors[keyof DeleteBillingDetailsLiberclawBillingDetailsDeleteErrors];
+
+export type DeleteBillingDetailsLiberclawBillingDetailsDeleteResponses = {
+	/**
+	 * Successful Response
+	 */
+	200: unknown;
+};
+
+export type GetBillingDetailsLiberclawBillingDetailsGetData = {
+	body?: never;
+	headers: {
+		/**
+		 * X-Liberclaw-Token
+		 */
+		"x-liberclaw-token": string;
+	};
+	path?: never;
+	query: {
+		/**
+		 * Liberclaw Account Id
+		 */
+		liberclaw_account_id: string;
+	};
+	url: "/liberclaw/billing-details";
+};
+
+export type GetBillingDetailsLiberclawBillingDetailsGetErrors = {
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
+};
+
+export type GetBillingDetailsLiberclawBillingDetailsGetError =
+	GetBillingDetailsLiberclawBillingDetailsGetErrors[keyof GetBillingDetailsLiberclawBillingDetailsGetErrors];
+
+export type GetBillingDetailsLiberclawBillingDetailsGetResponses = {
+	/**
+	 * Successful Response
+	 */
+	200: BillingDetailsResponse;
+};
+
+export type GetBillingDetailsLiberclawBillingDetailsGetResponse =
+	GetBillingDetailsLiberclawBillingDetailsGetResponses[keyof GetBillingDetailsLiberclawBillingDetailsGetResponses];
+
+export type UpdateBillingDetailsLiberclawBillingDetailsPutData = {
+	body: BillingDetailsUpdate;
+	headers: {
+		/**
+		 * X-Liberclaw-Token
+		 */
+		"x-liberclaw-token": string;
+	};
+	path?: never;
+	query: {
+		/**
+		 * Liberclaw Account Id
+		 */
+		liberclaw_account_id: string;
+	};
+	url: "/liberclaw/billing-details";
+};
+
+export type UpdateBillingDetailsLiberclawBillingDetailsPutErrors = {
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
+};
+
+export type UpdateBillingDetailsLiberclawBillingDetailsPutError =
+	UpdateBillingDetailsLiberclawBillingDetailsPutErrors[keyof UpdateBillingDetailsLiberclawBillingDetailsPutErrors];
+
+export type UpdateBillingDetailsLiberclawBillingDetailsPutResponses = {
+	/**
+	 * Successful Response
+	 */
+	200: BillingDetailsResponse;
+};
+
+export type UpdateBillingDetailsLiberclawBillingDetailsPutResponse =
+	UpdateBillingDetailsLiberclawBillingDetailsPutResponses[keyof UpdateBillingDetailsLiberclawBillingDetailsPutResponses];
+
+export type LiberclawCheckoutLiberclawCheckoutPostData = {
+	body: LiberclawCheckoutRequest;
+	headers: {
+		/**
+		 * X-Liberclaw-Token
+		 */
+		"x-liberclaw-token": string;
+	};
+	path?: never;
+	query?: never;
+	url: "/liberclaw/checkout";
+};
+
+export type LiberclawCheckoutLiberclawCheckoutPostErrors = {
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
+};
+
+export type LiberclawCheckoutLiberclawCheckoutPostError =
+	LiberclawCheckoutLiberclawCheckoutPostErrors[keyof LiberclawCheckoutLiberclawCheckoutPostErrors];
+
+export type LiberclawCheckoutLiberclawCheckoutPostResponses = {
+	/**
+	 * Successful Response
+	 */
+	200: LiberclawCheckoutResponse;
+};
+
+export type LiberclawCheckoutLiberclawCheckoutPostResponse =
+	LiberclawCheckoutLiberclawCheckoutPostResponses[keyof LiberclawCheckoutLiberclawCheckoutPostResponses];
+
+export type LiberclawUpgradeLiberclawSubscriptionUpgradePostData = {
+	body: LiberclawUpgradeRequest;
+	headers: {
+		/**
+		 * X-Liberclaw-Token
+		 */
+		"x-liberclaw-token": string;
+	};
+	path?: never;
+	query?: never;
+	url: "/liberclaw/subscription/upgrade";
+};
+
+export type LiberclawUpgradeLiberclawSubscriptionUpgradePostErrors = {
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
+};
+
+export type LiberclawUpgradeLiberclawSubscriptionUpgradePostError =
+	LiberclawUpgradeLiberclawSubscriptionUpgradePostErrors[keyof LiberclawUpgradeLiberclawSubscriptionUpgradePostErrors];
+
+export type LiberclawUpgradeLiberclawSubscriptionUpgradePostResponses = {
+	/**
+	 * Successful Response
+	 */
+	200: LiberclawCheckoutResponse;
+};
+
+export type LiberclawUpgradeLiberclawSubscriptionUpgradePostResponse =
+	LiberclawUpgradeLiberclawSubscriptionUpgradePostResponses[keyof LiberclawUpgradeLiberclawSubscriptionUpgradePostResponses];
+
+export type LiberclawCancelLiberclawSubscriptionCancelPostData = {
+	body: LiberclawAccountRequest;
+	headers: {
+		/**
+		 * X-Liberclaw-Token
+		 */
+		"x-liberclaw-token": string;
+	};
+	path?: never;
+	query?: never;
+	url: "/liberclaw/subscription/cancel";
+};
+
+export type LiberclawCancelLiberclawSubscriptionCancelPostErrors = {
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
+};
+
+export type LiberclawCancelLiberclawSubscriptionCancelPostError =
+	LiberclawCancelLiberclawSubscriptionCancelPostErrors[keyof LiberclawCancelLiberclawSubscriptionCancelPostErrors];
+
+export type LiberclawCancelLiberclawSubscriptionCancelPostResponses = {
+	/**
+	 * Response Liberclaw Cancel Liberclaw Subscription Cancel Post
+	 *
+	 * Successful Response
+	 */
+	200: {
+		[key: string]: unknown;
+	};
+};
+
+export type LiberclawCancelLiberclawSubscriptionCancelPostResponse =
+	LiberclawCancelLiberclawSubscriptionCancelPostResponses[keyof LiberclawCancelLiberclawSubscriptionCancelPostResponses];
+
+export type LiberclawResumeLiberclawSubscriptionResumePostData = {
+	body: LiberclawAccountRequest;
+	headers: {
+		/**
+		 * X-Liberclaw-Token
+		 */
+		"x-liberclaw-token": string;
+	};
+	path?: never;
+	query?: never;
+	url: "/liberclaw/subscription/resume";
+};
+
+export type LiberclawResumeLiberclawSubscriptionResumePostErrors = {
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
+};
+
+export type LiberclawResumeLiberclawSubscriptionResumePostError =
+	LiberclawResumeLiberclawSubscriptionResumePostErrors[keyof LiberclawResumeLiberclawSubscriptionResumePostErrors];
+
+export type LiberclawResumeLiberclawSubscriptionResumePostResponses = {
+	/**
+	 * Response Liberclaw Resume Liberclaw Subscription Resume Post
+	 *
+	 * Successful Response
+	 */
+	200: {
+		[key: string]: unknown;
+	};
+};
+
+export type LiberclawResumeLiberclawSubscriptionResumePostResponse =
+	LiberclawResumeLiberclawSubscriptionResumePostResponses[keyof LiberclawResumeLiberclawSubscriptionResumePostResponses];
+
+export type LiberclawDowngradeLiberclawSubscriptionDowngradePostData = {
+	body: LiberclawTierRequest;
+	headers: {
+		/**
+		 * X-Liberclaw-Token
+		 */
+		"x-liberclaw-token": string;
+	};
+	path?: never;
+	query?: never;
+	url: "/liberclaw/subscription/downgrade";
+};
+
+export type LiberclawDowngradeLiberclawSubscriptionDowngradePostErrors = {
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
+};
+
+export type LiberclawDowngradeLiberclawSubscriptionDowngradePostError =
+	LiberclawDowngradeLiberclawSubscriptionDowngradePostErrors[keyof LiberclawDowngradeLiberclawSubscriptionDowngradePostErrors];
+
+export type LiberclawDowngradeLiberclawSubscriptionDowngradePostResponses = {
+	/**
+	 * Response Liberclaw Downgrade Liberclaw Subscription Downgrade Post
+	 *
+	 * Successful Response
+	 */
+	200: {
+		[key: string]: unknown;
+	};
+};
+
+export type LiberclawDowngradeLiberclawSubscriptionDowngradePostResponse =
+	LiberclawDowngradeLiberclawSubscriptionDowngradePostResponses[keyof LiberclawDowngradeLiberclawSubscriptionDowngradePostResponses];
+
+export type LiberclawStartTrialLiberclawSubscriptionTrialPostData = {
+	body: LiberclawTrialRequest;
+	headers: {
+		/**
+		 * X-Liberclaw-Token
+		 */
+		"x-liberclaw-token": string;
+	};
+	path?: never;
+	query?: never;
+	url: "/liberclaw/subscription/trial";
+};
+
+export type LiberclawStartTrialLiberclawSubscriptionTrialPostErrors = {
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
+};
+
+export type LiberclawStartTrialLiberclawSubscriptionTrialPostError =
+	LiberclawStartTrialLiberclawSubscriptionTrialPostErrors[keyof LiberclawStartTrialLiberclawSubscriptionTrialPostErrors];
+
+export type LiberclawStartTrialLiberclawSubscriptionTrialPostResponses = {
+	/**
+	 * Response Liberclaw Start Trial Liberclaw Subscription Trial Post
+	 *
+	 * Successful Response
+	 */
+	200: {
+		[key: string]: unknown;
+	};
+};
+
+export type LiberclawStartTrialLiberclawSubscriptionTrialPostResponse =
+	LiberclawStartTrialLiberclawSubscriptionTrialPostResponses[keyof LiberclawStartTrialLiberclawSubscriptionTrialPostResponses];
+
+export type LiberclawTrialEligibilityLiberclawSubscriptionTrialEligibilityGetData = {
+	body?: never;
+	headers: {
+		/**
+		 * X-Liberclaw-Token
+		 */
+		"x-liberclaw-token": string;
+	};
+	path?: never;
+	query: {
+		/**
+		 * Liberclaw Account Id
+		 */
+		liberclaw_account_id: string;
+	};
+	url: "/liberclaw/subscription/trial-eligibility";
+};
+
+export type LiberclawTrialEligibilityLiberclawSubscriptionTrialEligibilityGetErrors = {
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
+};
+
+export type LiberclawTrialEligibilityLiberclawSubscriptionTrialEligibilityGetError =
+	LiberclawTrialEligibilityLiberclawSubscriptionTrialEligibilityGetErrors[keyof LiberclawTrialEligibilityLiberclawSubscriptionTrialEligibilityGetErrors];
+
+export type LiberclawTrialEligibilityLiberclawSubscriptionTrialEligibilityGetResponses = {
+	/**
+	 * Successful Response
+	 */
+	200: LiberclawTrialEligibilityResponse;
+};
+
+export type LiberclawTrialEligibilityLiberclawSubscriptionTrialEligibilityGetResponse =
+	LiberclawTrialEligibilityLiberclawSubscriptionTrialEligibilityGetResponses[keyof LiberclawTrialEligibilityLiberclawSubscriptionTrialEligibilityGetResponses];
+
+export type LiberclawSubscriptionStateLiberclawSubscriptionStateGetData = {
+	body?: never;
+	headers: {
+		/**
+		 * X-Liberclaw-Token
+		 */
+		"x-liberclaw-token": string;
+	};
+	path?: never;
+	query: {
+		/**
+		 * Liberclaw Account Id
+		 */
+		liberclaw_account_id: string;
+	};
+	url: "/liberclaw/subscription-state";
+};
+
+export type LiberclawSubscriptionStateLiberclawSubscriptionStateGetErrors = {
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
+};
+
+export type LiberclawSubscriptionStateLiberclawSubscriptionStateGetError =
+	LiberclawSubscriptionStateLiberclawSubscriptionStateGetErrors[keyof LiberclawSubscriptionStateLiberclawSubscriptionStateGetErrors];
+
+export type LiberclawSubscriptionStateLiberclawSubscriptionStateGetResponses = {
+	/**
+	 * Response Liberclaw Subscription State Liberclaw Subscription State Get
+	 *
+	 * Successful Response
+	 */
+	200: {
+		[key: string]: unknown;
+	};
+};
+
+export type LiberclawSubscriptionStateLiberclawSubscriptionStateGetResponse =
+	LiberclawSubscriptionStateLiberclawSubscriptionStateGetResponses[keyof LiberclawSubscriptionStateLiberclawSubscriptionStateGetResponses];
+
+export type LiberclawAdminGrantTrialLiberclawSubscriptionAdminGrantTrialPostData = {
+	body: LiberclawAdminGrantTrialRequest;
+	headers: {
+		/**
+		 * X-Liberclaw-Token
+		 */
+		"x-liberclaw-token": string;
+	};
+	path?: never;
+	query?: never;
+	url: "/liberclaw/subscription/admin/grant-trial";
+};
+
+export type LiberclawAdminGrantTrialLiberclawSubscriptionAdminGrantTrialPostErrors = {
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
+};
+
+export type LiberclawAdminGrantTrialLiberclawSubscriptionAdminGrantTrialPostError =
+	LiberclawAdminGrantTrialLiberclawSubscriptionAdminGrantTrialPostErrors[keyof LiberclawAdminGrantTrialLiberclawSubscriptionAdminGrantTrialPostErrors];
+
+export type LiberclawAdminGrantTrialLiberclawSubscriptionAdminGrantTrialPostResponses = {
+	/**
+	 * Response Liberclaw Admin Grant Trial Liberclaw Subscription Admin Grant Trial Post
+	 *
+	 * Successful Response
+	 */
+	200: {
+		[key: string]: unknown;
+	};
+};
+
+export type LiberclawAdminGrantTrialLiberclawSubscriptionAdminGrantTrialPostResponse =
+	LiberclawAdminGrantTrialLiberclawSubscriptionAdminGrantTrialPostResponses[keyof LiberclawAdminGrantTrialLiberclawSubscriptionAdminGrantTrialPostResponses];
+
+export type LiberclawAdminOverrideTierLiberclawSubscriptionAdminOverrideTierPostData = {
+	body: LiberclawTierRequest;
+	headers: {
+		/**
+		 * X-Liberclaw-Token
+		 */
+		"x-liberclaw-token": string;
+	};
+	path?: never;
+	query?: never;
+	url: "/liberclaw/subscription/admin/override-tier";
+};
+
+export type LiberclawAdminOverrideTierLiberclawSubscriptionAdminOverrideTierPostErrors = {
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
+};
+
+export type LiberclawAdminOverrideTierLiberclawSubscriptionAdminOverrideTierPostError =
+	LiberclawAdminOverrideTierLiberclawSubscriptionAdminOverrideTierPostErrors[keyof LiberclawAdminOverrideTierLiberclawSubscriptionAdminOverrideTierPostErrors];
+
+export type LiberclawAdminOverrideTierLiberclawSubscriptionAdminOverrideTierPostResponses = {
+	/**
+	 * Response Liberclaw Admin Override Tier Liberclaw Subscription Admin Override Tier Post
+	 *
+	 * Successful Response
+	 */
+	200: {
+		[key: string]: unknown;
+	};
+};
+
+export type LiberclawAdminOverrideTierLiberclawSubscriptionAdminOverrideTierPostResponse =
+	LiberclawAdminOverrideTierLiberclawSubscriptionAdminOverrideTierPostResponses[keyof LiberclawAdminOverrideTierLiberclawSubscriptionAdminOverrideTierPostResponses];
+
+export type LiberclawAdminForceCancelLiberclawSubscriptionAdminForceCancelPostData = {
+	body: LiberclawAccountRequest;
+	headers: {
+		/**
+		 * X-Liberclaw-Token
+		 */
+		"x-liberclaw-token": string;
+	};
+	path?: never;
+	query?: never;
+	url: "/liberclaw/subscription/admin/force-cancel";
+};
+
+export type LiberclawAdminForceCancelLiberclawSubscriptionAdminForceCancelPostErrors = {
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
+};
+
+export type LiberclawAdminForceCancelLiberclawSubscriptionAdminForceCancelPostError =
+	LiberclawAdminForceCancelLiberclawSubscriptionAdminForceCancelPostErrors[keyof LiberclawAdminForceCancelLiberclawSubscriptionAdminForceCancelPostErrors];
+
+export type LiberclawAdminForceCancelLiberclawSubscriptionAdminForceCancelPostResponses = {
+	/**
+	 * Response Liberclaw Admin Force Cancel Liberclaw Subscription Admin Force Cancel Post
+	 *
+	 * Successful Response
+	 */
+	200: {
+		[key: string]: unknown;
+	};
+};
+
+export type LiberclawAdminForceCancelLiberclawSubscriptionAdminForceCancelPostResponse =
+	LiberclawAdminForceCancelLiberclawSubscriptionAdminForceCancelPostResponses[keyof LiberclawAdminForceCancelLiberclawSubscriptionAdminForceCancelPostResponses];
+
+export type LiberclawAdminExtendLiberclawSubscriptionAdminExtendPostData = {
+	body: LiberclawAdminExtendRequest;
+	headers: {
+		/**
+		 * X-Liberclaw-Token
+		 */
+		"x-liberclaw-token": string;
+	};
+	path?: never;
+	query?: never;
+	url: "/liberclaw/subscription/admin/extend";
+};
+
+export type LiberclawAdminExtendLiberclawSubscriptionAdminExtendPostErrors = {
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
+};
+
+export type LiberclawAdminExtendLiberclawSubscriptionAdminExtendPostError =
+	LiberclawAdminExtendLiberclawSubscriptionAdminExtendPostErrors[keyof LiberclawAdminExtendLiberclawSubscriptionAdminExtendPostErrors];
+
+export type LiberclawAdminExtendLiberclawSubscriptionAdminExtendPostResponses = {
+	/**
+	 * Successful Response
+	 */
+	200: LiberclawExtendResponse;
+};
+
+export type LiberclawAdminExtendLiberclawSubscriptionAdminExtendPostResponse =
+	LiberclawAdminExtendLiberclawSubscriptionAdminExtendPostResponses[keyof LiberclawAdminExtendLiberclawSubscriptionAdminExtendPostResponses];
 
 export type GetX402PricesX402PricesGetData = {
 	body?: never;
@@ -4972,6 +5863,38 @@ export type UpgradePaymentsUpgradePostResponses = {
 
 export type UpgradePaymentsUpgradePostResponse =
 	UpgradePaymentsUpgradePostResponses[keyof UpgradePaymentsUpgradePostResponses];
+
+export type RestartPaymentsRestartPostData = {
+	body: RestartRequest;
+	headers?: {
+		/**
+		 * Authorization
+		 */
+		authorization?: string | null;
+	};
+	path?: never;
+	query?: never;
+	url: "/payments/restart";
+};
+
+export type RestartPaymentsRestartPostErrors = {
+	/**
+	 * Validation Error
+	 */
+	422: HttpValidationError;
+};
+
+export type RestartPaymentsRestartPostError = RestartPaymentsRestartPostErrors[keyof RestartPaymentsRestartPostErrors];
+
+export type RestartPaymentsRestartPostResponses = {
+	/**
+	 * Successful Response
+	 */
+	200: CheckoutResponse;
+};
+
+export type RestartPaymentsRestartPostResponse =
+	RestartPaymentsRestartPostResponses[keyof RestartPaymentsRestartPostResponses];
 
 export type DowngradePaymentsDowngradePostData = {
 	body: DowngradeRequest;
