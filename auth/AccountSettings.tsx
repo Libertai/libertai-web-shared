@@ -1,4 +1,4 @@
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { Copy, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "../ui/button";
@@ -32,6 +32,12 @@ export function AccountSettings({ ens, appearance }: Readonly<AccountSettingsPro
 
 	const [name, setName] = useState(me?.display_name ?? "");
 	const [saving, setSaving] = useState(false);
+
+	// `me` is null on a cold load until checkSession() resolves; without this,
+	// a saved display name renders blank and saving would wipe it.
+	useEffect(() => {
+		if (me?.display_name != null) setName(me.display_name);
+	}, [me]);
 
 	if (!isAuthenticated) {
 		return (
