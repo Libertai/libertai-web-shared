@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { ChevronLeft } from "lucide-react";
 import { Button } from "../../ui/button";
 import { PaymentMethod, PaymentMethodSelector } from "./PaymentMethodSelector";
@@ -7,12 +7,10 @@ import WalletConnectButtons from "../WalletConnectButtons";
 import { useWalletChains } from "../use-payments";
 import { base } from "thirdweb/chains";
 import { PaymentForm } from "./PaymentForm";
-import { useLTAIPrice } from "./use-ltai-price";
-import { useSOLPrice } from "./use-sol-price";
+import { usePaymentQuote } from "./use-payment-quote";
 import { useAccountStore } from "../account";
 import { useQueryState } from "nuqs";
 import { prepareContractCall, sendTransaction } from "thirdweb";
-import { parseUnits } from "viem";
 import { toast } from "sonner";
 import {
 	createAssociatedTokenAccountInstruction,
@@ -66,13 +64,6 @@ export const PaymentStage = ({ usdAmount, handleGoBackToSelection, handlePayment
 	const getLTAIBalance = useAccountStore((state) => state.getLTAIBalance);
 	const getSOLBalance = useAccountStore((state) => state.getSOLBalance);
 
-	const { price: ltaiPrice, isLoading: isLtaiPriceLoading, getRequiredLTAI } = useLTAIPrice();
-	const { price: solPrice, isLoading: isSolPriceLoading, getRequiredSOL } = useSOLPrice();
-
-	const originalLtaiAmount = getRequiredLTAI(usdAmount, false);
-	const originalSolAmount = getRequiredSOL(usdAmount);
-	const discountedLtaiAmount = getRequiredLTAI(usdAmount, true);
-
 	// Payment rails split by account type: wallet users pay on-chain (LTAI/SOL/crypto),
 	// email/OAuth users pay by card. Default to the wallet's native option; walletless users
 	// default to card (when fiat is unconfigured the empty state below renders instead).
@@ -94,6 +85,26 @@ export const PaymentStage = ({ usdAmount, handleGoBackToSelection, handlePayment
 		},
 	});
 
+	// Frozen from the Base approval on, so the payment sends exactly the approved amount.
+	const [ltaiQuoteFrozen, setLtaiQuoteFrozen] = useState(false);
+	const {
+		quote: ltaiQuote,
+		isLoading: isLtaiQuoteLoading,
+		error: ltaiQuoteError,
+	} = usePaymentQuote("ltai", usdAmount, {
+		enabled: method === "ltai",
+		frozen: ltaiQuoteFrozen,
+	});
+	const {
+		quote: solQuote,
+		isLoading: isSolQuoteLoading,
+		error: solQuoteError,
+	} = usePaymentQuote("sol", usdAmount, {
+		enabled: method === "solana",
+	});
+	// LTAI payments are credited 25% more than their USD value: this is the undiscounted amount.
+	const originalLtaiAmount = ltaiQuote ? ltaiQuote.amount * 1.25 : 0;
+
 	// On-chain methods need a wallet to sign with — the payer wallet needn't be the account's own,
 	// since credits land on the session user (purchaseData.userId). Without one, prompt to connect
 	// rather than dead-ending: card payers only reach here when no fiat provider is on offer.
@@ -102,7 +113,7 @@ export const PaymentStage = ({ usdAmount, handleGoBackToSelection, handlePayment
 	const hasLTAI = ltaiBalance > 0;
 
 	const handleLtaiPayment = async () => {
-		if (!ltaiPrice || !discountedLtaiAmount) return;
+		if (!ltaiQuote) return;
 
 		// Only advance to the success screen when the payment actually confirms — a rejected tx,
 		// insufficient funds, or a contract/confirmation error must NOT look like success.
@@ -127,7 +138,7 @@ export const PaymentStage = ({ usdAmount, handleGoBackToSelection, handlePayment
 						client: thirdwebClient,
 					},
 					method: "processPayment",
-					params: [parseUnits(discountedLtaiAmount.toString(), 18)],
+					params: [ltaiQuote.rawAmount],
 				});
 
 				// Send the transaction
@@ -171,8 +182,6 @@ export const PaymentStage = ({ usdAmount, handleGoBackToSelection, handlePayment
 			}
 		} else if (account?.chain === "solana" && account.provider.publicKey !== null) {
 			try {
-				const amount = parseUnits(discountedLtaiAmount.toString(), 9);
-
 				const mintAccountInfo = await solanaConnection.getAccountInfo(solanaTokenMint);
 				if (!mintAccountInfo) {
 					throw new Error("Token mint account not found");
@@ -209,7 +218,7 @@ export const PaymentStage = ({ usdAmount, handleGoBackToSelection, handlePayment
 				);
 
 				const paymentIx = await solanaProgram.methods
-					.processPayment(new BN(amount))
+					.processPayment(new BN(ltaiQuote.rawAmount.toString()))
 					.accounts({
 						user: account.provider.publicKey,
 						userTokenAccount: userTokenAccount,
@@ -299,16 +308,15 @@ export const PaymentStage = ({ usdAmount, handleGoBackToSelection, handlePayment
 	};
 
 	const handleSolPayment = async () => {
-		if (account?.chain !== "solana" || !account.provider?.publicKey || !solPrice) {
+		if (account?.chain !== "solana" || !account.provider?.publicKey || !solQuote) {
 			return;
 		}
 
 		const instructions = [];
 		const { blockhash } = await solanaConnection.getLatestBlockhash();
 		const [programState] = PublicKey.findProgramAddressSync([Buffer.from("program_state")], solanaProgram.programId);
-		const amount = parseUnits(originalSolAmount.toString(), 9);
 		const ix = await solanaProgram.methods
-			.processPaymentSol(new BN(amount))
+			.processPaymentSol(new BN(solQuote.rawAmount.toString()))
 			.accounts({
 				user: account.provider.publicKey,
 				programState: programState,
@@ -451,20 +459,24 @@ export const PaymentStage = ({ usdAmount, handleGoBackToSelection, handlePayment
 							handlePayment={handleLtaiPayment}
 							ticker="LTAI"
 							tokenAmount={originalLtaiAmount}
-							discountedAmount={discountedLtaiAmount}
+							discountedAmount={ltaiQuote?.amount}
+							approveAmountRaw={ltaiQuote?.rawAmount}
+							onApprove={() => setLtaiQuoteFrozen(true)}
 							balance={ltaiBalance}
 							displayedDecimals={2}
-							isLoading={isLtaiPriceLoading}
+							isLoading={isLtaiQuoteLoading}
+							error={ltaiQuote ? undefined : ltaiQuoteError?.message}
 						/>
 					)}
 					{method === "solana" && (
 						<PaymentForm
 							handlePayment={handleSolPayment}
 							ticker="SOL"
-							tokenAmount={originalSolAmount}
+							tokenAmount={solQuote?.amount ?? 0}
 							balance={solBalance}
 							displayedDecimals={4}
-							isLoading={isSolPriceLoading}
+							isLoading={isSolQuoteLoading}
+							error={solQuote ? undefined : solQuoteError?.message}
 						/>
 					)}
 				</div>

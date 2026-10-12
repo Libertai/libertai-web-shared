@@ -6,6 +6,9 @@ import type {
 	AddVoucherCreditsCreditsVouchersPostData,
 	AddVoucherCreditsCreditsVouchersPostErrors,
 	AddVoucherCreditsCreditsVouchersPostResponses,
+	AttachCampaignAlephAddressCreditsCampaignsCodeClaimAlephPostData,
+	AttachCampaignAlephAddressCreditsCampaignsCodeClaimAlephPostErrors,
+	AttachCampaignAlephAddressCreditsCampaignsCodeClaimAlephPostResponses,
 	CancelPaymentsCancelPostData,
 	CancelPaymentsCancelPostErrors,
 	CancelPaymentsCancelPostResponses,
@@ -15,6 +18,9 @@ import type {
 	CheckAuthStatusAuthStatusGetData,
 	CheckAuthStatusAuthStatusGetErrors,
 	CheckAuthStatusAuthStatusGetResponses,
+	ClaimCampaignCreditsCampaignsCodeClaimPostData,
+	ClaimCampaignCreditsCampaignsCodeClaimPostErrors,
+	ClaimCampaignCreditsCampaignsCodeClaimPostResponses,
 	CliCodeAuthCliCodePostData,
 	CliCodeAuthCliCodePostErrors,
 	CliCodeAuthCliCodePostResponses,
@@ -24,6 +30,9 @@ import type {
 	CreateCliApiKeyApiKeysCliPostData,
 	CreateCliApiKeyApiKeysCliPostErrors,
 	CreateCliApiKeyApiKeysCliPostResponses,
+	CreateTokenPaymentQuoteCreditsQuotesPostData,
+	CreateTokenPaymentQuoteCreditsQuotesPostErrors,
+	CreateTokenPaymentQuoteCreditsQuotesPostResponses,
 	DeactivateApiKeyLiberclawApiKeyDeactivatePostData,
 	DeactivateApiKeyLiberclawApiKeyDeactivatePostErrors,
 	DeactivateApiKeyLiberclawApiKeyDeactivatePostResponses,
@@ -45,6 +54,9 @@ import type {
 	ExchangeCodeAuthExchangePostData,
 	ExchangeCodeAuthExchangePostErrors,
 	ExchangeCodeAuthExchangePostResponses,
+	GetActiveUsersStatsGlobalUsersActiveGetData,
+	GetActiveUsersStatsGlobalUsersActiveGetErrors,
+	GetActiveUsersStatsGlobalUsersActiveGetResponses,
 	GetAdminAllApiKeysApiKeysAdminListGetData,
 	GetAdminAllApiKeysApiKeysAdminListGetErrors,
 	GetAdminAllApiKeysApiKeysAdminListGetResponses,
@@ -68,6 +80,12 @@ import type {
 	GetCallsBySegmentStatsGlobalKeyTypeCallsBySegmentGetData,
 	GetCallsBySegmentStatsGlobalKeyTypeCallsBySegmentGetErrors,
 	GetCallsBySegmentStatsGlobalKeyTypeCallsBySegmentGetResponses,
+	GetCampaignClaimCreditsCampaignsCodeClaimGetData,
+	GetCampaignClaimCreditsCampaignsCodeClaimGetErrors,
+	GetCampaignClaimCreditsCampaignsCodeClaimGetResponses,
+	GetCampaignCreditsCampaignsCodeGetData,
+	GetCampaignCreditsCampaignsCodeGetErrors,
+	GetCampaignCreditsCampaignsCodeGetResponses,
 	GetChatApiKeyApiKeysChatGetData,
 	GetChatApiKeyApiKeysChatGetErrors,
 	GetChatApiKeyApiKeysChatGetResponses,
@@ -140,6 +158,9 @@ import type {
 	GetTierEconomicsStatsGlobalSubscriptionsTierEconomicsGetData,
 	GetTierEconomicsStatsGlobalSubscriptionsTierEconomicsGetErrors,
 	GetTierEconomicsStatsGlobalSubscriptionsTierEconomicsGetResponses,
+	GetTopUsageStatsGlobalTopUsersGetData,
+	GetTopUsageStatsGlobalTopUsersGetErrors,
+	GetTopUsageStatsGlobalTopUsersGetResponses,
 	GetTransactionHistoryCreditsTransactionsGetData,
 	GetTransactionHistoryCreditsTransactionsGetErrors,
 	GetTransactionHistoryCreditsTransactionsGetResponses,
@@ -761,6 +782,124 @@ export const changeVoucherExpirationCreditsVoucherExpirationPost = <ThrowOnError
 	});
 
 /**
+ * Get Campaign
+ *
+ * Public: what a claim code offers and whether it accepts claims right now
+ */
+export const getCampaignCreditsCampaignsCodeGet = <ThrowOnError extends boolean = false>(
+	options: Options<GetCampaignCreditsCampaignsCodeGetData, ThrowOnError>,
+): RequestResult<GetCampaignCreditsCampaignsCodeGetResponses, GetCampaignCreditsCampaignsCodeGetErrors, ThrowOnError> =>
+	(options.client ?? client).get<
+		GetCampaignCreditsCampaignsCodeGetResponses,
+		GetCampaignCreditsCampaignsCodeGetErrors,
+		ThrowOnError
+	>({
+		responseType: "json",
+		url: "/credits/campaigns/{code}",
+		...options,
+	});
+
+/**
+ * Get Campaign Claim
+ *
+ * The signed-in user's claim on this code, 404 if none
+ */
+export const getCampaignClaimCreditsCampaignsCodeClaimGet = <ThrowOnError extends boolean = false>(
+	options: Options<GetCampaignClaimCreditsCampaignsCodeClaimGetData, ThrowOnError>,
+): RequestResult<
+	GetCampaignClaimCreditsCampaignsCodeClaimGetResponses,
+	GetCampaignClaimCreditsCampaignsCodeClaimGetErrors,
+	ThrowOnError
+> =>
+	(options.client ?? client).get<
+		GetCampaignClaimCreditsCampaignsCodeClaimGetResponses,
+		GetCampaignClaimCreditsCampaignsCodeClaimGetErrors,
+		ThrowOnError
+	>({
+		responseType: "json",
+		url: "/credits/campaigns/{code}/claim",
+		...options,
+	});
+
+/**
+ * Claim Campaign
+ *
+ * Claim this code's credits: LibertAI right away, Aleph Cloud too if a wallet is given
+ */
+export const claimCampaignCreditsCampaignsCodeClaimPost = <ThrowOnError extends boolean = false>(
+	options: Options<ClaimCampaignCreditsCampaignsCodeClaimPostData, ThrowOnError>,
+): RequestResult<
+	ClaimCampaignCreditsCampaignsCodeClaimPostResponses,
+	ClaimCampaignCreditsCampaignsCodeClaimPostErrors,
+	ThrowOnError
+> =>
+	(options.client ?? client).post<
+		ClaimCampaignCreditsCampaignsCodeClaimPostResponses,
+		ClaimCampaignCreditsCampaignsCodeClaimPostErrors,
+		ThrowOnError
+	>({
+		responseType: "json",
+		url: "/credits/campaigns/{code}/claim",
+		...options,
+		headers: {
+			"Content-Type": "application/json",
+			...options.headers,
+		},
+	});
+
+/**
+ * Attach Campaign Aleph Address
+ *
+ * Add the Aleph Cloud wallet to an existing claim that has none yet
+ */
+export const attachCampaignAlephAddressCreditsCampaignsCodeClaimAlephPost = <ThrowOnError extends boolean = false>(
+	options: Options<AttachCampaignAlephAddressCreditsCampaignsCodeClaimAlephPostData, ThrowOnError>,
+): RequestResult<
+	AttachCampaignAlephAddressCreditsCampaignsCodeClaimAlephPostResponses,
+	AttachCampaignAlephAddressCreditsCampaignsCodeClaimAlephPostErrors,
+	ThrowOnError
+> =>
+	(options.client ?? client).post<
+		AttachCampaignAlephAddressCreditsCampaignsCodeClaimAlephPostResponses,
+		AttachCampaignAlephAddressCreditsCampaignsCodeClaimAlephPostErrors,
+		ThrowOnError
+	>({
+		responseType: "json",
+		url: "/credits/campaigns/{code}/claim/aleph",
+		...options,
+		headers: {
+			"Content-Type": "application/json",
+			...options.headers,
+		},
+	});
+
+/**
+ * Create Token Payment Quote
+ *
+ * Lock the token price of an on-chain top-up: paying exactly token_amount_raw before expires_at credits credit_amount
+ */
+export const createTokenPaymentQuoteCreditsQuotesPost = <ThrowOnError extends boolean = false>(
+	options: Options<CreateTokenPaymentQuoteCreditsQuotesPostData, ThrowOnError>,
+): RequestResult<
+	CreateTokenPaymentQuoteCreditsQuotesPostResponses,
+	CreateTokenPaymentQuoteCreditsQuotesPostErrors,
+	ThrowOnError
+> =>
+	(options.client ?? client).post<
+		CreateTokenPaymentQuoteCreditsQuotesPostResponses,
+		CreateTokenPaymentQuoteCreditsQuotesPostErrors,
+		ThrowOnError
+	>({
+		responseType: "json",
+		url: "/credits/quotes",
+		...options,
+		headers: {
+			"Content-Type": "application/json",
+			...options.headers,
+		},
+	});
+
+/**
  * Unsubscribe Get
  */
 export const unsubscribeGetEmailsUnsubscribeGet = <ThrowOnError extends boolean = false>(
@@ -1157,6 +1296,42 @@ export const getSubscriptionsChurnStatsGlobalSubscriptionsChurnGet = <ThrowOnErr
 	>({
 		responseType: "json",
 		url: "/stats/global/subscriptions/churn",
+		...options,
+	});
+
+/**
+ * Get Top Usage
+ */
+export const getTopUsageStatsGlobalTopUsersGet = <ThrowOnError extends boolean = false>(
+	options: Options<GetTopUsageStatsGlobalTopUsersGetData, ThrowOnError>,
+): RequestResult<GetTopUsageStatsGlobalTopUsersGetResponses, GetTopUsageStatsGlobalTopUsersGetErrors, ThrowOnError> =>
+	(options.client ?? client).get<
+		GetTopUsageStatsGlobalTopUsersGetResponses,
+		GetTopUsageStatsGlobalTopUsersGetErrors,
+		ThrowOnError
+	>({
+		responseType: "json",
+		url: "/stats/global/top-users",
+		...options,
+	});
+
+/**
+ * Get Active Users
+ */
+export const getActiveUsersStatsGlobalUsersActiveGet = <ThrowOnError extends boolean = false>(
+	options: Options<GetActiveUsersStatsGlobalUsersActiveGetData, ThrowOnError>,
+): RequestResult<
+	GetActiveUsersStatsGlobalUsersActiveGetResponses,
+	GetActiveUsersStatsGlobalUsersActiveGetErrors,
+	ThrowOnError
+> =>
+	(options.client ?? client).get<
+		GetActiveUsersStatsGlobalUsersActiveGetResponses,
+		GetActiveUsersStatsGlobalUsersActiveGetErrors,
+		ThrowOnError
+	>({
+		responseType: "json",
+		url: "/stats/global/users/active",
 		...options,
 	});
 
