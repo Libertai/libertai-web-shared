@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "../../ui/button";
-import { AlertCircle, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { Skeleton } from "../../ui/skeleton";
 import { useAccountStore } from "../account";
 import { toast } from "sonner";
@@ -10,15 +10,12 @@ import { sendTransaction } from "thirdweb";
 import { waitForBaseTransaction } from "./transactions";
 import { usePaymentConfig } from "./config";
 
-const LTAI_DISCOUNT_END = new Date("2026-11-01T00:00:00Z");
-
 interface LTAIPaymentFormProps {
 	tokenAmount: number;
 	handlePayment: () => void | Promise<void>;
 	ticker: string;
 	balance: number;
 	displayedDecimals: number;
-	discountedAmount?: number;
 	/** Exact allowance to approve on Base, in the token's smallest unit. */
 	approveAmountRaw?: bigint;
 	/** Called as the Base approval starts: the amount to pay must not change from here on. */
@@ -34,7 +31,6 @@ export function PaymentForm({
 	ticker,
 	balance,
 	displayedDecimals,
-	discountedAmount,
 	approveAmountRaw,
 	onApprove,
 	isLoading = false,
@@ -137,37 +133,17 @@ export function PaymentForm({
 		);
 	}
 
-	const showDiscount = discountedAmount !== undefined && new Date() < LTAI_DISCOUNT_END;
+	const hasEnoughBalance = balance >= tokenAmount;
 
-	const hasEnoughBalance = discountedAmount ? balance >= discountedAmount : balance >= tokenAmount;
-
-	const displayAmount = discountedAmount
-		? discountedAmount.toFixed(displayedDecimals)
-		: tokenAmount.toFixed(displayedDecimals);
+	const displayAmount = tokenAmount.toFixed(displayedDecimals);
 
 	return (
 		<div className="space-y-4">
-			{showDiscount && (
-				<div className="flex items-center gap-3 p-4 border border-amber-500/30 rounded-lg bg-amber-50 text-amber-700 dark:bg-amber-950/20 dark:text-amber-400">
-					<AlertCircle className="h-5 w-5 flex-shrink-0" />
-					<div>
-						<p className="text-sm font-medium">The LTAI discount ends on November 1, 2026</p>
-						<p className="text-xs text-amber-700/80 dark:text-amber-400/80">
-							Until then, paying with ${ticker} still gets you 20% off, as before. From November 1, LTAI payments are
-							credited at market value, like every other payment method.
-						</p>
-					</div>
-				</div>
-			)}
-
 			{/* Compact amount + balance line */}
 			<div className="flex items-center gap-3 flex-wrap">
 				<span className="font-semibold">
 					≈ {displayAmount} ${ticker}
 				</span>
-				{showDiscount && (
-					<span className="text-xs font-medium text-green-600 bg-green-500/10 px-1.5 py-0.5 rounded">20% off</span>
-				)}
 				<span className="text-sm text-muted-foreground ml-auto">
 					Balance: {balance.toFixed(displayedDecimals)} ${ticker}
 				</span>

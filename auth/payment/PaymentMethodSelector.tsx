@@ -70,11 +70,6 @@ export function PaymentMethodSelector({
 								disabled={option.disabled}
 								type="button"
 							>
-								{option.id === "ltai" && (
-									<span className="absolute -top-2 -right-2 bg-green-700 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">
-										-20%
-									</span>
-								)}
 								<div className="flex items-center gap-3">
 									<div className="p-2 rounded-full bg-primary/10 dark:bg-primary/20">{option.icon}</div>
 									<div className="text-left">

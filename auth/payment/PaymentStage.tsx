@@ -102,8 +102,6 @@ export const PaymentStage = ({ usdAmount, handleGoBackToSelection, handlePayment
 	} = usePaymentQuote("sol", usdAmount, {
 		enabled: method === "solana",
 	});
-	// LTAI payments are credited 25% more than their USD value: this is the undiscounted amount.
-	const originalLtaiAmount = ltaiQuote ? ltaiQuote.amount * 1.25 : 0;
 
 	// On-chain methods need a wallet to sign with — the payer wallet needn't be the account's own,
 	// since credits land on the session user (purchaseData.userId). Without one, prompt to connect
@@ -458,8 +456,7 @@ export const PaymentStage = ({ usdAmount, handleGoBackToSelection, handlePayment
 						<PaymentForm
 							handlePayment={handleLtaiPayment}
 							ticker="LTAI"
-							tokenAmount={originalLtaiAmount}
-							discountedAmount={ltaiQuote?.amount}
+							tokenAmount={ltaiQuote?.amount ?? 0}
 							approveAmountRaw={ltaiQuote?.rawAmount}
 							onApprove={() => setLtaiQuoteFrozen(true)}
 							balance={ltaiBalance}
